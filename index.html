@@ -348,7 +348,7 @@ const cr=checkMember(secR,c.Pu*0.1,c.Mu*0.4,Lb_raft,'rafter');
 if(cr.dc>worstDC.rafter){worstDC.rafter=cr.dc;worstCombo.rafter=c.name;memberResults.rafter=cr}
 const cg=checkMember(secG,c.Pu*0.05,c.Mu*0.1,Lb_gird,'girder');
 if(cg.dc>worstDC.girder){worstDC.girder=cg.dc;worstCombo.girder=c.name;memberResults.girder=cg}
-const cka=checkMember(secKa,Math.abs(F_wind*0.15),M_wind*0.03,Lb_kan,'rafter');
+const cka=checkMember(secKa,Math.abs(F_wind*0.5),M_wind*0.11,Lb_kan,'rafter');
 if(cka.dc>worstDC.kanopi){worstDC.kanopi=cka.dc;worstCombo.kanopi=c.name;memberResults.kanopi=cka}
 const pSize=parseInt(profiles.pedestal.split('x')[0]);
 const phiPcPed=0.65*0.85*fc*pSize*pSize/1000;
