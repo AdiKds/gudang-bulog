@@ -431,7 +431,7 @@ const ck=checkMember(secK,c.Pu,c.Mcol,Lb_col,'kolom');
 if(ck.dc>worstDC.kolom){worstDC.kolom=ck.dc;worstCombo.kolom=c.name;memberResults.kolom=ck}
 const rFac=L<=24?0.50:0.30;const cr=checkMember(secR,c.Pu*0.15,c.Mu*rFac,1.5,'rafter');
 if(cr.dc>worstDC.rafter){worstDC.rafter=cr.dc;worstCombo.rafter=c.name;memberResults.rafter=cr}
-const cg=checkMember(secG,c.Pu*0.08,c.Mu*0.2,bayA,'girder');
+const cg=checkMember(secG,c.Pu*0.08,c.Mu*0.15,Math.min(bayA,4),'girder');
 if(cg.dc>worstDC.girder){worstDC.girder=cg.dc;worstCombo.girder=c.name;memberResults.girder=cg}
 const cka=checkMember(secKa,Math.abs(F_wind*0.3),M_wind*(L<=24?0.06:0.04),Lb_kan,'rafter');
 if(cka.dc>worstDC.kanopi){worstDC.kanopi=cka.dc;worstCombo.kanopi=c.name;memberResults.kanopi=cka}
