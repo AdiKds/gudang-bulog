@@ -710,39 +710,48 @@ const chk=checkTrussMember(sec,mf.force,mf.Lb,isTension);
 const key=mf.type;
 if(chk.dc>worstDC[key]){worstDC[key]=chk.dc;worstCombo[key]='1.2D+1.6Lr';memberResults[key]=chk}
 });
-// Auto-upgrade truss members if overstressed
+// Auto-upgrade truss members if overstressed (multi-pass)
 const trussUpgradeMap={
 'topChord':{'H200x100x5.5x8':'H250x125x6x9','H250x125x6x9':'H300x150x6.5x9','H300x150x6.5x9':'H350x175x7x11','H350x175x7x11':'H400x200x8x13','H400x200x8x13':'H500x200x10x16'},
 'bottomChord':{'H200x100x5.5x8':'H250x125x6x9','H250x125x6x9':'H300x150x6.5x9','H300x150x6.5x9':'H350x175x7x11','H350x175x7x11':'H400x200x8x13','H400x200x8x13':'H500x200x10x16'},
 'diagonal':{'H150x75x5x7':'H200x100x5.5x8','H200x100x5.5x8':'H250x125x6x9','H250x125x6x9':'H300x150x6.5x9','H300x150x6.5x9':'H350x175x7x11','H350x175x7x11':'H400x200x8x13','H400x200x8x13':'H500x200x10x16'}
 };
-// Check each truss member and upgrade if D/C > 0.8
+// Multi-pass upgrade: keep upgrading until D/C < 0.8 or no more upgrades
+for(let pass=0;pass<4;pass++){
+let upgraded=false;
 ['topChord','bottomChord','diagonal'].forEach(function(key){
 if(worstDC[key]>0.8&&trussUpgradeMap[key]){
-const curVal=document.getElementById(key==='topChord'?'prof_topchord':key==='bottomChord'?'prof_botchord':'prof_web').value;
+const elId=key==='topChord'?'prof_topchord':key==='bottomChord'?'prof_botchord':'prof_web';
+const curVal=document.getElementById(elId).value;
 if(trussUpgradeMap[key][curVal]){
 const newVal=trussUpgradeMap[key][curVal];
-document.getElementById(key==='topChord'?'prof_topchord':key==='bottomChord'?'prof_botchord':'prof_web').value=newVal;
-console.log(key+' auto-upgraded from '+curVal+' to '+newVal);
-// Re-check this member with new section
+document.getElementById(elId).value=newVal;
 const secNew=sectionDB[newVal];
+let maxDc=0;
 memberForces.forEach(mf=>{
 if(mf.type===key){
 const chk=checkTrussMember(secNew,mf.force,mf.Lb,mf.force>0);
-if(chk.dc>worstDC[key]){worstDC[key]=chk.dc;memberResults[key]=chk}
+if(chk.dc>maxDc)maxDc=chk.dc;
 }
 });
+worstDC[key]=maxDc;
+memberResults[key]={dc:maxDc,dcA:maxDc,dcM:0};
 profiles[key]=newVal;
+upgraded=true;
+console.log(key+' auto-upgraded from '+curVal+' to '+newVal+' (pass '+pass+', D/C='+maxDc.toFixed(3)+')');
 }
 }
 });
+if(!upgraded)break;
+}
 // Column check (same as portal frame - supports truss)
 // Column takes gravity load + lateral
 const Pcol=wFact*L/2;
 let secK=sectionDB[document.getElementById('prof_kolom').value];
-// Auto-upgrade column if overstressed
-const colUpgradeMap={'H300x300x10x15':'H350x350x12x19','H350x350x12x19':'H400x400x13x21','H400x400x13x21':'H500x300x11x18'};
+// Auto-upgrade column if overstressed (multi-pass)
+const colUpgradeMap={'H300x300x10x15':'H350x350x12x19','H350x350x12x19':'H400x400x13x21','H400x400x13x21':'H500x300x11x18','H500x300x11x18':'H600x300x12x20'};
 if(secK){
+for(let colPass=0;colPass<4;colPass++){
 const ry_k=secK.ry*10,K=1.0;
 const KLry=K*H*1000/ry_k;
 const Fe=Math.PI**2*E/(KLry**2);
@@ -751,22 +760,16 @@ let Fcr=lc<=1.5?Math.pow(0.658,lc**2)*fy:0.877*Fe;
 let Pn=Fcr*secK.A*100/1000;
 let phiPn=0.9*Pn;
 let dc=Pcol/phiPn;
-// Auto-upgrade column if D/C > 0.8
-if(dc>0.8&&colUpgradeMap[document.getElementById('prof_kolom').value]){
+if(dc<=0.8||!colUpgradeMap[document.getElementById('prof_kolom').value]){
+worstDC.kolom=dc;worstCombo.kolom='1.2D+1.6Lr';memberResults.kolom={dc,dcA:dc,dcM:0,phiPn};
+break;
+}
 const newCol=colUpgradeMap[document.getElementById('prof_kolom').value];
 secK=sectionDB[newCol];
 document.getElementById('prof_kolom').value=newCol;
-const ry_k2=secK.ry*10;
-const KLry2=K*H*1000/ry_k2;
-const Fe2=Math.PI**2*E/(KLry2**2);
-const lc2=Math.sqrt(fy/Fe2);
-const Fcr2=lc2<=1.5?Math.pow(0.658,lc2**2)*fy:0.877*Fe2;
-Pn=Fcr2*secK.A*100/1000;
-phiPn=0.9*Pn;
-dc=Pcol/phiPn;
-console.log('Truss column auto-upgraded to '+newCol);
-}
+console.log('Truss column auto-upgraded to '+newCol+' (pass '+colPass+', D/C='+dc.toFixed(3)+')');
 worstDC.kolom=dc;worstCombo.kolom='1.2D+1.6Lr';memberResults.kolom={dc,dcA:dc,dcM:0,phiPn};
+}
 }
 // Gording (Purlin) - simply supported beam spanning bay spacing
 let secGoT=sectionDB[profiles.gording];
