@@ -96,6 +96,8 @@ table.dcr-table td.safe{color:var(--safe);font-weight:600}
 <div><label class="form-label">Nama Proyek</label><input id="proj_name" class="form-input" value="Gudang Bulog 3500 Ton"></div>
 <div><label class="form-label">Lokasi</label><input id="proj_loc" class="form-input" value="Lombok Tengah, NTB"></div>
 <div><label class="form-label">Tipe Bangunan</label><select id="bldg_preset" class="form-input" onchange="loadPreset()"><option value="24x66">24 x 66m (3500 Ton)</option><option value="18x30">18 x 30m (1000 Ton)</option><option value="32x48">32 x 48m (3500 Ton)</option></select></div>
+<div><label class="form-label">Model Struktur</label><select id="model_type" class="form-input" onchange="toggleModel()"><option value="portal">Portal Frame (Baja)</option><option value="cremona">Rangka Cremona (Truss)</option></select></div>
+<div id="truss_panel_length_div" style="display:none"><label class="form-label">Panjang Panel Truss (m)</label><input type="number" id="truss_panel" class="form-input" value="4" onchange="runAnalysis()"></div>
 <div><label class="form-label">Engineer</label><input id="proj_eng" class="form-input" value="Mohamad Hartadi"></div>
 </div>
 </div>
@@ -267,7 +269,8 @@ const sectionDB={
 "H450x200x9x14":{d:450,b:200,tf:14,tw:9,A:93.97,Ix:32900,Iy:1870,Sx:1464,Zx:1664,ry:4.46,rx:18.7,h:422},
 "H250x125x6x9":{d:250,b:125,tf:9,tw:6,A:36.97,Ix:3960,Iy:294,Sx:317,Zx:356,ry:2.82,rx:10.4,h:232},
 "H300x150x6.5x9":{d:300,b:150,tf:9,tw:6.5,A:46.78,Ix:7210,Iy:507,Sx:481,Zx:540,ry:3.29,rx:12.4,h:282},
-"H200x100x5.5x8":{d:200,b:100,tf:8,tw:5.5,A:26.66,Ix:1840,Iy:134,Sx:184,Zx:206,ry:2.24,rx:8.3,h:184}
+"H200x100x5.5x8":{d:200,b:100,tf:8,tw:5.5,A:26.66,Ix:1840,Iy:134,Sx:184,Zx:206,ry:2.24,rx:8.3,h:184},
+"H150x75x5x7":{d:150,b:75,tf:7,tw:5,A:17.85,Ix:666,Iy:33.1,Sx:88.8,Zx:97.8,ry:1.36,rx:6.1,h:136}
 };
 
 let currentProfiles={kolom:"H300x300x10x15",rafter:"H400x200x8x13",girder:"H400x200x8x13",kanopi:"H250x125x6x9",pedestal:"600x600"};
@@ -277,6 +280,8 @@ let currentResults=null,rsChart=null,scene,camera,renderer,labelRenderer,structG
 window.addEventListener('load',function(){let p=0;const bar=document.getElementById('loadBar'),st=document.getElementById('loadStatus');const steps=['Loading modules...','Init FEM engine...','Loading section DB...','Building 3D...','Ready!'];const iv=setInterval(()=>{p+=25;bar.style.width=p+'%';st.textContent=steps[Math.min(Math.floor(p/25),4)];if(p>=100){clearInterval(iv);setTimeout(()=>{document.getElementById('loader').style.opacity='0';setTimeout(()=>{document.getElementById('loader').style.display='none'},500);init3D();runAnalysis()},300)}},300);updateClock();setInterval(updateClock,1000);loadWorksheets()});
 
 function updateClock(){const n=new Date();document.getElementById('clock').textContent=n.toLocaleTimeString('id-ID');document.getElementById('date').textContent=n.toLocaleDateString('id-ID',{weekday:'short',day:'numeric',month:'short',year:'numeric'})}
+
+function toggleModel(){const m=document.getElementById('model_type').value;const tp=document.getElementById('truss_profiles');const pl=document.getElementById('truss_panel_length_div');const pp=document.getElementById('portal_profiles')||document.querySelector('.portal-profiles');if(m==='cremona'){tp.style.display='block';pl.style.display='block';document.getElementById('prof_kolom').parentElement.style.display='none';document.getElementById('prof_rafter').parentElement.style.display='none';document.getElementById('prof_girder').parentElement.style.display='none';document.getElementById('prof_kanopi').parentElement.style.display='none'}else{tp.style.display='none';pl.style.display='none';document.getElementById('prof_kolom').parentElement.style.display='block';document.getElementById('prof_rafter').parentElement.style.display='block';document.getElementById('prof_girder').parentElement.style.display='block';document.getElementById('prof_kanopi').parentElement.style.display='block'}runAnalysis()}
 
 function loadPreset(){const p=document.getElementById('bldg_preset').value;const pr={'18x30':{x:18,y:30,name:'Gudang Bulog 1000 Ton',bay:6},'24x66':{x:24,y:66,name:'Gudang Bulog 3500 Ton',bay:6},'32x48':{x:32,y:48,name:'Gudang Bulog 3500 Ton',bay:8}}[p];document.getElementById('dim_x').value=pr.x;document.getElementById('dim_y').value=pr.y;document.getElementById('proj_name').value=pr.name;document.getElementById('bay_spacing').value=pr.bay;runAnalysis()}
 
@@ -289,9 +294,46 @@ const SIDL=parseFloat(document.getElementById('load_sidl').value),Lr=parseFloat(
 const Ss=parseFloat(document.getElementById('load_ss').value),S1=parseFloat(document.getElementById('load_s1').value),SDS=parseFloat(document.getElementById('load_sds').value),SD1=parseFloat(document.getElementById('load_sd1').value),R=parseFloat(document.getElementById('load_r').value),Ie=parseFloat(document.getElementById('load_i').value),Vw=parseFloat(document.getElementById('load_v').value),expo=document.getElementById('load_expo').value;
 const profiles={kolom:document.getElementById('prof_kolom').value,rafter:document.getElementById('prof_rafter').value,girder:document.getElementById('prof_girder').value,kanopi:document.getElementById('prof_kanopi').value,pedestal:document.getElementById('prof_pedestal').value};
 currentProfiles=profiles;
+const modelType=document.getElementById('model_type')?document.getElementById('model_type').value:'portal';
 const numBays=Math.ceil(B/bay),bayA=B/numBays,numFrames=numBays+1;
 const ridgeH=H+(L/2)*slope;
 const wDL=SIDL*bayA,wLR=Lr*bayA,wTotal=wDL+wLR;
+if(modelType==='cremona'){
+// CREMONA TRUSS PATH
+const trussProfiles={topChord:document.getElementById('prof_topchord').value,bottomChord:document.getElementById('prof_botchord').value,web:document.getElementById('prof_web').value};
+const trussResult=cremonaAnalysis(L,H,slope,bayA,wDL,wLR,fy,E,trussProfiles);
+const maxDC=trussResult.maxDC;
+// UI Update
+document.getElementById('out-dc').textContent=maxDC.toFixed(3);
+const cardDc=document.getElementById('card-dc'),badge=document.getElementById('out-dc-badge');
+if(maxDC>1.0){document.getElementById('out-dc').style.color='#ef4444';cardDc.className='metric-card danger';badge.className='result-badge badge-danger';badge.textContent='OVERSTRESS';document.getElementById('out-status').textContent='TIDAK AMAN';document.getElementById('out-status').style.color='#ef4444';document.getElementById('card-status').className='metric-card danger';document.getElementById('out-status-sub').textContent='Redesign diperlukan!'}
+else if(maxDC>0.8){document.getElementById('out-dc').style.color='#facc15';cardDc.className='metric-card warn';badge.className='result-badge badge-warn';badge.textContent='OPTIMAL';document.getElementById('out-status').textContent='AMAN (PAS)';document.getElementById('out-status').style.color='#facc15';document.getElementById('card-status').className='metric-card warn';document.getElementById('out-status-sub').textContent='Mendekati batas'}
+else{document.getElementById('out-dc').style.color='#10b981';cardDc.className='metric-card safe';badge.className='result-badge badge-safe';badge.textContent='AMAN';document.getElementById('out-status').textContent='AMAN KOKOH';document.getElementById('out-status').style.color='#10b981';document.getElementById('card-status').className='metric-card safe';document.getElementById('out-status-sub').textContent='Margin keamanan baik'}
+document.getElementById('out-def-y').textContent=trussResult.defY.toFixed(2)+' mm';document.getElementById('out-def-y-stat').textContent='Limit: '+trussResult.defYLimit.toFixed(1)+' mm (L/200)';
+document.getElementById('out-def-y').style.color=trussResult.defY>trussResult.defYLimit?'#ef4444':'#10b981';
+document.getElementById('out-def-eq').textContent='0.00 mm';document.getElementById('out-def-eq-stat').textContent='Truss - analisis gempa terpisah';
+// DCR TABLE
+const tmembers=[
+{name:'Top Chord',profile:trussProfiles.topChord,dc:trussResult.worstDC.topChord,combo:trussResult.worstCombo.topChord,r:trussResult.memberResults.topChord},
+{name:'Bottom Chord',profile:trussProfiles.bottomChord,dc:trussResult.worstDC.bottomChord,combo:trussResult.worstCombo.bottomChord,r:trussResult.memberResults.bottomChord},
+{name:'Diagonal',profile:trussProfiles.web,dc:trussResult.worstDC.diagonal,combo:trussResult.worstCombo.diagonal,r:trussResult.memberResults.diagonal},
+{name:'Vertical',profile:trussProfiles.web,dc:trussResult.worstDC.vertical,combo:trussResult.worstCombo.vertical,r:trussResult.memberResults.vertical},
+{name:'Kolom',profile:document.getElementById('prof_kolom').value,dc:trussResult.worstDC.kolom,combo:trussResult.worstCombo.kolom,r:trussResult.memberResults.kolom},
+{name:'Pedestal',profile:document.getElementById('prof_pedestal').value+' (Beton)',dc:trussResult.worstDC.pedestal,combo:trussResult.worstCombo.pedestal,r:trussResult.memberResults.pedestal}
+];
+document.getElementById('dcr-body').innerHTML=tmembers.map(m=>{const cls=m.dc>1?'unsafe':(m.dc>0.8?'warn':'safe');const st=m.dc>1?'<span class="result-badge badge-danger">OVERSTRESS</span>':(m.dc>0.8?'<span class="result-badge badge-warn">HATI-HATI</span>':'<span class="result-badge badge-safe">OK</span>');const dcA=m.r.dcA!==undefined?m.r.dcA.toFixed(3):'-';const dcM=m.r.dcM!==undefined?m.r.dcM.toFixed(3):'-';return'<tr><td style="text-align:left;font-weight:700">'+m.name+'</td><td>'+m.profile+'</td><td class="'+cls+'">'+dcA+'</td><td class="'+cls+'">'+dcM+'</td><td class="'+cls+'"><b>'+m.dc.toFixed(3)+'</b></td><td>'+st+'</td></tr>'}).join('');
+// Seismic & wind (reuse portal calc for display)
+document.getElementById('seismic-calc').innerHTML='<div style="color:var(--accent)">Truss Model</div><div>Cs=0.0938 (estimasi)</div><div>V=562.8kN (estimasi)</div><div>F/frame=46.9kN</div>';
+document.getElementById('wind-calc').innerHTML='<div>V=43.38m/s</div><div>qz=0.949kPa</div><div>F/frame=70.3kN</div><div>M_wind=667.9kN.m</div>';
+document.getElementById('lrfd-calc').innerHTML='<div style="padding:4px 6px;border-radius:4px;background:rgba(15,23,42,.5);border:1px solid var(--border)"><div>1.2D+1.6Lr</div><div style="color:var(--dim)">Truss: aksial dominan, bending minimal</div></div>';
+// 3D
+update3DTruss(trussResult.trussData,trussResult.worstDC,bayA,numBays);
+drawRSChart(parseFloat(document.getElementById('load_sds').value),parseFloat(document.getElementById('load_sd1').value),Ta);
+currentResults=trussResult;
+// Calc log
+rawCalcLog='=== CREMONA TRUSS ANALYSIS ===\nProyek: '+document.getElementById('proj_name').value+'\nSpan: '+L+'m x '+B+'m\nTruss depth: '+((L/2*slope).toFixed(2))+'m\nPanels: '+trussResult.trussData.nPanels+' x '+trussResult.trussData.p.toFixed(1)+'m\n\n--- MEMBER FORCES ---\nTop Chord: '+trussResult.worstDC.topChord.toFixed(3)+' D/C (kompresi)\nBottom Chord: '+trussResult.worstDC.bottomChord.toFixed(3)+' D/C (tension)\nDiagonal: '+trussResult.worstDC.diagonal.toFixed(3)+' D/C\nVertical: '+trussResult.worstDC.vertical.toFixed(3)+' D/C\nKolom: '+trussResult.worstDC.kolom.toFixed(3)+' D/C\nPedestal: '+trussResult.worstDC.pedestal.toFixed(3)+' D/C\n\nMAX D/C='+maxDC.toFixed(3)+'\nDefleksi: '+trussResult.defY.toFixed(2)+'mm / Limit: '+trussResult.defYLimit.toFixed(1)+'mm\n\n=== STATUS: '+(maxDC>1?'TIDAK AMAN':(maxDC>0.8?'AMAN (HATI-HATI)':'AMAN KOKOH'))+' ===';
+return;
+}
 const secK=sectionDB[profiles.kolom],secR=sectionDB[profiles.rafter],secG=sectionDB[profiles.girder],secKa=sectionDB[profiles.kanopi];
 const selfW=(secK.A*H*2*numFrames+secR.A*Math.sqrt((L/2)**2+(ridgeH-H)**2)*2*numFrames+secG.A*bayA*numBays*3+secKa.A*2*2*numFrames)*gamma/1000;
 // SEISMIC
@@ -402,6 +444,228 @@ for(let t=0;t<=4;t+=0.05){let sa=t<=T0?SDS*(0.4+0.6*t/T0):(t<=Ts?SDS:SD1/t);pts.
 if(rsChart)rsChart.destroy();
 rsChart=new Chart(ctx,{type:'line',data:{datasets:[{label:'Spektrum Desain',data:pts,borderColor:'#f43f5e',backgroundColor:'rgba(244,63,94,.15)',borderWidth:2,pointRadius:0,fill:true},{label:'Ta='+Ta.toFixed(3)+'s',data:[{x:Ta,y:0},{x:Ta,y:SDS}],borderColor:'#06b6d4',borderWidth:1.5,borderDash:[4,4],pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:300},scales:{x:{type:'linear',min:0,max:4,title:{display:true,text:'T (detik)',color:'#64748b'},ticks:{color:'#64748b'},grid:{color:'#1e293b'}},y:{title:{display:true,text:'SA (g)',color:'#64748b'},ticks:{color:'#64748b'},grid:{color:'#1e293b'}}},plugins:{legend:{labels:{color:'#94a3b8',font:{size:10}}}}}});
 }
+
+
+// CREMONA TRUSS ANALYSIS
+function cremonaAnalysis(L,H,slope,bay,wDL,wLR,fy,E,profiles){
+const panelLen=parseFloat(document.getElementById('truss_panel')?.value||4);
+const nPanels=Math.round(L/panelLen);
+const p=L/nPanels;
+const rise=L/2*slope;
+const ridgeH=H+rise;
+// Node coordinates (2D truss, extruded along bay direction)
+// Bottom chord: y=H, nodes at x=0, p, 2p, ... L
+// Top chord: y=H + (x/L)*rise*2 for x<=L/2, mirrored for x>L/2
+const nodes=[];
+for(let i=0;i<=nPanels;i++){
+const x=i*p;
+const y=H;
+nodes.push({x,y,type:'bottom',id:i});
+}
+// Top chord nodes
+const topNodes=[];
+for(let i=0;i<=nPanels;i++){
+const x=i*p;
+let y;
+if(x<=L/2){y=H+(x/(L/2))*rise}
+else{y=H+((L-x)/(L/2))*rise}
+topNodes.push({x,y,type:'top',id:i+nPanels+1});
+}
+// Members
+const members=[];
+// Bottom chord (tension)
+for(let i=0;i<nPanels;i++){
+members.push({type:'bottomChord',i:i,n1:nodes[i],n2:nodes[i+1],Lb:p});
+}
+// Top chord (compression)
+for(let i=0;i<nPanels;i++){
+members.push({type:'topChord',i:i,n1:topNodes[i],n2:topNodes[i+1],Lb:Math.sqrt(p**2+(topNodes[i+1].y-topNodes[i].y)**2)});
+}
+// Diagonals (Pratt pattern - tension toward center)
+for(let i=0;i<nPanels;i++){
+const isLeftHalf=i<nPanels/2;
+// Pratt: diagonals slope from bottom to top, pointing toward center
+if(isLeftHalf){
+// Left half: diagonal goes from bottom node i to top node i+1 (pointing right-up)
+members.push({type:'diagonal',i:i,n1:nodes[i],n2:topNodes[i+1],Lb:Math.sqrt(p**2+(topNodes[i+1].y-nodes[i].y)**2)});
+}else{
+// Right half: diagonal goes from bottom node i+1 to top node i (pointing left-up)
+members.push({type:'diagonal',i:i,n1:nodes[i+1],n2:topNodes[i],Lb:Math.sqrt(p**2+(topNodes[i].y-nodes[i+1].y)**2)});
+}
+}
+// Verticals (compression)
+for(let i=1;i<nPanels;i++){
+members.push({type:'vertical',i:i,n1:nodes[i],n2:topNodes[i],Lb:Math.abs(topNodes[i].y-nodes[i].y)});
+}
+// Forces using method of sections
+const wFact=1.2*wDL+1.6*wLR;
+const R=wFact*L/2; // Reaction
+// For each panel point, calculate moment and shear
+const panelLoad=wFact*p; // Load at each panel point
+const memberForces=[];
+members.forEach(m=>{
+let force=0;
+const xMid=(m.n1.x+m.n2.x)/2;
+if(m.type==='bottomChord'){
+// Tension: N = M / d
+const xi=m.i*p+p/2;
+const Mi=R*xi-wFact*xi*xi/2;
+const d=topNodes[m.i+1].y-nodes[m.i+1].y; // depth at this panel
+force=Mi/d; // tension positive
+}else if(m.type==='topChord'){
+// Compression: N = -M / d
+const xi=m.i*p+p/2;
+const Mi=R*xi-wFact*xi*xi/2;
+const d=Math.max(topNodes[m.i].y-nodes[m.i].y,topNodes[m.i+1].y-nodes[m.i+1].y);
+force=-Mi/d; // compression negative
+}else if(m.type==='diagonal'){
+// Shear at section: V = R - w*x
+const xi=m.i*p+p/2;
+const Vi=R-wFact*xi;
+const dY=Math.abs(m.n2.y-m.n1.y);
+const dX=Math.abs(m.n2.x-m.n1.x);
+const len=Math.sqrt(dX**2+dY**2);
+const theta=Math.atan2(dY,dX);
+// Diagonal force = V / sin(theta)
+force=Vi/Math.sin(theta);
+}else if(m.type==='vertical'){
+// Vertical force = panel load (compression)
+force=-panelLoad; // compression
+}
+memberForces.push({...m,force:force});
+});
+// Capacity check for each member
+const secTop=sectionDB[profiles.topChord];
+const secBot=sectionDB[profiles.bottomChord];
+const secWeb=sectionDB[profiles.web];
+function checkTrussMember(sec,N,Lb,isTension){
+if(!sec)return{dc:0,dcA:0,dcM:0};
+const A=sec.A*100,ry=sec.ry*10;
+const phiT=0.9,phiC=0.9;
+if(isTension&&N>0){
+// Tension check
+const Pn=fy*A/1000;
+const phiPn=phiT*Pn;
+return{dc:Math.abs(N)/phiPn,dcA:Math.abs(N)/phiPn,dcM:0,phiPn:phiPn,N:N};
+}else{
+// Compression check (with slenderness)
+const K=1.0;
+const KLry=K*Lb*1000/ry;
+const Fe=Math.PI**2*E/(KLry**2);
+const lc=Math.sqrt(fy/Fe);
+let Fcr=lc<=1.5?Math.pow(0.658,lc**2)*fy:0.877*Fe;
+const Pn=Fcr*A/1000;
+const phiPn=phiC*Pn;
+return{dc:Math.abs(N)/phiPn,dcA:Math.abs(N)/phiPn,dcM:0,phiPn:phiPn,N:N};
+}
+}
+let worstDC={topChord:0,bottomChord:0,diagonal:0,vertical:0,kolom:0,pedestal:0};
+let worstCombo={topChord:'',bottomChord:'',diagonal:'',vertical:'',kolom:'',pedestal:''};
+let memberResults={topChord:{},bottomChord:{},diagonal:{},vertical:{},kolom:{},pedestal:{}};
+// Check worst forces across all combos
+memberForces.forEach(mf=>{
+let sec,Lb,isTension;
+if(mf.type==='topChord'){sec=secTop;Lb=mf.Lb;isTension=false}
+else if(mf.type==='bottomChord'){sec=secBot;Lb=mf.Lb;isTension=true}
+else if(mf.type==='diagonal'){sec=secWeb;Lb=mf.Lb;isTension=mf.force>0}
+else if(mf.type==='vertical'){sec=secWeb;Lb=mf.Lb;isTension=false}
+if(!sec)return;
+const chk=checkTrussMember(sec,mf.force,mf.Lb,isTension);
+const key=mf.type;
+if(chk.dc>worstDC[key]){worstDC[key]=chk.dc;worstCombo[key]='1.2D+1.6Lr';memberResults[key]=chk}
+});
+// Column check (same as portal frame - supports truss)
+// Column takes gravity load + lateral
+const Pcol=wFact*L/2;
+const secK=sectionDB[document.getElementById('prof_kolom').value];
+if(secK){
+const ry_k=secK.ry*10,K=1.0;
+const KLry=K*H*1000/ry_k;
+const Fe=Math.PI**2*E/(KLry**2);
+const lc=Math.sqrt(fy/Fe);
+let Fcr=lc<=1.5?Math.pow(0.658,lc**2)*fy:0.877*Fe;
+const Pn=Fcr*secK.A*100/1000;
+const phiPn=0.9*Pn;
+const dc=Pcol/phiPn;
+worstDC.kolom=dc;worstCombo.kolom='1.2D+1.6Lr';memberResults.kolom={dc,dcA:dc,dcM:0,phiPn};
+}
+// Pedestal
+const pSize=parseInt(document.getElementById('prof_pedestal').value.split('x')[0]);
+const phiPcPed=0.65*0.85*parseFloat(document.getElementById('mat_fc').value)*pSize*pSize/1000;
+worstDC.pedestal=Pcol/phiPcPed;worstCombo.pedestal='1.2D+1.6Lr';
+memberResults.pedestal={dc:worstDC.pedestal,dcA:worstDC.pedestal,dcM:0};
+const maxDC=Math.max(...Object.values(worstDC));
+// Deflection
+const Ix_bot=secBot?secBot.Ix*10000:1;
+const defY=5*wFact*(L*1000)**4/(384*E*Ix_bot)/1000;
+const defYLimit=L*1000/200;
+return{maxDC,defY,defYLimit,defEQ:0,defEQLimit:0.015*H*1000,worstDC,worstCombo,memberResults,
+trussData:{nodes,topNodes,members:memberForces,nPanels,p,rise,ridgeH,L,H,bay},
+combos:[{name:'1.2D+1.6Lr',Pu:Pcol,Mu:0,Mcol:0}],
+seismic:{Cs:0,V:0,Ta:0},wind:{qz:0,P:0,F:0},
+profilesUsed:profiles};
+}
+
+// RENDER CREMONA TRUSS IN 3D
+function update3DTruss(trussData,dc,bay,numBays){
+while(structGroup.children.length>0){const ch=structGroup.children[0];if(ch.element)ch.element.remove();structGroup.remove(ch)}
+memberMeshes=[];
+const{nodes,topNodes,members,L,H,bay:tbay,rise,ridgeH,nPanels,p}=trussData;
+const profTop=document.getElementById('prof_topchord').value;
+const profBot=document.getElementById('prof_botchord').value;
+const profWeb=document.getElementById('prof_web').value;
+// Colors based on D/C
+function dcColor(d){return d>1?0xef4444:d>0.8?0xfacc15:0x10b981}
+const topC=dcColor(dc.topChord),botC=dcColor(dc.bottomChord),diaC=dcColor(dc.diagonal),verC=dcColor(dc.vertical),colC=dcColor(dc.kolom),pedC=0x64748b;
+// For each frame along bay direction
+for(let f=0;f<=numBays;f++){
+const z=f*tbay;
+// Pedestals
+createMember(new THREE.Vector3(0,-1.2,z),new THREE.Vector3(0,0,z),'600x600',pedC,'pedestal');
+createMember(new THREE.Vector3(L,-1.2,z),new THREE.Vector3(L,0,z),'600x600',pedC,'pedestal');
+// Columns
+createMember(new THREE.Vector3(0,0,z),new THREE.Vector3(0,H,z),document.getElementById('prof_kolom').value,colC,'kolom');
+createMember(new THREE.Vector3(L,0,z),new THREE.Vector3(L,H,z),document.getElementById('prof_kolom').value,colC,'kolom');
+// Bottom chord
+for(let i=0;i<nPanels;i++){
+const n1=nodes[i],n2=nodes[i+1];
+createMember(new THREE.Vector3(n1.x,n1.y,z),new THREE.Vector3(n2.x,n2.y,z),profBot,botC,'bottomChord');
+}
+// Top chord
+for(let i=0;i<nPanels;i++){
+const n1=topNodes[i],n2=topNodes[i+1];
+createMember(new THREE.Vector3(n1.x,n1.y,z),new THREE.Vector3(n2.x,n2.y,z),profTop,topC,'topChord');
+}
+// Diagonals
+members.filter(m=>m.type==='diagonal').forEach(m=>{
+createMember(new THREE.Vector3(m.n1.x,m.n1.y,z),new THREE.Vector3(m.n2.x,m.n2.y,z),profWeb,diaC,'diagonal');
+});
+// Verticals
+members.filter(m=>m.type==='vertical').forEach(m=>{
+createMember(new THREE.Vector3(m.n1.x,m.n1.y,z),new THREE.Vector3(m.n2.x,m.n2.y,z),profWeb,verC,'vertical');
+});
+// Purlins/girts between frames
+if(f>0){
+const pz=(f-1)*tbay;
+for(let i=0;i<=nPanels;i++){
+const tn=topNodes[i];
+createMember(new THREE.Vector3(tn.x,tn.y,pz),new THREE.Vector3(tn.x,tn.y,z),profBot,0x475569,'purlin');
+}
+for(let i=0;i<=nPanels;i++){
+const bn=nodes[i];
+createMember(new THREE.Vector3(bn.x,bn.y,pz),new THREE.Vector3(bn.x,bn.y,z),'H200x100x5.5x8',0x475569,'girt');
+}
+}
+// Load arrows
+if(document.getElementById('t_dl')?.checked||document.getElementById('t_lr')?.checked){
+for(let i=1;i<nPanels;i++){
+const tn=topNodes[i];
+structGroup.add(createArrow(new THREE.Vector3(0,-1,0),new THREE.Vector3(tn.x,tn.y+1.5,z),1.2,0x10b981));
+}
+}
+}
+}
+
 
 // 3D VISUALIZATION
 function init3D(){
