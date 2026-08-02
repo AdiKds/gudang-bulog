@@ -342,7 +342,7 @@ let worstDC={kolom:0,rafter:0,girder:0,kanopi:0,pedestal:0};
 let worstCombo={kolom:"",rafter:"",girder:"",kanopi:"",pedestal:""};
 let memberResults={kolom:{},rafter:{},girder:{},kanopi:{},pedestal:{}};
 combos.forEach(c=>{
-const ck=checkMember(secK,c.Pu,c.Mu*0.08,Lb_col,'kolom');
+const ck=checkMember(secK,c.Pu,c.Mcol,Lb_col,'kolom');
 if(ck.dc>worstDC.kolom){worstDC.kolom=ck.dc;worstCombo.kolom=c.name;memberResults.kolom=ck}
 const cr=checkMember(secR,c.Pu*0.1,c.Mu*0.4,Lb_raft,'rafter');
 if(cr.dc>worstDC.rafter){worstDC.rafter=cr.dc;worstCombo.rafter=c.name;memberResults.rafter=cr}
@@ -381,7 +381,7 @@ document.getElementById('seismic-calc').innerHTML='<div>SDS='+SDS+'g | SD1='+SD1
 // WIND DISPLAY
 document.getElementById('wind-calc').innerHTML='<div>V='+Vw+'m/s | Kd='+Kd+'</div><div>Eksposur='+expo+' | Kz='+Kz.toFixed(3)+'</div><div style="color:#0ea5e9">qz='+qz.toFixed(3)+'kPa</div><div>Cp='+Cp+'</div><div style="color:#0ea5e9">P='+P_wind.toFixed(3)+'kPa</div><div>F/frame='+F_wind.toFixed(1)+'kN</div><div>M_wind='+M_wind.toFixed(1)+'kN.m</div>';
 // LRFD DISPLAY
-document.getElementById('lrfd-calc').innerHTML=combos.map(c=>'<div style="padding:4px 6px;border-radius:4px;background:rgba(15,23,42,.5);border:1px solid var(--border)"><div>'+c.name+'</div><div style="color:var(--dim)">Pu='+c.Pu.toFixed(1)+'kN | Mu='+c.Mu.toFixed(1)+'kN.m</div></div>').join('');
+document.getElementById('lrfd-calc').innerHTML=combos.map(c=>'<div style="padding:4px 6px;border-radius:4px;background:rgba(15,23,42,.5);border:1px solid var(--border)"><div>'+c.name+'</div><div style="color:var(--dim)">Pu='+c.Pu.toFixed(1)+'kN | Mu='+c.Mu.toFixed(1)+'kN.m | Mc='+c.Mcol.toFixed(1)+'kN.m</div></div>').join('');
 // CALC LOG
 rawCalcLog='=== FEM ANALYSIS LOG ===\nProyek: '+document.getElementById('proj_name').value+'\nLokasi: '+document.getElementById('proj_loc').value+'\nDimensi: '+L+'x'+B+'m, Tinggi: '+H+'m\nBay: '+bayA+'m x '+numBays+' buah\n\n--- MATERIAL ---\nBaja: fy='+fy+', fu='+fu+', E='+E+'\nBeton: fc\'='+fc+'\n\n--- BEBAN ---\nSIDL='+SIDL+', Lr='+Lr+'\nwDL='+wDL.toFixed(2)+', wLR='+wLR.toFixed(2)+'\nSelf weight='+selfW.toFixed(1)+'kN\n\n--- GEMPA ---\nSDS='+SDS+', SD1='+SD1+', R='+R+', Ie='+Ie+'\nCs='+Cs.toFixed(4)+' (max='+CsMax.toFixed(4)+', min='+CsMin.toFixed(4)+')\nTa='+Ta.toFixed(3)+'s\nW='+Wtotal.toFixed(1)+'kN\nV='+Vbase.toFixed(1)+'kN\n\n--- ANGIN ---\nV='+Vw+'m/s, Kz='+Kz.toFixed(3)+'\nqz='+qz.toFixed(3)+'kPa\nP='+P_wind.toFixed(3)+'kPa\nF/frame='+F_wind.toFixed(1)+'kN\n\n--- D/C RATIO ---\nKolom: '+worstDC.kolom.toFixed(3)+' ['+worstCombo.kolom+']\nRafter: '+worstDC.rafter.toFixed(3)+' ['+worstCombo.rafter+']\nGirder: '+worstDC.girder.toFixed(3)+' ['+worstCombo.girder+']\nKanopi: '+worstDC.kanopi.toFixed(3)+' ['+worstCombo.kanopi+']\nPedestal: '+worstDC.pedestal.toFixed(3)+' ['+worstCombo.pedestal+']\nMAX D/C='+maxDC.toFixed(3)+'\n\n--- DEFLEKSI ---\nVertikal: '+defY.toFixed(2)+'mm / Limit: '+defYLimit.toFixed(1)+'mm\nGempa: '+defEQ.toFixed(2)+'mm / Limit: '+defEQLimit.toFixed(1)+'mm\n\n=== STATUS: '+(maxDC>1?'TIDAK AMAN':(maxDC>0.8?'AMAN (HATI-HATI)':'AMAN KOKOH'))+' ===';
 document.getElementById('calc-log').innerHTML=rawCalcLog.replace(/\n/g,'<br>');
