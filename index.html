@@ -305,6 +305,8 @@ function hideProf(id){const el=document.getElementById(id);if(el&&el.parentEleme
 function showProf(id){const el=document.getElementById(id);if(el&&el.parentElement)el.parentElement.style.display='block'}
 if(m==='cremona'||m==='warren'){tp.style.display='block';pl.style.display='block';hideProf('prof_rafter');hideProf('prof_girder');hideProf('prof_kanopi');showProf('prof_kolom')}
 else{tp.style.display='none';pl.style.display='none';showProf('prof_rafter');showProf('prof_girder');showProf('prof_kanopi');showProf('prof_kolom')}
+// Warren truss has no verticals → diagonals carry ~2x shear → auto-upgrade web
+if(m==='warren'){const webEl=document.getElementById('prof_web');const upgrades={'H150x75x5x7':'H250x125x6x9','H200x100x5.5x8':'H300x150x6.5x9','H250x125x6x9':'H350x175x7x11','H300x150x6.5x9':'H350x175x7x11'};if(upgrades[webEl.value]){webEl.value=upgrades[webEl.value]}}
 runAnalysis()}
 
 function loadPreset(){
