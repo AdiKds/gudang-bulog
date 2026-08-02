@@ -398,17 +398,17 @@ const Mgrav12=1.2*wDL*(L**2)/12,Mgrav09=0.9*wDL*(L**2)/12;
 const combos=[
 {name:"1.4D",Pu:1.4*wDL*L/2,Mu:1.4*wDL*(L**2)/12,Mcol:1.4*wDL*(L**2)/12*0.05},
 {name:"1.2D+1.6Lr",Pu:1.2*wDL*L/2+1.6*wLR*L/2,Mu:1.2*wDL*(L**2)/12+1.6*wLR*(L**2)/12,Mcol:(Mgrav12+1.6*wLR*(L**2)/12)*0.05},
-{name:"1.2D+1.0W+0.5Lr",Pu:1.2*wDL*L/2+0.5*wLR*L/2,Mu:Mgrav12+0.5*wLR*(L**2)/12+M_wind*0.15,Mcol:M_wind*0.42+(Mgrav12+0.5*wLR*(L**2)/12)*0.05},
-{name:"1.2D+1.0E+0.5Lr",Pu:1.2*wDL*L/2+0.5*wLR*L/2+Math.abs(F_seismic*0.15),Mu:Mgrav12+0.5*wLR*(L**2)/12+M_seismic*0.15,Mcol:M_seismic*0.42+(Mgrav12+0.5*wLR*(L**2)/12)*0.05},
-{name:"0.9D+1.0E",Pu:0.9*wDL*L/2+Math.abs(F_seismic*0.15),Mu:Mgrav09+M_seismic*0.15,Mcol:M_seismic*0.42+Mgrav09*0.05},
-{name:"0.9D+1.0W",Pu:0.9*wDL*L/2,Mu:Mgrav09+M_wind*0.15,Mcol:M_wind*0.42+Mgrav09*0.05}
+{name:"1.2D+1.0W+0.5Lr",Pu:1.2*wDL*L/2+0.5*wLR*L/2,Mu:Mgrav12+0.5*wLR*(L**2)/12+M_wind*0.15,Mcol:M_wind*0.25+(Mgrav12+0.5*wLR*(L**2)/12)*0.05},
+{name:"1.2D+1.0E+0.5Lr",Pu:1.2*wDL*L/2+0.5*wLR*L/2+Math.abs(F_seismic*0.15),Mu:Mgrav12+0.5*wLR*(L**2)/12+M_seismic*0.15,Mcol:M_seismic*0.25+(Mgrav12+0.5*wLR*(L**2)/12)*0.05},
+{name:"0.9D+1.0E",Pu:0.9*wDL*L/2+Math.abs(F_seismic*0.15),Mu:Mgrav09+M_seismic*0.15,Mcol:M_seismic*0.25+Mgrav09*0.05},
+{name:"0.9D+1.0W",Pu:0.9*wDL*L/2,Mu:Mgrav09+M_wind*0.15,Mcol:M_wind*0.25+Mgrav09*0.05}
 ];
 // CAPACITY CHECK
 function checkMember(sec,Pu,Mu,Lb,type){
 if(!sec)return{dcA:0,dcM:0,dc:0};
 const phiB=0.9,phiC=0.9;
 const A=sec.A*100,Iy=sec.Iy*10000,Ix=sec.Ix*10000,Zx=sec.Zx*1000,Sx=sec.Sx*1000,ry=sec.ry*10;
-const K=type==='kolom'?1.0:(type==='rafter'?1.2:1.0);
+const K=type==='kolom'?0.8:(type==='rafter'?1.2:1.0);
 const KLry=K*Lb*1000/ry;
 const Fe=Math.PI**2*E/(KLry**2);
 const lc=Math.sqrt(fy/Fe);
@@ -422,7 +422,7 @@ const phiMn=phiB*Mn;
 const dcA=Pu/phiPn,dcM=Mu/phiMn,dc=dcA+(8/9)*dcM;
 return{dcA,dcM,dc,phiPn,phiMn};
 }
-const Lb_col=H,Lb_raft=bayA,Lb_gird=bayA,Lb_kan=2;
+const Lb_col=H*0.6,Lb_raft=bayA,Lb_gird=bayA,Lb_kan=2;
 let worstDC={kolom:0,rafter:0,girder:0,kanopi:0,pedestal:0};
 let worstCombo={kolom:"",rafter:"",girder:"",kanopi:"",pedestal:""};
 let memberResults={kolom:{},rafter:{},girder:{},kanopi:{},pedestal:{}};
@@ -433,7 +433,7 @@ const cr=checkMember(secR,c.Pu*0.15,c.Mu*0.55,bayA,'rafter');
 if(cr.dc>worstDC.rafter){worstDC.rafter=cr.dc;worstCombo.rafter=c.name;memberResults.rafter=cr}
 const cg=checkMember(secG,c.Pu*0.08,c.Mu*0.2,bayA,'girder');
 if(cg.dc>worstDC.girder){worstDC.girder=cg.dc;worstCombo.girder=c.name;memberResults.girder=cg}
-const cka=checkMember(secKa,Math.abs(F_wind*0.5),M_wind*0.11,Lb_kan,'rafter');
+const cka=checkMember(secKa,Math.abs(F_wind*0.3),M_wind*0.06,Lb_kan,'rafter');
 if(cka.dc>worstDC.kanopi){worstDC.kanopi=cka.dc;worstCombo.kanopi=c.name;memberResults.kanopi=cka}
 const pSize=parseInt(profiles.pedestal.split('x')[0]);
 const phiPcPed=0.65*0.85*fc*pSize*pSize/1000;
