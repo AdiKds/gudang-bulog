@@ -133,7 +133,7 @@ table.dcr-table td.safe{color:var(--safe);font-weight:600}
 <div class="space-y-2">
 <div><label class="form-label">Nama Proyek</label><input id="proj_name" class="form-input" value="Gudang Bulog 3500 Ton"></div>
 <div><label class="form-label">Lokasi</label><input id="proj_loc" class="form-input" value="Lombok Tengah, NTB"></div>
-<div><label class="form-label">Tipe Bangunan</label><select id="bldg_preset" class="form-input" onchange="loadPreset()"><option value="24x66">24 x 66m (3500 Ton)</option><option value="18x30">18 x 30m (1000 Ton)</option><option value="32x48">32 x 48m (3500 Ton)</option></select></div>
+<div><label class="form-label">Tipe Bangunan</label><select id="bldg_preset" class="form-input" onchange="loadPreset()"><option value="24x66">24 x 66m (3500 Ton)</option><option value="18x30">18 x 30m (1000 Ton)</option><option value="32x48">32 x 48m (3500 Ton)</option><option value="18x24">18 x 24m (Unit Kecil)</option></select></div>
 <div><label class="form-label">Model Struktur</label><select id="model_type" class="form-input" onchange="toggleModel()"><option value="portal">Portal Frame (Baja)</option><option value="cremona">Rangka Cremona (Truss)</option><option value="warren">Rangka Warren (Truss)</option></select></div>
 <div id="truss_panel_length_div" style="display:none"><label class="form-label">Panjang Panel Truss (m)</label><input type="number" id="truss_panel" class="form-input" value="4" onchange="runAnalysis()"></div>
 <div><label class="form-label">Engineer</label><input id="proj_eng" class="form-input" value="Mohamad Hartadi"></div>
@@ -251,6 +251,8 @@ table.dcr-table td.safe{color:var(--safe);font-weight:600}
 <div><label class="form-label">Rafter / Kuda-Kuda</label><select id="prof_rafter" class="form-input" onchange="runAnalysis()"><option value="H400x200x8x13">H 400x200x8x13</option><option value="H500x200x10x16">H 500x200x10x16</option><option value="H350x175x7x11">H 350x175x7x11</option><option value="H450x200x9x14">H 450x200x9x14</option></select></div>
 <div><label class="form-label">Girder (Balok Utama)</label><select id="prof_girder" class="form-input" onchange="runAnalysis()"><option value="H400x200x8x13">H 400x200x8x13</option><option value="H500x200x10x16">H 500x200x10x16</option><option value="H350x175x7x11">H 350x175x7x11</option></select></div>
 <div><label class="form-label">Kanopi (Overhang)</label><select id="prof_kanopi" class="form-input" onchange="runAnalysis()"><option value="H250x125x6x9">H 250x125x6x9</option><option value="H300x150x6.5x9">H 300x150x6.5x9</option><option value="H200x100x5.5x8">H 200x100x5.5x8</option></select></div>
+<div><label class="form-label">Gording (Purlin/CNP)</label><select id="prof_gording" class="form-input" onchange="runAnalysis()"><option value="CNP150x65x20x2.3">CNP 150x65x20x2.3</option><option value="CNP125x50x20x2.3">CNP 125x50x20x2.3</option><option value="CNP200x75x20x3.2">CNP 200x75x20x3.2</option></select></div>
+<div><label class="form-label">Jarak Gording (m)</label><input id="gording_spacing" type="number" class="form-input" value="1.5" step="0.1" onchange="runAnalysis()"></div>
 <div id="truss_profiles" style="display:none">
 <div><label class="form-label">Top Chord (Kompresi)</label><select id="prof_topchord" class="form-input" onchange="runAnalysis()"><option value="H300x150x6.5x9">H 300x150x6.5x9</option><option value="H250x125x6x9">H 250x125x6x9</option><option value="H200x100x5.5x8">H 200x100x5.5x8</option><option value="H400x200x8x13">H 400x200x8x13</option><option value="H350x175x7x11">H 350x175x7x11</option></select></div>
 <div><label class="form-label">Bottom Chord (Tarik)</label><select id="prof_botchord" class="form-input" onchange="runAnalysis()"><option value="H250x125x6x9">H 250x125x6x9</option><option value="H200x100x5.5x8">H 200x100x5.5x8</option><option value="H300x150x6.5x9">H 300x150x6.5x9</option><option value="H400x200x8x13">H 400x200x8x13</option><option value="H350x175x7x11">H 350x175x7x11</option></select></div>
@@ -326,10 +328,13 @@ const sectionDB={
 "H250x125x6x9":{d:250,b:125,tf:9,tw:6,A:36.97,Ix:3960,Iy:294,Sx:317,Zx:356,ry:2.82,rx:10.4,h:232},
 "H300x150x6.5x9":{d:300,b:150,tf:9,tw:6.5,A:46.78,Ix:7210,Iy:507,Sx:481,Zx:540,ry:3.29,rx:12.4,h:282},
 "H200x100x5.5x8":{d:200,b:100,tf:8,tw:5.5,A:26.66,Ix:1840,Iy:134,Sx:184,Zx:206,ry:2.24,rx:8.3,h:184},
-"H150x75x5x7":{d:150,b:75,tf:7,tw:5,A:17.85,Ix:666,Iy:33.1,Sx:88.8,Zx:97.8,ry:1.36,rx:6.1,h:136}
+"H150x75x5x7":{d:150,b:75,tf:7,tw:5,A:17.85,Ix:666,Iy:33.1,Sx:88.8,Zx:97.8,ry:1.36,rx:6.1,h:136},
+"CNP150x65x20x2.3":{d:150,b:65,tf:2.3,tw:2.3,A:7.15,Ix:254,Iy:42.6,Sx:33.9,Zx:38,ry:2.44,rx:5.97,h:147.7},
+"CNP125x50x20x2.3":{d:125,b:50,tf:2.3,tw:2.3,A:5.62,Ix:132,Iy:20.1,Sx:21.1,Zx:24.3,ry:1.89,rx:4.85,h:120.4},
+"CNP200x75x20x3.2":{d:200,b:75,tf:3.2,tw:3.2,A:12.85,Ix:601,Iy:79.8,Sx:60.1,Zx:69.5,ry:2.49,rx:6.84,h:193.6}
 };
 
-let currentProfiles={kolom:"H300x300x10x15",rafter:"H400x200x8x13",girder:"H400x200x8x13",kanopi:"H250x125x6x9",pedestal:"600x600"};
+let currentProfiles={kolom:"H300x300x10x15",rafter:"H400x200x8x13",girder:"H400x200x8x13",kanopi:"H250x125x6x9",gording:"CNP150x65x20x2.3",pedestal:"600x600"};
 let currentResults=null,rsChart=null,scene,camera,renderer,labelRenderer,structGroup,controls,isEarthquake=false,quakeTime=0,memberMeshes=[],savedWorksheets=[],rawCalcLog="";
 
 // LOADER
@@ -349,7 +354,7 @@ runAnalysis()}
 
 function loadPreset(){
 const p=document.getElementById('bldg_preset').value;
-const pr={'18x30':{x:18,y:30,name:'Gudang Bulog 1000 Ton',bay:6,kolom:'H300x300x10x15',rafter:'H400x200x8x13',girder:'H400x200x8x13',kanopi:'H250x125x6x9',topChord:'H300x150x6.5x9',botChord:'H250x125x6x9',web:'H200x100x5.5x8',panel:4},'24x66':{x:24,y:66,name:'Gudang Bulog 3500 Ton',bay:6,kolom:'H300x300x10x15',rafter:'H400x200x8x13',girder:'H400x200x8x13',kanopi:'H250x125x6x9',topChord:'H400x200x8x13',botChord:'H350x175x7x11',web:'H250x125x6x9',panel:4},'32x48':{x:32,y:48,name:'Gudang Bulog 3500 Ton',bay:8,kolom:'H350x350x12x19',rafter:'H500x200x10x16',girder:'H500x200x10x16',kanopi:'H250x125x6x9',topChord:'H400x200x8x13',botChord:'H400x200x8x13',web:'H350x175x7x11',panel:4}}[p];
+const pr={'18x30':{x:18,y:30,name:'Gudang Bulog 1000 Ton',bay:6,kolom:'H300x300x10x15',rafter:'H400x200x8x13',girder:'H400x200x8x13',kanopi:'H250x125x6x9',gording:'CNP150x65x20x2.3',topChord:'H300x150x6.5x9',botChord:'H250x125x6x9',web:'H200x100x5.5x8',panel:4},'18x24':{x:18,y:24,name:'Gudang Bulog Unit 18x24m',bay:6,kolom:'H300x300x10x15',rafter:'H400x200x8x13',girder:'H400x200x8x13',kanopi:'H250x125x6x9',gording:'CNP150x65x20x2.3',topChord:'H300x150x6.5x9',botChord:'H250x125x6x9',web:'H200x100x5.5x8',panel:4},'24x66':{x:24,y:66,name:'Gudang Bulog Unit 24x66m',bay:6,kolom:'H300x300x10x15',rafter:'H400x200x8x13',girder:'H400x200x8x13',kanopi:'H250x125x6x9',gording:'CNP150x65x20x2.3',topChord:'H400x200x8x13',botChord:'H350x175x7x11',web:'H250x125x6x9',panel:4},'32x48':{x:32,y:48,name:'Gudang Bulog Unit 32x48m',bay:8,kolom:'H400x400x13x21',rafter:'H500x200x10x16',girder:'H400x200x8x13',kanopi:'H250x125x6x9',gording:'CNP150x65x20x2.3',topChord:'H400x200x8x13',botChord:'H400x200x8x13',web:'H350x175x7x11',panel:4}}[p];
 document.getElementById('dim_x').value=pr.x;
 document.getElementById('dim_y').value=pr.y;
 document.getElementById('proj_name').value=pr.name;
@@ -360,6 +365,7 @@ setDropdown('prof_kolom',pr.kolom);
 setDropdown('prof_rafter',pr.rafter);
 setDropdown('prof_girder',pr.girder);
 setDropdown('prof_kanopi',pr.kanopi);
+setDropdown('prof_gording',pr.gording);
 setDropdown('prof_topchord',pr.topChord);
 setDropdown('prof_botchord',pr.botChord);
 setDropdown('prof_web',pr.web);
@@ -376,7 +382,7 @@ const bay=parseFloat(document.getElementById('bay_spacing').value),slope=parseFl
 const fy=parseFloat(document.getElementById('mat_fy').value),fu=parseFloat(document.getElementById('mat_fu').value),E=parseFloat(document.getElementById('mat_e').value),gamma=parseFloat(document.getElementById('mat_gamma').value),fc=parseFloat(document.getElementById('mat_fc').value);
 const SIDL=parseFloat(document.getElementById('load_sidl').value),Lr=parseFloat(document.getElementById('load_lr').value);
 const Ss=parseFloat(document.getElementById('load_ss').value),S1=parseFloat(document.getElementById('load_s1').value),SDS=parseFloat(document.getElementById('load_sds').value),SD1=parseFloat(document.getElementById('load_sd1').value),R=parseFloat(document.getElementById('load_r').value),Ie=parseFloat(document.getElementById('load_i').value),Vw=parseFloat(document.getElementById('load_v').value),expo=document.getElementById('load_expo').value;
-const profiles={kolom:document.getElementById('prof_kolom').value,rafter:document.getElementById('prof_rafter').value,girder:document.getElementById('prof_girder').value,kanopi:document.getElementById('prof_kanopi').value,pedestal:document.getElementById('prof_pedestal').value};
+const profiles={kolom:document.getElementById('prof_kolom').value,rafter:document.getElementById('prof_rafter').value,girder:document.getElementById('prof_girder').value,kanopi:document.getElementById('prof_kanopi').value,gording:document.getElementById('prof_gording').value,pedestal:document.getElementById('prof_pedestal').value};
 currentProfiles=profiles;
 const modelType=document.getElementById('model_type')?document.getElementById('model_type').value:'portal';
 const numBays=Math.ceil(B/bay),bayA=B/numBays,numFrames=numBays+1;
@@ -384,7 +390,7 @@ const ridgeH=H+(L/2)*slope;
 const wDL=SIDL*bayA,wLR=Lr*bayA,wTotal=wDL+wLR;
 if(modelType==='cremona'||modelType==='warren'){
 // CREMONA TRUSS PATH
-const trussProfiles={topChord:document.getElementById('prof_topchord').value,bottomChord:document.getElementById('prof_botchord').value,web:document.getElementById('prof_web').value};
+const trussProfiles={topChord:document.getElementById('prof_topchord').value,bottomChord:document.getElementById('prof_botchord').value,web:document.getElementById('prof_web').value,gording:document.getElementById('prof_gording').value};
 const trussResult=cremonaAnalysis(L,H,slope,bayA,wDL,wLR,fy,E,trussProfiles,modelType);
 const maxDC=trussResult.maxDC;
 // UI Update
@@ -403,6 +409,7 @@ const tmembers=[
 {name:'Diagonal',profile:trussProfiles.web,dc:trussResult.worstDC.diagonal,combo:trussResult.worstCombo.diagonal,r:trussResult.memberResults.diagonal},
 {name:'Vertical',profile:trussProfiles.web,dc:modelType==='warren'?0:trussResult.worstDC.vertical,combo:trussResult.worstCombo.vertical,r:trussResult.memberResults.vertical},
 {name:'Kolom',profile:document.getElementById('prof_kolom').value,dc:trussResult.worstDC.kolom,combo:trussResult.worstCombo.kolom,r:trussResult.memberResults.kolom},
+{name:'Gording',profile:trussProfiles.gording,dc:trussResult.worstDC.gording,combo:trussResult.worstCombo.gording,r:trussResult.memberResults.gording},
 {name:'Pedestal',profile:document.getElementById('prof_pedestal').value+' (Beton)',dc:trussResult.worstDC.pedestal,combo:trussResult.worstCombo.pedestal,r:trussResult.memberResults.pedestal}
 ];
 document.getElementById('dcr-body').innerHTML=tmembers.map(m=>{const cls=m.dc>1?'unsafe':(m.dc>0.8?'warn':'safe');const st=m.dc>1?'<span class="result-badge badge-danger">OVERSTRESS</span>':(m.dc>0.8?'<span class="result-badge badge-warn">HATI-HATI</span>':'<span class="result-badge badge-safe">OK</span>');const dcA=m.r.dcA!==undefined?m.r.dcA.toFixed(3):'-';const dcM=m.r.dcM!==undefined?m.r.dcM.toFixed(3):'-';return'<tr><td style="text-align:left;font-weight:700">'+m.name+'</td><td>'+m.profile+'</td><td class="'+cls+'">'+dcA+'</td><td class="'+cls+'">'+dcM+'</td><td class="'+cls+'"><b>'+m.dc.toFixed(3)+'</b></td><td>'+st+'</td></tr>'}).join('');
@@ -418,7 +425,7 @@ currentResults=trussResult;
 rawCalcLog='=== '+(modelType==='warren'?'WARREN':'CREMONA')+' TRUSS ANALYSIS ===\nProyek: '+document.getElementById('proj_name').value+'\nSpan: '+L+'m x '+B+'m\nTruss depth: '+((L/2*slope).toFixed(2))+'m\nPanels: '+trussResult.trussData.nPanels+' x '+trussResult.trussData.p.toFixed(1)+'m\n\n--- MEMBER FORCES ---\nTop Chord: '+trussResult.worstDC.topChord.toFixed(3)+' D/C (kompresi)\nBottom Chord: '+trussResult.worstDC.bottomChord.toFixed(3)+' D/C (tension)\nDiagonal: '+trussResult.worstDC.diagonal.toFixed(3)+' D/C\n'+(modelType==='warren'?'':'Vertical: '+trussResult.worstDC.vertical.toFixed(3)+' D/C\n')+'Kolom: '+trussResult.worstDC.kolom.toFixed(3)+' D/C\nPedestal: '+trussResult.worstDC.pedestal.toFixed(3)+' D/C\n\nMAX D/C='+maxDC.toFixed(3)+'\nDefleksi: '+trussResult.defY.toFixed(2)+'mm / Limit: '+trussResult.defYLimit.toFixed(1)+'mm\n\n=== STATUS: '+(maxDC>1?'TIDAK AMAN':(maxDC>0.8?'AMAN (HATI-HATI)':'AMAN KOKOH'))+' ===';
 return;
 }
-const secK=sectionDB[profiles.kolom],secR=sectionDB[profiles.rafter],secG=sectionDB[profiles.girder],secKa=sectionDB[profiles.kanopi];
+const secK=sectionDB[profiles.kolom],secR=sectionDB[profiles.rafter],secG=sectionDB[profiles.girder],secKa=sectionDB[profiles.kanopi],secGo=sectionDB[profiles.gording];
 const selfW=(secK.A*H*2*numFrames+secR.A*Math.sqrt((L/2)**2+(ridgeH-H)**2)*2*numFrames+secG.A*bayA*numBays*3+secKa.A*2*2*numFrames)*gamma/1000;
 // SEISMIC
 const Cs=SDS/(R/Ie),CsMax=SD1/(R/Ie)/Math.max(Ta_func(H),0.2),CsMin=0.044*SDS*Ie;
@@ -465,9 +472,9 @@ const dcA=Pu/phiPn,dcM=Mu/phiMn,dc=dcA+(8/9)*dcM;
 return{dcA,dcM,dc,phiPn,phiMn};
 }
 const Lb_col=H*0.6,Lb_raft=1.5,Lb_gird=bayA,Lb_kan=2;
-let worstDC={kolom:0,rafter:0,girder:0,kanopi:0,pedestal:0};
-let worstCombo={kolom:"",rafter:"",girder:"",kanopi:"",pedestal:""};
-let memberResults={kolom:{},rafter:{},girder:{},kanopi:{},pedestal:{}};
+let worstDC={kolom:0,rafter:0,girder:0,kanopi:0,gording:0,pedestal:0};
+let worstCombo={kolom:"",rafter:"",girder:"",kanopi:"",gording:"",pedestal:""};
+let memberResults={kolom:{},rafter:{},girder:{},kanopi:{},gording:{},pedestal:{}};
 combos.forEach(c=>{
 const ck=checkMember(secK,c.Pu,c.Mcol,Lb_col,'kolom');
 if(ck.dc>worstDC.kolom){worstDC.kolom=ck.dc;worstCombo.kolom=c.name;memberResults.kolom=ck}
@@ -477,6 +484,14 @@ const cg=checkMember(secG,c.Pu*0.08,c.Mu*0.15,Math.min(bayA,4),'girder');
 if(cg.dc>worstDC.girder){worstDC.girder=cg.dc;worstCombo.girder=c.name;memberResults.girder=cg}
 const cka=checkMember(secKa,Math.abs(F_wind*0.3),M_wind*(L<=24?0.06:0.04),Lb_kan,'rafter');
 if(cka.dc>worstDC.kanopi){worstDC.kanopi=cka.dc;worstCombo.kanopi=c.name;memberResults.kanopi=cka}
+// GORDING (PURLIN) CHECK - simply supported beam spanning bay spacing, bending only
+const gSpc=parseFloat(document.getElementById('gording_spacing').value)||1.5;
+const wDLg=SIDL*gSpc,wLRg=Lr*gSpc;
+const MuFactor=c.name==='1.4D'?1.4*wDLg:(c.name.includes('1.2D')&&c.name.includes('1.6Lr')?1.2*wDLg+1.6*wLRg:(c.name.includes('0.9D')?0.9*wDLg:1.2*wDLg+0.5*wLRg));
+const Mu_g=MuFactor*(bayA**2)/8;
+const phiMn_g=0.9*fy*secGo.Zx*1000/1e6;
+const dcg=Mu_g/phiMn_g;
+if(dcg>worstDC.gording){worstDC.gording=dcg;worstCombo.gording=c.name;memberResults.gording={dc:dcg,dcA:0,dcM:dcg}}
 const pSize=parseInt(profiles.pedestal.split('x')[0]);
 const phiPcPed=0.65*0.85*fc*pSize*pSize/1000;
 const dcp=c.Pu/phiPcPed;
@@ -501,7 +516,7 @@ document.getElementById('out-def-y').style.color=defY>defYLimit?'#ef4444':'#10b9
 document.getElementById('out-def-eq').textContent=defEQ.toFixed(2)+' mm';document.getElementById('out-def-eq-stat').textContent='Limit: '+defEQLimit.toFixed(1)+' mm (0.015h)';
 document.getElementById('out-def-eq').style.color=defEQ>defEQLimit?'#ef4444':'#10b981';
 // DCR TABLE
-const members=[{name:'Kolom',profile:profiles.kolom,dc:worstDC.kolom,combo:worstCombo.kolom,r:memberResults.kolom},{name:'Rafter',profile:profiles.rafter,dc:worstDC.rafter,combo:worstCombo.rafter,r:memberResults.rafter},{name:'Girder',profile:profiles.girder,dc:worstDC.girder,combo:worstCombo.girder,r:memberResults.girder},{name:'Kanopi',profile:profiles.kanopi,dc:worstDC.kanopi,combo:worstCombo.kanopi,r:memberResults.kanopi},{name:'Pedestal',profile:profiles.pedestal+' (Beton)',dc:worstDC.pedestal,combo:worstCombo.pedestal,r:memberResults.pedestal}];
+const members=[{name:'Kolom',profile:profiles.kolom,dc:worstDC.kolom,combo:worstCombo.kolom,r:memberResults.kolom},{name:'Rafter',profile:profiles.rafter,dc:worstDC.rafter,combo:worstCombo.rafter,r:memberResults.rafter},{name:'Girder',profile:profiles.girder,dc:worstDC.girder,combo:worstCombo.girder,r:memberResults.girder},{name:'Kanopi',profile:profiles.kanopi,dc:worstDC.kanopi,combo:worstCombo.kanopi,r:memberResults.kanopi},{name:'Gording',profile:profiles.gording,dc:worstDC.gording,combo:worstCombo.gording,r:memberResults.gording},{name:'Pedestal',profile:profiles.pedestal+' (Beton)',dc:worstDC.pedestal,combo:worstCombo.pedestal,r:memberResults.pedestal}];
 document.getElementById('dcr-body').innerHTML=members.map(m=>{const cls=m.dc>1?'unsafe':(m.dc>0.8?'warn':'safe');const st=m.dc>1?'<span class="result-badge badge-danger">OVERSTRESS</span>':(m.dc>0.8?'<span class="result-badge badge-warn">HATI-HATI</span>':'<span class="result-badge badge-safe">OK</span>');const dcA=m.r.dcA!==undefined?m.r.dcA.toFixed(3):'-';const dcM=m.r.dcM!==undefined?m.r.dcM.toFixed(3):'-';return'<tr><td style="text-align:left;font-weight:700">'+m.name+'</td><td>'+m.profile+'</td><td class="'+cls+'">'+dcA+'</td><td class="'+cls+'">'+dcM+'</td><td class="'+cls+'"><b>'+m.dc.toFixed(3)+'</b></td><td>'+st+'</td></tr>'}).join('');
 // SEISMIC DISPLAY
 document.getElementById('seismic-calc').innerHTML='<div>SDS='+SDS+'g | SD1='+SD1+'g</div><div>R='+R+' | Ie='+Ie+'</div><div style="color:var(--accent)">Cs='+Cs.toFixed(4)+'</div><div>Cs_max='+CsMax.toFixed(4)+'</div><div>Cs_min='+CsMin.toFixed(4)+'</div><div style="color:var(--accent2)">Cs used='+CsUsed.toFixed(4)+'</div><div>Ta='+Ta.toFixed(3)+'s</div><div>W='+Wtotal.toFixed(1)+'kN</div><div style="color:var(--danger)">V='+Vbase.toFixed(1)+'kN</div><div>F/frame='+F_seismic.toFixed(1)+'kN</div>';
@@ -673,9 +688,9 @@ const phiPn=phiC*Pn;
 return{dc:Math.abs(N)/phiPn,dcA:Math.abs(N)/phiPn,dcM:0,phiPn:phiPn,N:N};
 }
 }
-let worstDC={topChord:0,bottomChord:0,diagonal:0,vertical:0,kolom:0,pedestal:0};
-let worstCombo={topChord:'',bottomChord:'',diagonal:'',vertical:'',kolom:'',pedestal:''};
-let memberResults={topChord:{},bottomChord:{},diagonal:{},vertical:{},kolom:{},pedestal:{}};
+let worstDC={topChord:0,bottomChord:0,diagonal:0,vertical:0,kolom:0,gording:0,pedestal:0};
+let worstCombo={topChord:'',bottomChord:'',diagonal:'',vertical:'',kolom:'',gording:'',pedestal:''};
+let memberResults={topChord:{},bottomChord:{},diagonal:{},vertical:{},kolom:{},gording:{},pedestal:{}};
 // Check worst forces across all combos
 memberForces.forEach(mf=>{
 let sec,Lb,isTension;
@@ -702,6 +717,17 @@ const Pn=Fcr*secK.A*100/1000;
 const phiPn=0.9*Pn;
 const dc=Pcol/phiPn;
 worstDC.kolom=dc;worstCombo.kolom='1.2D+1.6Lr';memberResults.kolom={dc,dcA:dc,dcM:0,phiPn};
+}
+// Gording (Purlin) - simply supported beam spanning bay spacing
+const secGoT=sectionDB[profiles.gording];
+if(secGoT){
+const gSpcT=parseFloat(document.getElementById('gording_spacing')?.value)||1.5;
+const wDLgT=wDL/bay*gSpcT,wLRgT=wLR/bay*gSpcT;
+const MuT=(1.2*wDLgT+1.6*wLRgT)*(bay**2)/8;
+const phiMnT=0.9*fy*secGoT.Zx*1000/1e6;
+const dcgT=MuT/phiMnT;
+worstDC.gording=dcgT;worstCombo.gording='1.2D+1.6Lr';
+memberResults.gording={dc:dcgT,dcA:0,dcM:dcgT};
 }
 // Pedestal
 const pSize=parseInt(document.getElementById('prof_pedestal').value.split('x')[0]);
@@ -1081,7 +1107,15 @@ createMember(new THREE.Vector3(L,H,z),new THREE.Vector3(L+2,H-0.2,z),currentProf
 if(i>0){const pz=(i-1)*bay;
 createMember(new THREE.Vector3(0,H,pz),new THREE.Vector3(0,H,z),currentProfiles.girder,girdC,'girder');
 createMember(new THREE.Vector3(L,H,pz),new THREE.Vector3(L,H,z),currentProfiles.girder,girdC,'girder');
-createMember(new THREE.Vector3(L/2,ridgeH,pz),new THREE.Vector3(L/2,ridgeH,z),currentProfiles.girder,girdC,'girder');}
+createMember(new THREE.Vector3(L/2,ridgeH,pz),new THREE.Vector3(L/2,ridgeH,z),currentProfiles.girder,girdC,'girder');
+// GORDING (PURLIN) - representative purlins along roof slope
+const gordC2=getColorForDC(dc.gording);
+[0.25,0.5,0.75].forEach(fr=>{
+const gx1=fr*(L/2),gy1=H+fr*(ridgeH-H);
+const gx2=L-fr*(L/2),gy2=H+fr*(ridgeH-H);
+createMember(new THREE.Vector3(gx1,gy1,pz),new THREE.Vector3(gx1,gy1,z),currentProfiles.gording,gordC2,'gording');
+createMember(new THREE.Vector3(gx2,gy2,pz),new THREE.Vector3(gx2,gy2,z),currentProfiles.gording,gordC2,'gording');
+});}
 // Load arrows
 if(document.getElementById('t_dl').checked||document.getElementById('t_lr').checked){structGroup.add(createArrow(new THREE.Vector3(0,-1,0),new THREE.Vector3(L/4,ridgeH+1.5,z),1.5,0x10b981));structGroup.add(createArrow(new THREE.Vector3(0,-1,0),new THREE.Vector3(L*0.75,ridgeH+0.5,z),1.5,0x10b981))}
 if(document.getElementById('t_wind_l').checked)structGroup.add(createArrow(new THREE.Vector3(1,0,0),new THREE.Vector3(-3,H/2,z),3,0x0ea5e9));
@@ -1093,6 +1127,7 @@ createProfileLabel(new THREE.Vector3(0,H/2,0),'kolom','Kolom',currentProfiles.ko
 createProfileLabel(new THREE.Vector3(L/4,H+(ridgeH-H)/2+0.5,0),'rafter','Rafter',currentProfiles.rafter);
 if(numFrames>1)createProfileLabel(new THREE.Vector3(0,H+0.5,bay/2),'girder','Girder',currentProfiles.girder);
 createProfileLabel(new THREE.Vector3(-1,H-0.3,0),'kanopi','Kanopi',currentProfiles.kanopi);
+if(numFrames>1)createProfileLabel(new THREE.Vector3(L/4,H+(ridgeH-H)*0.5+0.3,bay/2),'gording','Gording',currentProfiles.gording);
 createProfileLabel(new THREE.Vector3(0,-0.5,0),'pedestal','Pedestal',currentProfiles.pedestal);
 controls.target.set(L/2,H/2,B/2);controls.update();
 }
@@ -1110,8 +1145,9 @@ if(typeKey==='kolom')options=['H300x300x10x15','H350x350x12x19','H400x400x13x21'
 else if(typeKey==='rafter')options=['H400x200x8x13','H500x200x10x16','H350x175x7x11','H450x200x9x14'];
 else if(typeKey==='girder')options=['H400x200x8x13','H500x200x10x16','H350x175x7x11'];
 else if(typeKey==='kanopi')options=['H250x125x6x9','H300x150x6.5x9','H200x100x5.5x8'];
+else if(typeKey==='gording')options=['CNP150x65x20x2.3','CNP125x50x20x2.3','CNP200x75x20x3.2'];
 else if(typeKey==='pedestal')options=['600x600','500x500','700x700'];
-options.forEach(opt=>{const sel=opt===currentVal;const div=document.createElement('div');div.style.cssText='padding:8px 12px;border-radius:6px;cursor:pointer;transition:all .15s;'+(sel?'background:rgba(6,182,212,.15);border:1px solid rgba(6,182,212,.4)':'background:var(--card);border:1px solid var(--border)');div.innerHTML='<span style="font-size:12px;font-weight:bold;color:'+(sel?'var(--accent)':'var(--text)')+'"><i class="fa-solid '+(sel?'fa-check-circle':'fa-square')+'" style="margin-right:6px"></i>'+(typeKey==='pedestal'?'Beton '+opt+' mm':opt)+'</span>';div.onmouseover=()=>{if(!sel)div.style.borderColor='var(--accent)'};div.onmouseout=()=>{if(!sel)div.style.borderColor='var(--border)'};div.onclick=()=>{currentProfiles[typeKey]=opt;const sid=typeKey==='kolom'?'prof_kolom':typeKey==='rafter'?'prof_rafter':typeKey==='girder'?'prof_girder':typeKey==='kanopi'?'prof_kanopi':'prof_pedestal';document.getElementById(sid).value=opt;document.getElementById('editProfileModal').style.display='none';runAnalysis()};opts.appendChild(div)});
+options.forEach(opt=>{const sel=opt===currentVal;const div=document.createElement('div');div.style.cssText='padding:8px 12px;border-radius:6px;cursor:pointer;transition:all .15s;'+(sel?'background:rgba(6,182,212,.15);border:1px solid rgba(6,182,212,.4)':'background:var(--card);border:1px solid var(--border)');div.innerHTML='<span style="font-size:12px;font-weight:bold;color:'+(sel?'var(--accent)':'var(--text)')+'"><i class="fa-solid '+(sel?'fa-check-circle':'fa-square')+'" style="margin-right:6px"></i>'+(typeKey==='pedestal'?'Beton '+opt+' mm':opt)+'</span>';div.onmouseover=()=>{if(!sel)div.style.borderColor='var(--accent)'};div.onmouseout=()=>{if(!sel)div.style.borderColor='var(--border)'};div.onclick=()=>{currentProfiles[typeKey]=opt;const sid=typeKey==='kolom'?'prof_kolom':typeKey==='rafter'?'prof_rafter':typeKey==='girder'?'prof_girder':typeKey==='kanopi'?'prof_kanopi':typeKey==='gording'?'prof_gording':'prof_pedestal';document.getElementById(sid).value=opt;document.getElementById('editProfileModal').style.display='none';runAnalysis()};opts.appendChild(div)});
 document.getElementById('editProfileModal').style.display='flex';
 }
 
@@ -1121,7 +1157,7 @@ if(!currentResults){alert('Jalankan analisis terlebih dahulu!');return}
 const v=id=>document.getElementById(id)?document.getElementById(id).value:'';
 const t=id=>document.getElementById(id)?document.getElementById(id).innerText:'';
 const L=v('dim_x'),B=v('dim_y'),H=v('dim_h'),pn=v('proj_name'),pl=v('proj_loc');
-let h='<!DOCTYPE html><html><head><meta charset="utf-8"><title>Laporan</title><style>@page{size:A4;margin:1in}body{font-family:Times New Roman,serif;font-size:11pt}h1{text-align:center;font-size:16pt}h2{font-size:13pt;border-bottom:1px solid #000}table{width:100%;border-collapse:collapse}th,td{border:1px solid #000;padding:5px}th{background:#e5e5e5}
+let h=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Laporan</title><style>@page{size:A4;margin:1in}body{font-family:Times New Roman,serif;font-size:11pt}h1{text-align:center;font-size:16pt}h2{font-size:13pt;border-bottom:1px solid #000}table{width:100%;border-collapse:collapse}th,td{border:1px solid #000;padding:5px}th{background:#e5e5e5}
 /* SCREENSAVER */
 #screensaverScreen{position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;display:none;opacity:0;flex-direction:column;align-items:center;justify-content:center;background:rgba(2,6,23,.97);transition:opacity .5s;cursor:pointer}
 .screensaver-earth{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:0;pointer-events:none;opacity:.4;mix-blend-mode:screen}
@@ -1159,7 +1195,7 @@ let h='<!DOCTYPE html><html><head><meta charset="utf-8"><title>Laporan</title><s
 #voiceSettingsModal{position:fixed;inset:0;z-index:10005;display:none;background:rgba(0,0,0,.8);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:16px}
 .voice-modal-content{background:var(--card);border:2px solid var(--accent);border-radius:24px;max-width:420px;width:100%;padding:32px;position:relative;box-shadow:0 0 40px rgba(6,182,212,.5)}
 
-</style></head><body>';
+</style></head><body>`;
 h+='<h1>LAPORAN ANALISIS STRUKTUR BAJA GUDANG BULOG</h1><p style="text-align:center"><b>Proyek:</b> '+pn+'<br><b>Lokasi:</b> '+pl+'<br><b>Engineer:</b> '+v('proj_eng')+'<br><b>Tanggal:</b> '+new Date().toLocaleDateString('id-ID')+'</p>';
 h+='<h2>1. Data Input</h2><table><tr><th>Parameter</th><th>Nilai</th></tr><tr><td>Dimensi</td><td>'+L+' x '+B+' m</td></tr><tr><td>Tinggi</td><td>'+H+' m</td></tr><tr><td>Baja fy/fu</td><td>'+v('mat_fy')+'/'+v('mat_fu')+' MPa</td></tr><tr><td>Kolom</td><td>'+currentProfiles.kolom+'</td></tr><tr><td>Rafter</td><td>'+currentProfiles.rafter+'</td></tr><tr><td>Girder</td><td>'+currentProfiles.girder+'</td></tr><tr><td>Kanopi</td><td>'+currentProfiles.kanopi+'</td></tr><tr><td>Pedestal</td><td>'+currentProfiles.pedestal+'</td></tr></table>';
 h+='<h2>2. Pembebanan</h2><table><tr><th>Beban</th><th>Nilai</th></tr><tr><td>SIDL</td><td>'+v('load_sidl')+' kN/m2</td></tr><tr><td>Live Roof</td><td>'+v('load_lr')+' kN/m2</td></tr><tr><td>SDS/SD1</td><td>'+v('load_sds')+'/'+v('load_sd1')+' g</td></tr><tr><td>V Angin</td><td>'+v('load_v')+' m/s</td></tr></table>';
@@ -1169,7 +1205,11 @@ h+='<h2>5. D/C Ratio</h2>'+document.getElementById('dcr-table').outerHTML;
 h+='<h2>6. Defleksi</h2><table><tr><th>Parameter</th><th>Nilai</th><th>Limit</th></tr><tr><td>Vertikal</td><td>'+t('out-def-y')+'</td><td>'+t('out-def-y-stat')+'</td></tr><tr><td>Gempa</td><td>'+t('out-def-eq')+'</td><td>'+t('out-def-eq-stat')+'</td></tr></table>';
 h+='<h2>7. Log Perhitungan</h2><pre>'+rawCalcLog+'</pre>';
 h+='<h2>8. Kesimpulan</h2><p>Max D/C='+t('out-dc')+', Status='+t('out-status')+'</p>';
-h+='<p style="text-align:center"><b>FEM Engine v1.0 | Mohamad Hartadi - Geotechnical & Civil Engineer</b></p>
+h+='<p style="text-align:center"><b>FEM Engine v1.0 | Mohamad Hartadi - Geotechnical & Civil Engineer</b></p>';
+h+='</body></html>';
+const blob=new Blob([h],{type:'application/vnd.ms-word'});const link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download='Laporan_Struktur_'+pn.replace(/\s+/g,'_')+'.doc';link.click();
+}
+</script>
 
 <!-- SCREENSAVER -->
 <div id="screensaverScreen" onclick="deactivateScreensaver()">
@@ -1228,7 +1268,7 @@ h+='<p style="text-align:center"><b>FEM Engine v1.0 | Mohamad Hartadi - Geotechn
     <div id="floatingButtonsGroup" class="float-btns">
       <button class="fbtn fbtn-analisis" onclick="runAnalysis()" title="Jalankan Analisis FEM"><i class="fa-solid fa-calculator" style="font-size:18px"></i></button>
       <button class="fbtn fbtn-screensaver" onclick="activateScreensaverManual(event)" title="Aktifkan Screensaver"><i class="fa-solid fa-desktop" style="font-size:18px"></i></button>
-      <button class="fbtn fbtn-siri" onclick="openVoiceSettingsModal()" title="Tema Suara SIRI"><i class="fa-solid fa-waveform-lines" style="font-size:18px"></i></button>
+      <button class="fbtn fbtn-siri" onclick="openVoiceSettingsModal()" title="Tema Suara SIRI"><i class="fa-solid fa-wave-square" style="font-size:18px"></i></button>
       <button class="fbtn fbtn-mute" onclick="toggleMute()" title="Mute/Unmute Suara"><i id="floatMuteIcon" class="fa-solid fa-volume-high" style="font-size:18px"></i></button>
       <button class="fbtn fbtn-chatbot" onclick="toggleFloatingChatbot()" title="Buka JARVIS AI Chatbot">
         <div style="position:absolute;top:-2px;right:-2px;width:12px;height:12px;background:#facc15;border-radius:50%;animation:pulse 1.5s infinite;border:1px solid #020617"></div>
@@ -1243,7 +1283,7 @@ h+='<p style="text-align:center"><b>FEM Engine v1.0 | Mohamad Hartadi - Geotechn
 <div id="voiceSettingsModal">
   <div class="voice-modal-content">
     <button onclick="closeVoiceSettingsModal()" style="position:absolute;top:16px;right:16px;color:var(--dim);background:none;border:none;cursor:pointer;font-size:22px"><i class="fa-solid fa-xmark"></i></button>
-    <h3 style="color:var(--accent);font-size:18px;font-weight:900;font-family:'Orbitron';margin-bottom:8px;display:flex;align-items:center;gap:10px"><i class="fa-solid fa-waveform-lines" style="color:#facc15;font-size:24px"></i> TEMA SUARA SIRI</h3>
+    <h3 style="color:var(--accent);font-size:18px;font-weight:900;font-family:'Orbitron';margin-bottom:8px;display:flex;align-items:center;gap:10px"><i class="fa-solid fa-wave-square" style="color:#facc15;font-size:24px"></i> TEMA SUARA SIRI</h3>
     <p style="font-size:13px;color:var(--text);margin-bottom:20px;line-height:1.5">Pilih gaya suara pembaca otomatis (TTS) untuk respons AI dan screensaver.</p>
     <div style="background:var(--bg);padding:16px;border-radius:16px;border:1px solid var(--border);margin-bottom:20px">
       <select id="voiceSelect" onchange="changeBotVoice()" style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;color:var(--text);font-size:15px;font-weight:700;outline:none;cursor:pointer">
@@ -1555,11 +1595,6 @@ window.addEventListener('load', () => {
   setTimeout(loadVoices, 500);
   setTimeout(initScreensaverEarth, 1000);
 });
-</script>
-
-</body></html>';
-const blob=new Blob([h],{type:'application/vnd.ms-word'});const link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download='Laporan_Struktur_'+pn.replace(/\s+/g,'_')+'.doc';link.click();
-}
 
 function exportJSON(){
 const data={projName:document.getElementById('proj_name').value,projLoc:document.getElementById('proj_loc').value,projEng:document.getElementById('proj_eng').value,dim:{x:document.getElementById('dim_x').value,y:document.getElementById('dim_y').value,h:document.getElementById('dim_h').value,bay:document.getElementById('bay_spacing').value,slope:document.getElementById('roof_slope').value},material:{fy:document.getElementById('mat_fy').value,fu:document.getElementById('mat_fu').value,e:document.getElementById('mat_e').value,gamma:document.getElementById('mat_gamma').value,fc:document.getElementById('mat_fc').value,eb:document.getElementById('mat_eb').value},loads:{sidl:document.getElementById('load_sidl').value,lr:document.getElementById('load_lr').value,ss:document.getElementById('load_ss').value,s1:document.getElementById('load_s1').value,sds:document.getElementById('load_sds').value,sd1:document.getElementById('load_sd1').value,r:document.getElementById('load_r').value,i:document.getElementById('load_i').value,v:document.getElementById('load_v').value,expo:document.getElementById('load_expo').value},profiles:currentProfiles,results:currentResults,date:new Date().toISOString()};
@@ -1575,10 +1610,10 @@ if(d.projLoc)document.getElementById('proj_loc').value=d.projLoc;
 if(d.dim){document.getElementById('dim_x').value=d.dim.x;document.getElementById('dim_y').value=d.dim.y;document.getElementById('dim_h').value=d.dim.h;if(d.dim.bay)document.getElementById('bay_spacing').value=d.dim.bay}
 if(d.material){document.getElementById('mat_fy').value=d.material.fy;document.getElementById('mat_fu').value=d.material.fu;document.getElementById('mat_e').value=d.material.e;if(d.material.fc)document.getElementById('mat_fc').value=d.material.fc}
 if(d.loads){document.getElementById('load_sidl').value=d.loads.sidl;document.getElementById('load_lr').value=d.loads.lr;document.getElementById('load_ss').value=d.loads.ss;document.getElementById('load_s1').value=d.loads.s1;document.getElementById('load_sds').value=d.loads.sds;document.getElementById('load_sd1').value=d.loads.sd1;document.getElementById('load_r').value=d.loads.r;document.getElementById('load_i').value=d.loads.i;document.getElementById('load_v').value=d.loads.v}
-if(d.profiles){currentProfiles=d.profiles;document.getElementById('prof_kolom').value=d.profiles.kolom;document.getElementById('prof_rafter').value=d.profiles.rafter;document.getElementById('prof_girder').value=d.profiles.girder;document.getElementById('prof_kanopi').value=d.profiles.kanopi;document.getElementById('prof_pedestal').value=d.profiles.pedestal}
+if(d.profiles){currentProfiles=d.profiles;document.getElementById('prof_kolom').value=d.profiles.kolom;document.getElementById('prof_rafter').value=d.profiles.rafter;document.getElementById('prof_girder').value=d.profiles.girder;document.getElementById('prof_kanopi').value=d.profiles.kanopi;if(d.profiles.gording)document.getElementById('prof_gording').value=d.profiles.gording;document.getElementById('prof_pedestal').value=d.profiles.pedestal}
 document.getElementById('projectModal').style.display='none';
 // URL preset auto-selection
-(function(){const params=new URLSearchParams(window.location.search);const preset=params.get('preset');if(preset&&['18x30','24x66','32x48'].includes(preset)){const sel=document.getElementById('bldg_preset');if(sel){sel.value=preset;loadPreset();}}const model=params.get('model');if(model&&['portal','cremona','warren'].includes(model)){const sel=document.getElementById('model_type');if(sel){sel.value=model;}}})();
+(function(){const params=new URLSearchParams(window.location.search);const preset=params.get('preset');if(preset&&['18x30','24x66','32x48','18x24'].includes(preset)){const sel=document.getElementById('bldg_preset');if(sel){sel.value=preset;loadPreset();}}const model=params.get('model');if(model&&['portal','cremona','warren'].includes(model)){const sel=document.getElementById('model_type');if(sel){sel.value=model;}}})();
 
 runAnalysis();
 }catch(err){alert('File tidak valid: '+err.message)}};
@@ -1587,396 +1622,10 @@ reader.readAsText(file);
 
 function loadWorksheets(){const s=localStorage.getItem('bulog_worksheets');if(s){savedWorksheets=JSON.parse(s);const list=document.getElementById('worksheet-list');if(list)list.innerHTML=savedWorksheets.map((w,i)=>'<div style="display:flex;align-items:center;justify-content:space-between;padding:8px;border-radius:6px;background:var(--card);border:1px solid var(--border)"><span style="font-size:10px;font-weight:bold">'+w.projName+'</span><div style="display:flex;gap:4px"><button onclick="loadWorksheet('+i+')" class="btn-secondary" style="font-size:10px;padding:4px 8px"><i class="fa-solid fa-upload"></i></button><button onclick="deleteWorksheet('+i+')" class="btn-secondary" style="font-size:10px;padding:4px 8px;color:#ef4444"><i class="fa-solid fa-trash"></i></button></div></div>').join('')}}
 
-function loadWorksheet(idx){const d=savedWorksheets[idx];if(!d)return;if(d.projName)document.getElementById('proj_name').value=d.projName;if(d.dim){document.getElementById('dim_x').value=d.dim.x;document.getElementById('dim_y').value=d.dim.y;document.getElementById('dim_h').value=d.dim.h}if(d.profiles){currentProfiles=d.profiles;document.getElementById('prof_kolom').value=d.profiles.kolom;document.getElementById('prof_rafter').value=d.profiles.rafter;document.getElementById('prof_girder').value=d.profiles.girder;document.getElementById('prof_kanopi').value=d.profiles.kanopi;document.getElementById('prof_pedestal').value=d.profiles.pedestal}document.getElementById('projectModal').style.display='none';runAnalysis()}
+function loadWorksheet(idx){const d=savedWorksheets[idx];if(!d)return;if(d.projName)document.getElementById('proj_name').value=d.projName;if(d.dim){document.getElementById('dim_x').value=d.dim.x;document.getElementById('dim_y').value=d.dim.y;document.getElementById('dim_h').value=d.dim.h}if(d.profiles){currentProfiles=d.profiles;document.getElementById('prof_kolom').value=d.profiles.kolom;document.getElementById('prof_rafter').value=d.profiles.rafter;document.getElementById('prof_girder').value=d.profiles.girder;document.getElementById('prof_kanopi').value=d.profiles.kanopi;if(d.profiles.gording)document.getElementById('prof_gording').value=d.profiles.gording;document.getElementById('prof_pedestal').value=d.profiles.pedestal}document.getElementById('projectModal').style.display='none';runAnalysis()}
 function deleteWorksheet(idx){savedWorksheets.splice(idx,1);localStorage.setItem('bulog_worksheets',JSON.stringify(savedWorksheets));loadWorksheets()}
 </script>
 
-
-<!-- SCREENSAVER -->
-<div id="screensaverScreen" onclick="deactivateScreensaver()">
-  <div id="ss-earth-bg" class="screensaver-earth" style="width:600px;height:600px"></div>
-  <div style="position:relative;z-index:10;text-align:center;padding:0 16px">
-    <div id="wisdomQuoteContainer" class="wisdom-active" style="font-size:clamp(18px,4vw,32px);font-weight:900;font-family:'Inter',sans-serif;line-height:1.6;min-height:100px;display:flex;align-items:center;justify-content:center;padding:24px 32px;border-radius:24px;border-top:4px solid var(--accent);border-bottom:4px solid var(--accent);background:linear-gradient(90deg,rgba(8,47,73,.9),rgba(2,6,23,.9));color:#ecfeff;max-width:700px;margin:0 auto;box-shadow:0 10px 40px rgba(0,0,0,.5)">
-      <span id="wisdomQuoteText"></span>
-    </div>
-    <div style="margin-top:24px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
-      <button onclick="cycleWisdomQuote()" style="background:var(--accent);color:#fff;border:none;padding:10px 24px;border-radius:12px;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 0 15px rgba(6,182,212,.5)"><i class="fa-solid fa-shuffle"></i> Petuah Berikutnya</button>
-      <button onclick="deactivateScreensaver()" style="background:var(--card);color:var(--text);border:1px solid var(--border);padding:10px 24px;border-radius:12px;font-weight:700;font-size:14px;cursor:pointer"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
-    </div>
-    <p style="margin-top:16px;font-size:11px;color:var(--dim);font-family:'JetBrains Mono',monospace">FEM Engine Screensaver | Klik dimana saja untuk kembali</p>
-  </div>
-</div>
-
-<!-- FLOATING CHATBOT PANEL -->
-<div id="floatingChatPanel">
-  <div class="chat-header">
-    <div style="display:flex;align-items:center;gap:10px">
-      <div style="width:36px;height:36px;border-radius:50%;background:var(--card);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;color:var(--accent)"><i class="fa-solid fa-robot" id="botToggleIcon2"></i></div>
-      <div>
-        <h4 style="font-family:'Orbitron';font-weight:900;font-size:13px;letter-spacing:.05em;color:#fff">JARVIS AI</h4>
-        <p style="font-size:9px;color:var(--safe);display:flex;align-items:center;gap:4px"><span style="width:6px;height:6px;border-radius:50%;background:var(--safe);animation:pulse 1.5s infinite"></span> ONLINE</p>
-      </div>
-    </div>
-    <div style="display:flex;align-items:center;gap:6px">
-      <button onclick="toggleMute()" style="color:#f87171;background:var(--card);border:1px solid rgba(220,38,38,.5);padding:6px 10px;border-radius:8px;cursor:pointer;font-size:13px" title="Mute/Unmute"><i id="chatMuteIcon" class="fa-solid fa-volume-high"></i></button>
-      <button onclick="toggleFloatingChatbot()" style="color:var(--dim);background:none;border:none;cursor:pointer;font-size:18px;padding:4px"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-  </div>
-  <div class="chat-body cs" id="chatContainer">
-    <div class="chat-msg-bot">
-      <div class="bot-avatar"><i class="fa-solid fa-robot" style="font-size:14px"></i></div>
-      <div class="bot-bubble">
-        <p style="font-weight:700;font-size:11px;color:var(--accent);margin-bottom:6px;border-bottom:1px solid var(--border);padding-bottom:4px">JARVIS AI:</p>
-        Halo <b>Pak Mohamad Hartadi</b>! Saya asisten AI Gudang Bulog. Saya bisa mencari info dari Wikipedia, menampilkan profil, atau membantu analisis struktur. Coba shortcut di bawah atau ketik pertanyaan.
-      </div>
-    </div>
-  </div>
-  <div class="chat-shortcuts cs">
-    <button onclick="triggerChatShortcut('analisis')" style="white-space:nowrap;padding:6px 10px;background:rgba(168,85,247,.15);color:#c084fc;border:1px solid rgba(168,85,247,.4);border-radius:8px;font-size:11px;font-weight:700;cursor:pointer"><i class="fa-solid fa-calculator"></i> Hasil Analisis</button>
-    <button onclick="triggerChatShortcut('programmer')" style="white-space:nowrap;padding:6px 10px;background:rgba(217,70,239,.15);color:#e879f9;border:1px solid rgba(217,70,239,.4);border-radius:8px;font-size:11px;font-weight:700;cursor:pointer"><i class="fa-solid fa-code"></i> Programmer</button>
-    <button onclick="triggerChatShortcut('my_aplikasi')" style="white-space:nowrap;padding:6px 10px;background:rgba(245,158,11,.15);color:#fbbf24;border:1px solid rgba(245,158,11,.4);border-radius:8px;font-size:11px;font-weight:700;cursor:pointer"><i class="fa-solid fa-layer-group"></i> My Apps</button>
-  </div>
-  <div class="chat-input-bar">
-    <input type="text" id="chatInputField" placeholder="Tanya Wikipedia, AI, dll..." style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 14px;color:var(--text);font-size:13px;outline:none" onkeydown="if(event.key==='Enter')processUserChatMessage()">
-    <button onclick="startDictation('chatInputField')" style="background:rgba(220,38,38,.2);color:#f87171;border:1px solid rgba(220,38,38,.4);padding:10px 14px;border-radius:12px;cursor:pointer"><i class="fa-solid fa-microphone"></i></button>
-    <button onclick="processUserChatMessage()" style="background:var(--accent);color:#fff;border:none;padding:10px 16px;border-radius:12px;font-weight:700;cursor:pointer;box-shadow:0 0 10px rgba(6,182,212,.4)"><i class="fa-solid fa-paper-plane"></i></button>
-  </div>
-</div>
-
-<!-- FLOATING ACTION BUTTONS -->
-<div class="float-btn-group">
-  <div class="float-btn-inner">
-    <div id="floatingButtonsGroup" class="float-btns">
-      <button class="fbtn fbtn-analisis" onclick="runAnalysis()" title="Jalankan Analisis FEM"><i class="fa-solid fa-calculator" style="font-size:18px"></i></button>
-      <button class="fbtn fbtn-screensaver" onclick="activateScreensaverManual(event)" title="Aktifkan Screensaver"><i class="fa-solid fa-desktop" style="font-size:18px"></i></button>
-      <button class="fbtn fbtn-siri" onclick="openVoiceSettingsModal()" title="Tema Suara SIRI"><i class="fa-solid fa-waveform-lines" style="font-size:18px"></i></button>
-      <button class="fbtn fbtn-mute" onclick="toggleMute()" title="Mute/Unmute Suara"><i id="floatMuteIcon" class="fa-solid fa-volume-high" style="font-size:18px"></i></button>
-      <button class="fbtn fbtn-chatbot" onclick="toggleFloatingChatbot()" title="Buka JARVIS AI Chatbot">
-        <div style="position:absolute;top:-2px;right:-2px;width:12px;height:12px;background:#facc15;border-radius:50%;animation:pulse 1.5s infinite;border:1px solid #020617"></div>
-        <i id="botToggleIcon" class="fa-solid fa-robot" style="font-size:22px"></i>
-      </button>
-    </div>
-    <button class="fbtn-toggle" onclick="toggleFloatingButtons()" title="Hide/Show Buttons"><i id="toggleFloatingIcon" class="fa-solid fa-angles-right" style="font-size:14px"></i></button>
-  </div>
-</div>
-
-<!-- VOICE SETTINGS MODAL -->
-<div id="voiceSettingsModal">
-  <div class="voice-modal-content">
-    <button onclick="closeVoiceSettingsModal()" style="position:absolute;top:16px;right:16px;color:var(--dim);background:none;border:none;cursor:pointer;font-size:22px"><i class="fa-solid fa-xmark"></i></button>
-    <h3 style="color:var(--accent);font-size:18px;font-weight:900;font-family:'Orbitron';margin-bottom:8px;display:flex;align-items:center;gap:10px"><i class="fa-solid fa-waveform-lines" style="color:#facc15;font-size:24px"></i> TEMA SUARA SIRI</h3>
-    <p style="font-size:13px;color:var(--text);margin-bottom:20px;line-height:1.5">Pilih gaya suara pembaca otomatis (TTS) untuk respons AI dan screensaver.</p>
-    <div style="background:var(--bg);padding:16px;border-radius:16px;border:1px solid var(--border);margin-bottom:20px">
-      <select id="voiceSelect" onchange="changeBotVoice()" style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;color:var(--text);font-size:15px;font-weight:700;outline:none;cursor:pointer">
-        <option value="">Memuat daftar suara...</option>
-      </select>
-    </div>
-    <button onclick="closeVoiceSettingsModal()" style="width:100%;background:linear-gradient(90deg,var(--accent),#2563eb);color:#fff;font-weight:900;padding:14px;border-radius:12px;font-family:'Orbitron';font-size:14px;border:none;cursor:pointer;box-shadow:0 0 20px rgba(6,182,212,.5)">Simpan Konfigurasi</button>
-  </div>
-</div>
-
-<script>
-// === SCREENSAVER, CHATBOT, SIRI, FLOATING BUTTONS ===
-
-// TTS / SIRI
-const synth = window.speechSynthesis;
-let isMuted = false;
-let botVoice = null;
-let availableVoices = [];
-
-function loadVoices() {
-  availableVoices = synth ? synth.getVoices() : [];
-  if(availableVoices.length === 0) return;
-  const sel = document.getElementById('voiceSelect');
-  if(sel) {
-    sel.innerHTML = '';
-    availableVoices.forEach((v, i) => {
-      const opt = document.createElement('option');
-      opt.value = i;
-      opt.textContent = v.name + ' (' + v.lang + ')';
-      sel.appendChild(opt);
-    });
-  }
-  const saved = localStorage.getItem('bulogBotVoiceIndex');
-  if(saved !== null && availableVoices[saved]) {
-    botVoice = availableVoices[saved];
-    if(sel) sel.value = saved;
-  } else {
-    botVoice = availableVoices.find(v => v.name.includes('Indonesian') || v.name.includes('ID') || v.name.includes('Female')) || availableVoices[0];
-    if(sel) sel.value = availableVoices.indexOf(botVoice);
-  }
-}
-if(synth && synth.onvoiceschanged !== undefined) synth.onvoiceschanged = loadVoices;
-
-function changeBotVoice() {
-  const sel = document.getElementById('voiceSelect');
-  botVoice = availableVoices[sel.value];
-  localStorage.setItem('bulogBotVoiceIndex', sel.value);
-  speakBot('Gaya tema suara SIRI berhasil diperbarui.');
-}
-
-function openVoiceSettingsModal() { document.getElementById('voiceSettingsModal').style.display = 'flex'; }
-function closeVoiceSettingsModal() { document.getElementById('voiceSettingsModal').style.display = 'none'; }
-
-function toggleMute() {
-  isMuted = !isMuted;
-  const icon = document.getElementById('chatMuteIcon');
-  const fIcon = document.getElementById('floatMuteIcon');
-  if(icon) icon.className = isMuted ? 'fa-solid fa-volume-xmark' : 'fa-solid fa-volume-high';
-  if(fIcon) fIcon.className = isMuted ? 'fa-solid fa-volume-xmark' : 'fa-solid fa-volume-high';
-  if(isMuted && synth) synth.cancel();
-}
-
-function speakBot(text) {
-  if(!synth || isMuted) return;
-  synth.cancel();
-  const clean = text.replace(/\*/g,'').replace(/_/g,'').replace(/<[^>]*>?/gm,'');
-  const u = new SpeechSynthesisUtterance(clean);
-  if(botVoice) u.voice = botVoice;
-  u.rate = 1.0; u.pitch = 1.0;
-  const robotIcon = document.getElementById('botToggleIcon');
-  u.onstart = () => { if(robotIcon) robotIcon.classList.add('audio-speaking'); };
-  u.onend = () => { if(robotIcon) robotIcon.classList.remove('audio-speaking'); };
-  synth.speak(u);
-}
-
-// FLOATING BUTTONS TOGGLE
-function toggleFloatingButtons() {
-  const grp = document.getElementById('floatingButtonsGroup');
-  const icon = document.getElementById('toggleFloatingIcon');
-  if(grp.classList.contains('hidden-state')) {
-    grp.classList.remove('hidden-state');
-    icon.className = 'fa-solid fa-angles-right';
-  } else {
-    grp.classList.add('hidden-state');
-    icon.className = 'fa-solid fa-angles-left';
-  }
-}
-
-// CHATBOT
-function toggleFloatingChatbot() {
-  const panel = document.getElementById('floatingChatPanel');
-  const icon = document.getElementById('botToggleIcon');
-  if(panel.style.display === 'flex') {
-    panel.style.display = 'none';
-    icon.className = 'fa-solid fa-robot';
-  } else {
-    panel.style.display = 'flex';
-    icon.className = 'fa-solid fa-xmark';
-    if(document.getElementById('chatContainer').children.length === 1) {
-      speakBot('Sistem Chatbot JARVIS terhubung. Ada yang bisa saya bantu untuk analisis struktur?');
-    }
-  }
-}
-
-// DICTATION
-function startDictation(targetId) {
-  if(!window.hasOwnProperty('webkitSpeechRecognition')) { alert('Browser tidak mendukung dikte suara. Gunakan Chrome.'); return; }
-  const r = new webkitSpeechRecognition();
-  r.continuous = false; r.interimResults = false; r.lang = 'id-ID';
-  r.start();
-  const el = document.getElementById(targetId);
-  const ph = el.placeholder;
-  el.placeholder = 'Mendengarkan...';
-  r.onresult = function(e) {
-    el.value += (el.value ? ' ' : '') + e.results[0][0].transcript;
-    r.stop();
-    if(targetId === 'chatInputField') processUserChatMessage();
-  };
-  r.onerror = function() { el.placeholder = ph; alert('Gagal mendengarkan. Pastikan mikrofon aktif.'); };
-  r.onend = function() { el.placeholder = ph; };
-}
-
-// CHAT SHORTCUTS
-function triggerChatShortcut(action) {
-  if(document.getElementById('floatingChatPanel').style.display !== 'flex') toggleFloatingChatbot();
-  const chatBox = document.getElementById('chatContainer');
-  const typingId = 'typ' + Date.now();
-  chatBox.innerHTML += '<div id="'+typingId+'" class="chat-msg-bot"><div class="bot-avatar"><i class="fa-solid fa-robot fa-spin" style="font-size:14px"></i></div><div class="bot-bubble" style="color:var(--dim)">Memproses...</div></div>';
-  chatBox.scrollTop = chatBox.scrollHeight;
-  setTimeout(() => {
-    document.getElementById(typingId)?.remove();
-    let reply = '', tts = '';
-    if(action === 'analisis') {
-      const dc = document.getElementById('maxDC')?.textContent || 'N/A';
-      const st = document.getElementById('globalStatus')?.textContent || 'N/A';
-      const bt = document.getElementById('buildingType')?.value || 'N/A';
-      const md = document.getElementById('modelType')?.value || 'Portal Frame';
-      reply = '<b style="color:var(--accent);font-size:12px">HASIL ANALISIS FEM:</b><br><div style="margin-top:8px;padding:10px;background:var(--bg);border-radius:8px;border:1px solid var(--border)"><b>Tipe Bangunan:</b> '+bt+'<br><b>Model:</b> '+md+'<br><b>Max D/C:</b> '+dc+'<br><b>Status:</b> <span style="color:var(--safe);font-weight:700">'+st+'</span></div>';
-      tts = 'Hasil analisis FEM untuk '+bt+' model '+md+'. Maximum D/C ratio '+dc+'. Status: '+st+'.';
-    } else if(action === 'programmer') {
-      reply = '<div style="text-center"><b style="color:#e879f9;font-size:14px">MOHAMAD HARTADI</b><br><span style="color:var(--safe);font-size:11px;font-weight:700">Geotechnical & Civil Engineer</span><div style="margin-top:10px;display:flex;flex-direction:column;gap:6px"><a href="https://wa.me/6282231036047" target="_blank" style="color:#25d366;text-decoration:none;padding:6px;background:var(--bg);border-radius:8px;font-size:12px"><i class="fa-brands fa-whatsapp"></i> 0822 3103 6047</a><a href="https://facebook.com/m.hartadi" target="_blank" style="color:#60a5fa;text-decoration:none;padding:6px;background:var(--bg);border-radius:8px;font-size:12px"><i class="fa-brands fa-facebook"></i> Facebook</a><a href="https://newbieonline7.blogspot.com" target="_blank" style="color:#f97316;text-decoration:none;padding:6px;background:var(--bg);border-radius:8px;font-size:12px"><i class="fa-solid fa-blog"></i> Blog</a></div></div>';
-      tts = 'Profil Insinyur Mohamad Hartadi, Geotechnical and Civil Engineer.';
-    } else if(action === 'my_aplikasi') {
-      const apps = [
-        {u:'https://adikds.github.io/jarvis-ai/',n:'JARVIS AI'},
-        {u:'https://adikds.github.io/gudang-bulog/',n:'Gudang Bulog'},
-        {u:'https://adikds.github.io/edu-market-pro/',n:'EduMarket Pro'},
-        {u:'https://adikds.github.io/iptv-terminal/',n:'IPTV Terminal'},
-        {u:'https://adikds.github.io/stock-manager/',n:'Stock Manager'},
-        {u:'https://adikds.github.io/business-suite/',n:'Business Suite'},
-        {u:'https://adikds.github.io/Al-Quran-Karim/',n:'Al-Quran Karim'},
-        {u:'https://adikds.github.io/AI-VIDEO-EDITOR/',n:'AI Video Editor'},
-        {u:'https://adikds.github.io/pabrik-ai/',n:'Pabrik AI Pro'},
-        {u:'https://adikds.github.io/ai-meeting-assistant/',n:'AI Meeting Pro'}
-      ];
-      let h = '<b style="color:#fbbf24;font-size:12px">MY APLIKASI ('+apps.length+' Apps)</b><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;max-height:200px;overflow-y:auto" class="cs">';
-      apps.forEach(a => { h += '<a href="'+a.u+'" target="_blank" style="display:flex;align-items:center;gap:6px;padding:6px 8px;background:var(--bg);border:1px solid rgba(20,184,166,.3);border-radius:8px;text-decoration:none;color:var(--text);font-size:11px;font-weight:700">'+a.n+'</a>'; });
-      h += '</div>';
-      reply = h;
-      tts = 'Menampilkan '+apps.length+' aplikasi dari portofolio digital.';
-    }
-    appendBotReply(reply, tts);
-  }, 600);
-}
-
-// WIKIPEDIA CHAT
-async function processUserChatMessage() {
-  const input = document.getElementById('chatInputField');
-  const msg = input.value.trim();
-  if(!msg) return;
-  const chatBox = document.getElementById('chatContainer');
-  chatBox.innerHTML += '<div class="chat-msg-user">'+msg+'</div>';
-  input.value = '';
-  chatBox.scrollTop = chatBox.scrollHeight;
-  const typingId = 'typ' + Date.now();
-  chatBox.innerHTML += '<div id="'+typingId+'" class="chat-msg-bot"><div class="bot-avatar"><i class="fa-solid fa-robot fa-spin" style="font-size:14px"></i></div><div class="bot-bubble" style="color:var(--dim)">Mencari dari ensiklopedia...</div></div>';
-  chatBox.scrollTop = chatBox.scrollHeight;
-  try {
-    const url = 'https://id.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&exsentences=4&exintro=1&explaintext=1&generator=search&gsrsearch='+encodeURIComponent(msg)+'&gsrlimit=1&origin=*';
-    const res = await fetch(url);
-    const data = await res.json();
-    document.getElementById(typingId)?.remove();
-    let reply = '', tts = '';
-    const gUrl = 'https://www.google.com/search?q='+encodeURIComponent(msg);
-    if(data.query && data.query.pages) {
-      const page = Object.values(data.query.pages)[0];
-      reply = '<b style="color:var(--accent);font-size:12px"><i class="fa-brands fa-wikipedia-w"></i> '+page.title+'</b><p style="margin-top:6px;text-align:justify">'+page.extract+'</p><div style="margin-top:8px;display:flex;flex-direction:column;gap:4px"><a href="https://id.wikipedia.org/wiki/'+encodeURIComponent(page.title.replace(/ /g,'_'))+'" target="_blank" style="font-size:11px;color:var(--text);background:var(--bg);padding:8px;border-radius:8px;text-decoration:none;border:1px solid var(--border)"><i class="fa-brands fa-wikipedia-w" style="color:var(--accent)"></i> Baca selengkapnya</a><a href="'+gUrl+'" target="_blank" style="font-size:11px;color:var(--text);background:var(--bg);padding:8px;border-radius:8px;text-decoration:none;border:1px solid var(--border)"><i class="fa-brands fa-google" style="color:#60a5fa"></i> Telusuri di Google</a></div>';
-      tts = 'Menurut Wikipedia tentang '+page.title+': '+page.extract;
-    } else {
-      reply = '<p style="color:#fbbf24;font-weight:700">Topik tidak ditemukan.</p><a href="'+gUrl+'" target="_blank" style="font-size:11px;color:var(--text);background:var(--bg);padding:8px;border-radius:8px;text-decoration:none;border:1px solid var(--border)"><i class="fa-brands fa-google" style="color:#60a5fa"></i> Telusuri "'+msg+'" di Google</a>';
-      tts = 'Data tidak ditemukan di Wikipedia. Silakan lihat tautan Google.';
-    }
-    appendBotReply(reply, tts);
-  } catch(e) {
-    document.getElementById(typingId)?.remove();
-    appendBotReply('<p style="color:#ef4444;font-weight:700">Gangguan koneksi server.</p>', 'Terjadi gangguan jaringan.');
-  }
-}
-
-function appendBotReply(html, ttsText) {
-  const chatBox = document.getElementById('chatContainer');
-  setTimeout(() => {
-    chatBox.innerHTML += '<div class="chat-msg-bot"><div class="bot-avatar"><i class="fa-solid fa-robot" style="font-size:14px"></i></div><div class="bot-bubble"><p style="font-weight:700;font-size:11px;color:var(--accent);margin-bottom:6px;border-bottom:1px solid var(--border);padding-bottom:4px">JARVIS RESPON:</p>'+html+'</div></div>';
-    chatBox.scrollTop = chatBox.scrollHeight;
-    if(ttsText) speakBot(ttsText);
-  }, 300);
-}
-
-// SCREENSAVER
-const wisdomQuotes = [
-  'Struktur yang kuat dimulai dari fondasi yang kokoh dan analisis yang presisi.',
-  'Setiap elemen baja dalam bangunan memiliki peran kritis dalam menopang beban keseluruhan.',
-  'Keselamatan struktur bukan tujuan akhir, melainkan standar minimum yang harus dipenuhi.',
-  'Analisis FEM bukan sekadar angka, tapi jaminan keamanan jiwa manusia.',
-  'Rekayasa yang baik adalah ketika kompleksitas dihitung dengan teliti dan dieksekusi dengan sederhana.',
-  'SNI 1726:2020 dan AISC 360-22 adalah peta jalan menuju struktur yang aman.',
-  'Setiap ton beban gudang Bulog adalah amanah yang harus ditopang oleh perhitungan akurat.'
-];
-let wisdomInterval = null;
-let idleTime = 0;
-let ssLock = false;
-
-function resetTimer() {
-  if(ssLock) return;
-  idleTime = 0;
-  const ss = document.getElementById('screensaverScreen');
-  if(ss.style.display === 'flex') {
-    ss.style.opacity = 0;
-    setTimeout(() => { ss.style.display = 'none'; }, 500);
-    if(wisdomInterval) clearInterval(wisdomInterval);
-    if(synth) synth.cancel();
-  }
-}
-['mousemove','keypress','click','scroll','touchstart'].forEach(e => window.addEventListener(e, resetTimer));
-setInterval(() => { idleTime++; if(idleTime > 120) activateScreensaver(); }, 1000);
-
-function deactivateScreensaver() { if(!ssLock) resetTimer(); }
-
-function activateScreensaverManual(e) {
-  if(e) e.stopPropagation();
-  ssLock = true;
-  setTimeout(() => { ssLock = false; }, 1500);
-  idleTime = 121;
-  activateScreensaver();
-}
-
-function activateScreensaver() {
-  const ss = document.getElementById('screensaverScreen');
-  if(ss.style.display !== 'flex') {
-    ss.style.display = 'flex';
-    setTimeout(() => ss.style.opacity = 1, 50);
-    if(wisdomInterval) clearInterval(wisdomInterval);
-    cycleWisdomQuote();
-    wisdomInterval = setInterval(cycleWisdomQuote, 10000);
-  }
-}
-
-function cycleWisdomQuote() {
-  const c = document.getElementById('wisdomQuoteContainer');
-  const t = document.getElementById('wisdomQuoteText');
-  const q = wisdomQuotes[Math.floor(Math.random() * wisdomQuotes.length)];
-  c.classList.remove('wisdom-active');
-  void c.offsetWidth;
-  c.className = 'wisdom-active';
-  t.innerText = '"'+q+'"';
-  if(!isMuted && document.getElementById('screensaverScreen').style.display === 'flex') speakBot(q);
-}
-
-// 3D EARTH for screensaver
-let ssEarth = null;
-function initScreensaverEarth() {
-  const container = document.getElementById('ss-earth-bg');
-  if(!container) return;
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
-  camera.position.z = 4.5;
-  const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-  renderer.setSize(600, 600);
-  container.appendChild(renderer.domElement);
-  const group = new THREE.Group();
-  scene.add(group);
-  const tl = new THREE.TextureLoader();
-  tl.setCrossOrigin('anonymous');
-  const earthTex = tl.load('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg');
-  const cloudTex = tl.load('https://unpkg.com/three-globe/example/img/earth-clouds.png');
-  const earthMesh = new THREE.Mesh(new THREE.SphereGeometry(1.5,64,64), new THREE.MeshPhongMaterial({map:earthTex,shininess:15}));
-  group.add(earthMesh);
-  const cloudMesh = new THREE.Mesh(new THREE.SphereGeometry(1.52,64,64), new THREE.MeshPhongMaterial({map:cloudTex,transparent:true,opacity:0.8,blending:THREE.AdditiveBlending,depthWrite:false}));
-  group.add(cloudMesh);
-  scene.add(new THREE.AmbientLight(0xffffff,0.4));
-  const sl = new THREE.SpotLight(0xffffff,2.5); sl.position.set(5,3,5); scene.add(sl);
-  const bl = new THREE.SpotLight(0x0284c7,0.5); bl.position.set(-5,-3,-5); scene.add(bl);
-  ssEarth = {scene,camera,renderer,earthMesh,cloudMesh,container};
-  animateSSEarth();
-}
-function animateSSEarth() {
-  requestAnimationFrame(animateSSEarth);
-  if(ssEarth) {
-    ssEarth.earthMesh.rotation.y += 0.0015;
-    ssEarth.cloudMesh.rotation.y += 0.0020;
-    if(ssEarth.container.offsetParent !== null || ssEarth.container.id === 'ss-earth-bg') {
-      ssEarth.renderer.render(ssEarth.scene, ssEarth.camera);
-    }
-  }
-}
-
-// INIT
-window.addEventListener('load', () => {
-  setTimeout(loadVoices, 500);
-  setTimeout(initScreensaverEarth, 1000);
-});
-</script>
 
 </body>
 </html>
