@@ -307,7 +307,25 @@ if(m==='cremona'||m==='warren'){tp.style.display='block';pl.style.display='block
 else{tp.style.display='none';pl.style.display='none';showProf('prof_rafter');showProf('prof_girder');showProf('prof_kanopi');showProf('prof_kolom')}
 runAnalysis()}
 
-function loadPreset(){const p=document.getElementById('bldg_preset').value;const pr={'18x30':{x:18,y:30,name:'Gudang Bulog 1000 Ton',bay:6},'24x66':{x:24,y:66,name:'Gudang Bulog 3500 Ton',bay:6},'32x48':{x:32,y:48,name:'Gudang Bulog 3500 Ton',bay:8}}[p];document.getElementById('dim_x').value=pr.x;document.getElementById('dim_y').value=pr.y;document.getElementById('proj_name').value=pr.name;document.getElementById('bay_spacing').value=pr.bay;runAnalysis()}
+function loadPreset(){
+const p=document.getElementById('bldg_preset').value;
+const pr={'18x30':{x:18,y:30,name:'Gudang Bulog 1000 Ton',bay:6,kolom:'H300x300x10x15',rafter:'H400x200x8x13',girder:'H400x200x8x13',kanopi:'H250x125x6x9',topChord:'H300x150x6.5x9',botChord:'H250x125x6x9',web:'H200x100x5.5x8',panel:4},'24x66':{x:24,y:66,name:'Gudang Bulog 3500 Ton',bay:6,kolom:'H300x300x10x15',rafter:'H400x200x8x13',girder:'H400x200x8x13',kanopi:'H250x125x6x9',topChord:'H400x200x8x13',botChord:'H350x175x7x11',web:'H250x125x6x9',panel:4},'32x48':{x:32,y:48,name:'Gudang Bulog 3500 Ton',bay:8,kolom:'H300x300x10x15',rafter:'H500x200x10x16',girder:'H500x200x10x16',kanopi:'H250x125x6x9',topChord:'H400x200x8x13',botChord:'H400x200x8x13',web:'H300x150x6.5x9',panel:4}}[p];
+document.getElementById('dim_x').value=pr.x;
+document.getElementById('dim_y').value=pr.y;
+document.getElementById('proj_name').value=pr.name;
+document.getElementById('bay_spacing').value=pr.bay;
+document.getElementById('truss_panel').value=pr.panel;
+// Auto-select profiles
+setDropdown('prof_kolom',pr.kolom);
+setDropdown('prof_rafter',pr.rafter);
+setDropdown('prof_girder',pr.girder);
+setDropdown('prof_kanopi',pr.kanopi);
+setDropdown('prof_topchord',pr.topChord);
+setDropdown('prof_botchord',pr.botChord);
+setDropdown('prof_web',pr.web);
+runAnalysis();
+}
+function setDropdown(id,val){const el=document.getElementById(id);if(el){for(let i=0;i<el.options.length;i++){if(el.options[i].value===val){el.selectedIndex=i;return}}}if(el&&el.options.length>0)el.selectedIndex=0;}
 
 // FEM ENGINE
 function runAnalysis(){
@@ -404,16 +422,16 @@ const phiMn=phiB*Mn;
 const dcA=Pu/phiPn,dcM=Mu/phiMn,dc=dcA+(8/9)*dcM;
 return{dcA,dcM,dc,phiPn,phiMn};
 }
-const Lb_col=H,Lb_raft=L/2,Lb_gird=bayA,Lb_kan=2;
+const Lb_col=H,Lb_raft=bayA,Lb_gird=bayA,Lb_kan=2;
 let worstDC={kolom:0,rafter:0,girder:0,kanopi:0,pedestal:0};
 let worstCombo={kolom:"",rafter:"",girder:"",kanopi:"",pedestal:""};
 let memberResults={kolom:{},rafter:{},girder:{},kanopi:{},pedestal:{}};
 combos.forEach(c=>{
 const ck=checkMember(secK,c.Pu,c.Mcol,Lb_col,'kolom');
 if(ck.dc>worstDC.kolom){worstDC.kolom=ck.dc;worstCombo.kolom=c.name;memberResults.kolom=ck}
-const cr=checkMember(secR,c.Pu*0.1,c.Mu*0.4,Lb_raft,'rafter');
+const cr=checkMember(secR,c.Pu*0.15,c.Mu*0.55,bayA,'rafter');
 if(cr.dc>worstDC.rafter){worstDC.rafter=cr.dc;worstCombo.rafter=c.name;memberResults.rafter=cr}
-const cg=checkMember(secG,c.Pu*0.05,c.Mu*0.1,Lb_gird,'girder');
+const cg=checkMember(secG,c.Pu*0.08,c.Mu*0.2,bayA,'girder');
 if(cg.dc>worstDC.girder){worstDC.girder=cg.dc;worstCombo.girder=c.name;memberResults.girder=cg}
 const cka=checkMember(secKa,Math.abs(F_wind*0.5),M_wind*0.11,Lb_kan,'rafter');
 if(cka.dc>worstDC.kanopi){worstDC.kanopi=cka.dc;worstCombo.kanopi=c.name;memberResults.kanopi=cka}
@@ -543,26 +561,29 @@ if(m.type==='bottomChord'){
 // Tension: N = M / d
 const xi=m.i*p+p/2;
 const Mi=R*xi-wFact*xi*xi/2;
-// Use average depth of panel endpoints to avoid div-by-zero at eaves
-const d1=Math.max(topNodes[m.i].y-nodes[m.i].y,0.01);
-const d2=Math.max(topNodes[m.i+1].y-nodes[m.i+1].y,0.01);
+// Use average depth with minimum to handle shallow ends
+const d1=Math.max(topNodes[m.i].y-nodes[m.i].y,0.5);
+const d2=Math.max(topNodes[m.i+1].y-nodes[m.i+1].y,0.5);
 const d=(d1+d2)/2;
 force=Mi/d; // tension positive
 }else if(m.type==='topChord'){
 // Compression: N = -M / d
 const xi=m.i*p+p/2;
 const Mi=R*xi-wFact*xi*xi/2;
-const d1=Math.max(topNodes[m.i].y-nodes[m.i].y,0.01);
-const d2=Math.max(topNodes[m.i+1].y-nodes[m.i+1].y,0.01);
+const d1=Math.max(topNodes[m.i].y-nodes[m.i].y,0.5);
+const d2=Math.max(topNodes[m.i+1].y-nodes[m.i+1].y,0.5);
 const d=(d1+d2)/2;
 force=-Mi/d; // compression negative
 }else if(m.type==='diagonal'){
-const xi=m.i*p+p/2;
-const Vi=R-wFact*xi;
+// Use shear at panel point (not mid-panel) for more accurate truss analysis
+const xi=m.i*p;
+const panelLoad=wFact*p;
+const nLoadsLeft=isWarren?Math.ceil(m.i/2):m.i;
+const Vi=R-nLoadsLeft*panelLoad;
 const dY=Math.abs(m.n2.y-m.n1.y);
 const dX=Math.abs(m.n2.x-m.n1.x);
 const theta=Math.atan2(dY,dX);
-const sinT=Math.max(Math.sin(theta),0.01);
+const sinT=Math.max(Math.sin(theta),0.15); // minimum 15% for shallow angles
 if(isWarren){
 force=(m.i%2===0)?Vi/sinT:-Vi/sinT;
 }else{
@@ -572,12 +593,13 @@ force=isLeftHalf?Vi/sinT:-Vi/sinT;
 }else if(m.type==='vertical'){
 // Vertical force = shear transfer at panel point (compression)
 const xi=m.i*p;
-const Vi=R-wFact*xi;
-// Vertical takes the shear difference
+const panelLoad=wFact*p;
+const nLoadsLeft=m.i;
+const Vi=R-nLoadsLeft*panelLoad;
 const dX=Math.abs(m.n2.x-m.n1.x);
-const dY=Math.abs(m.n2.y-m.n1.y);
+const dY=Math.max(Math.abs(m.n2.y-m.n1.y),0.5);
 const len=Math.sqrt(dX**2+dY**2);
-const dY_safe=Math.max(dY,0.01);
+const dY_safe=Math.max(dY,0.5);
 force=-Math.abs(Vi)*dY_safe/len; // compression
 }
 memberForces.push({...m,force:force});
