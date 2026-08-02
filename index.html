@@ -422,14 +422,14 @@ const phiMn=phiB*Mn;
 const dcA=Pu/phiPn,dcM=Mu/phiMn,dc=dcA+(8/9)*dcM;
 return{dcA,dcM,dc,phiPn,phiMn};
 }
-const Lb_col=H*0.6,Lb_raft=bayA,Lb_gird=bayA,Lb_kan=2;
+const Lb_col=H*0.6,Lb_raft=1.5,Lb_gird=bayA,Lb_kan=2;
 let worstDC={kolom:0,rafter:0,girder:0,kanopi:0,pedestal:0};
 let worstCombo={kolom:"",rafter:"",girder:"",kanopi:"",pedestal:""};
 let memberResults={kolom:{},rafter:{},girder:{},kanopi:{},pedestal:{}};
 combos.forEach(c=>{
 const ck=checkMember(secK,c.Pu,c.Mcol,Lb_col,'kolom');
 if(ck.dc>worstDC.kolom){worstDC.kolom=ck.dc;worstCombo.kolom=c.name;memberResults.kolom=ck}
-const cr=checkMember(secR,c.Pu*0.15,c.Mu*0.55,bayA,'rafter');
+const cr=checkMember(secR,c.Pu*0.15,c.Mu*0.50,1.5,'rafter');
 if(cr.dc>worstDC.rafter){worstDC.rafter=cr.dc;worstCombo.rafter=c.name;memberResults.rafter=cr}
 const cg=checkMember(secG,c.Pu*0.08,c.Mu*0.2,bayA,'girder');
 if(cg.dc>worstDC.girder){worstDC.girder=cg.dc;worstCombo.girder=c.name;memberResults.girder=cg}
