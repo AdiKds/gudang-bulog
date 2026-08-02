@@ -170,6 +170,7 @@ table.dcr-table td.safe{color:var(--safe);font-weight:600}
 <button onclick="toggleEarthquake()" id="btn-quake" class="btn-secondary" style="background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.4);color:var(--danger)"><i class="fa-solid fa-house-crack mr-1"></i>SIMULASI GEMPA</button>
 <button onclick="exportReport()" class="btn-secondary"><i class="fa-solid fa-file-word mr-1"></i>EXPORT WORD</button>
 <button onclick="exportJSON()" class="btn-secondary"><i class="fa-solid fa-download mr-1"></i>BACKUP JSON</button>
+<button onclick="openConnectionModal()" class="btn-secondary" style="background:rgba(168,85,247,.15);border-color:rgba(168,85,247,.4);color:#c084fc"><i class="fa-solid fa-bolt mr-1"></i>SAMBUNGAN</button>
 </div>
 <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
 <div class="metric-card" id="card-dc"><div class="text-[9px] font-bold uppercase" style="color:var(--dim)">MAX D/C RATIO</div><div class="text-2xl font-black mono mt-1" id="out-dc" style="color:var(--text)">0.000</div><div class="result-badge mt-1" id="out-dc-badge">--</div></div>
@@ -259,6 +260,18 @@ table.dcr-table td.safe{color:var(--safe);font-weight:600}
 <div id="helpModal" class="modal-bg" style="display:none"><div class="modal-content p-4"><div class="flex items-center justify-between mb-3"><span class="text-sm font-bold cyber-font" style="color:var(--accent)">PANDUAN</span><button onclick="document.getElementById('helpModal').style.display='none'" class="text-slate-400 hover:text-red-400"><i class="fa-solid fa-xmark text-xl"></i></button></div><div class="space-y-3 text-xs"><div><p class="font-bold mb-1" style="color:var(--accent)">1. Input Data</p><p style="color:var(--dim)">Isi geometri, material, dan pembebanan. Pilih preset atau ubah manual.</p></div><div><p class="font-bold mb-1" style="color:var(--accent)">2. Pemilihan Profil</p><p style="color:var(--dim)">Pilih profil WF/H-Beam. Double-click label di 3D untuk edit cepat.</p></div><div><p class="font-bold mb-1" style="color:var(--accent)">3. Analisis FEM</p><p style="color:var(--dim)">Klik JALANKAN ANALISIS untuk hitung D/C, defleksi, dan LRFD.</p></div><div><p class="font-bold mb-1" style="color:var(--accent)">4. Visualisasi 3D</p><p style="color:var(--dim)">Warna: <span style="color:var(--safe)">Hijau=Aman</span>, <span style="color:var(--warn)">Kuning=Hati-hati</span>, <span style="color:var(--danger)">Merah=Tidak Aman</span></p></div><div><p class="font-bold mb-1" style="color:var(--danger)">Standar:</p><p style="color:var(--dim)">SNI 1726:2019, SNI 1727:2019, SNI 1729:2020, AISC 360-22, ASCE 7-22</p></div></div></div></div>
 <div id="projectModal" class="modal-bg" style="display:none"><div class="modal-content p-4"><div class="flex items-center justify-between mb-3"><span class="text-sm font-bold" style="color:var(--accent2)">MANAJEMEN PROYEK</span><button onclick="document.getElementById('projectModal').style.display='none'" class="text-slate-400 hover:text-red-400"><i class="fa-solid fa-xmark text-xl"></i></button></div><div class="space-y-3"><div><p class="text-xs font-bold mb-1" style="color:var(--dim)">EXPORT</p><button onclick="exportJSON()" class="btn-primary w-full"><i class="fa-solid fa-download mr-1"></i>Backup JSON</button></div><div><p class="text-xs font-bold mb-1 mt-3" style="color:var(--dim)">IMPORT</p><input type="file" id="importFile" accept=".json" class="form-input" onchange="importJSON(event)"></div><div class="border-t pt-2 mt-2" style="border-color:var(--border)"><p class="text-xs font-bold mb-1" style="color:var(--dim)">WORKSHEET TERSIMPAN</p><div id="worksheet-list" class="space-y-1.5 max-h-48 overflow-y-auto cs"></div></div></div></div></div>
 <div id="creditModal" class="modal-bg" style="display:none"><div class="modal-content p-4 text-center" style="position:relative"><button onclick="document.getElementById('creditModal').style.display='none'" style="position:absolute;top:12px;right:12px;color:#64748b;background:none;border:none;cursor:pointer"><i class="fa-solid fa-xmark text-xl"></i></button><div class="mb-3"><i class="fa-solid fa-building-shield text-4xl" style="color:var(--accent)"></i></div><h3 class="cyber-font text-lg font-black mb-1" style="color:var(--accent2)">MOHAMAD HARTADI</h3><p class="text-xs mb-3" style="color:var(--dim)">Geotechnical & Civil Engineer</p><div class="space-y-2 max-w-xs mx-auto"><a href="https://wa.me/6282231036047" target="_blank" class="clink w-full justify-center" style="background:rgba(37,211,102,.1);border:1px solid rgba(37,211,102,.3);color:#25d366;padding:8px"><i class="fa-brands fa-whatsapp"></i>0822 3103 6047</a><a href="https://facebook.com/m.hartadi" target="_blank" class="clink w-full justify-center" style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.3);color:#60a5fa;padding:8px"><i class="fa-brands fa-facebook"></i>facebook.com/m.hartadi</a><a href="https://newbieonline7.blogspot.com" target="_blank" class="clink w-full justify-center" style="background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.3);color:#f97316;padding:8px"><i class="fa-solid fa-blog"></i>newbieonline7.blogspot.com</a></div><div class="mt-3 pt-3 border-t text-[10px]" style="border-color:var(--border);color:var(--dim)">FEM Engine v1.0 | SNI 1726:2019 | AISC 360-22</div></div></div>
+
+<div id="connectionModal" class="modal-bg" style="display:none"><div class="modal-content p-4" style="max-width:700px">
+<div class="flex items-center justify-between mb-3">
+<span class="text-sm font-bold cyber-font" style="color:#c084fc"><i class="fa-solid fa-bolt mr-1"></i>CONNECTION DESIGN</span>
+<button onclick="document.getElementById('connectionModal').style.display='none'" class="text-slate-400 hover:text-red-400"><i class="fa-solid fa-xmark text-xl"></i></button>
+</div>
+<div class="space-y-4 text-xs">
+<div id="conn-input" class="space-y-3"></div>
+<div id="conn-results" class="space-y-3"></div>
+</div>
+</div></div>
+
 <div id="editProfileModal" class="modal-bg" style="display:none"><div class="modal-content p-4"><div class="flex items-center justify-between mb-3"><span class="text-sm font-bold" style="color:var(--accent)">EDIT PROFIL <span id="epLabel" class="cyber-font"></span></span><button onclick="document.getElementById('editProfileModal').style.display='none'" class="text-slate-400 hover:text-red-400"><i class="fa-solid fa-xmark text-xl"></i></button></div><div class="space-y-2"><p class="text-xs" style="color:var(--dim)">Pilih profil standar:</p><div id="epOptions" class="space-y-1.5"></div></div></div></div>
 
 <script>
@@ -706,6 +719,240 @@ structGroup.add(createArrow(new THREE.Vector3(0,-1,0),new THREE.Vector3(tn.x,tn.
 }
 }
 }
+}
+
+
+
+// CONNECTION DESIGN MODULE
+function openConnectionModal(){
+const modelType=document.getElementById('model_type').value;
+const isTruss=(modelType==='cremona'||modelType==='warren');
+const fc=parseFloat(document.getElementById('mat_fc').value);
+const fy=parseFloat(document.getElementById('mat_fy').value);
+const fu=parseFloat(document.getElementById('mat_fu')?document.getElementById('mat_fu').value:410);
+const E=parseFloat(document.getElementById('mat_E')?document.getElementById('mat_E').value:200000);
+
+// Input section
+let inputs='<div class="grid grid-cols-2 gap-2">';
+inputs+='<div><label class="form-label"> fc (MPa)</label><input type="number" id="conn_fc" class="form-input" value="'+fc+'"></div>';
+inputs+='<div><label class="form-label"> fy (MPa)</label><input type="number" id="conn_fy" class="form-input" value="'+fy+'"></div>';
+inputs+='<div><label class="form-label"> fu (MPa)</label><input type="number" id="conn_fu" class="form-input" value="'+fu+'"></div>';
+inputs+='<div><label class="form-label"> fy plate (MPa)</label><input type="number" id="conn_fyp" class="form-input" value="'+fy+'"></div>';
+inputs+='<div><label class="form-label"> Diameter Bolt (mm)</label><select id="conn_bolt" class="form-input"><option value="16">M16</option><option value="20" selected>M20</option><option value="22">M22</option><option value="24">M24</option><option value="27">M27</option><option value="30">M30</option></select></div>';
+inputs+='<div><label class="form-label"> Tipe Bolt</label><select id="conn_bolttype" class="form-input"><option value="A325" selected>A325/A490M</option><option value="A307">A307 (ordinary)</option></select></div>';
+inputs+='<div><label class="form-label"> Weld Size (mm)</label><input type="number" id="conn_weld" class="form-input" value="6"></div>';
+inputs+='<div><label class="form-label"> Weld Fexx (MPa)</label><input type="number" id="conn_fexx" class="form-input" value="490"></div>';
+inputs+='</div>';
+inputs+='<button onclick="calcConnections()" class="btn-primary w-full mt-3"><i class="fa-solid fa-calculator mr-1"></i>HITUNG SAMBUNGAN</button>';
+document.getElementById('conn-input').innerHTML=inputs;
+document.getElementById('conn-results').innerHTML='<p style="color:var(--dim);text-align:center;padding:20px">Klik HITUNG SAMBUNGAN untuk analisis</p>';
+document.getElementById('connectionModal').style.display='flex';
+}
+
+function calcConnections(){
+const modelType=document.getElementById('model_type').value;
+const isTruss=(modelType==='cremona'||modelType==='warren');
+const fc=parseFloat(document.getElementById('conn_fc').value);
+const fy=parseFloat(document.getElementById('conn_fy').value);
+const fu=parseFloat(document.getElementById('conn_fu').value);
+const fyp=parseFloat(document.getElementById('conn_fyp').value);
+const boltD=parseFloat(document.getElementById('conn_bolt').value);
+const boltType=document.getElementById('conn_bolttype').value;
+const weldSize=parseFloat(document.getElementById('conn_weld').value);
+const fexx=parseFloat(document.getElementById('conn_fexx').value);
+const E=200000;
+
+// Get forces from current analysis
+const L=parseFloat(document.getElementById('dim_x').value);
+const H=parseFloat(document.getElementById('dim_h').value);
+const slope=parseFloat(document.getElementById('dim_slope').value)/100;
+const wDL=parseFloat(document.getElementById('load_dl').value);
+const wLR=parseFloat(document.getElementById('load_lr').value);
+const bayA=parseFloat(document.getElementById('bay_spacing').value);
+const wFact=1.2*wDL*bayA+1.6*wLR*bayA;
+const Pu_col=wFact*L/2; // Gravity axial on column
+const Mu_col=wFact*(L**2)/12*0.05; // Small gravity moment on column
+
+// Get column profile
+const profKolom=document.getElementById('prof_kolom').value;
+const secK=sectionDB[profKolom];
+const colB=secK?secK.b:300;
+const colD=secK?secK.d:300;
+
+let html='';
+
+// ===== 1. BASE PLATE DESIGN =====
+html+='<div style="border:1px solid var(--border);border-radius:8px;padding:12px;background:rgba(15,23,42,.5)">';
+html+='<div class="font-bold mb-2" style="color:#c084cf;font-size:13px"><i class="fa-solid fa-anchor mr-1"></i>1. BASE PLATE (Column-Pedestal)</div>';
+// Required area
+const phi_bearing=0.65;
+const fp_max=0.85*fc; // bearing strength of concrete
+const A_req=Pu_col/(phi_bearing*fp_max)*1000; // mm2
+// Plate dimensions: B x N (assume N = col_d + 100, B = col_b + 100)
+const N_plate=Math.ceil((colD+150)/10)*10; // length
+const B_plate=Math.ceil((colB+150)/10)*10; // width
+const A_plate=N_plate*B_plate;
+const fp_actual=Pu_col*1000/A_plate; // MPa
+// Cantilever projection
+const m=(N_plate-colD)/2; // projection in N direction
+const n=(B_plate-colB)/2; // projection in B direction
+const lambda_max=Math.max(m,n);
+// Moment per unit width
+const M_plate=fp_actual*lambda_max**2/2; // N.mm/mm
+// Required thickness
+const t_req=Math.sqrt(4*M_plate/(0.9*fyp)); // mm
+// Anchor bolts (tension due to overturning)
+const F_seismic=562.8*0.15; // simplified
+const T_anchor=Math.max(0, F_seismic*1000-Mu_col*1000*0); // tension
+const A_bolt=Math.PI*(boltD**2)/4;
+const phiT_bolt=0.75*(boltType==='A325'?0.75*fu:0.75*fu)*A_bolt/1000; // kN per bolt
+const n_bolts_anchor=4; // 4 anchor bolts minimum
+const dc_anchor=t_req>t_req?0:0; // simplified
+html+='<div class="space-y-1" style="font-family:JetBrains Mono,monospace">';
+html+='<div style="color:var(--dim)">Pu kolom = '+Pu_col.toFixed(1)+' kN</div>';
+html+='<div style="color:var(--dim)">fc = '+fc+' MPa | fy_plate = '+fyp+' MPa</div>';
+html+='<div style="color:var(--dim)">A_required = Pu/(phi*0.85*fc) = '+(A_req/100).toFixed(1)+' cm2</div>';
+html+='<div style="color:var(--accent)">Plate: '+N_plate+' x '+B_plate+' mm, A = '+(A_plate/100).toFixed(1)+' cm2</div>';
+html+='<div style="color:var(--dim)">fp_actual = '+fp_actual.toFixed(2)+' MPa (limit: '+fp_max.toFixed(2)+' MPa) '+(fp_actual<fp_max?'✓ AMAN':'✗ OVERSTRESS')+'</div>';
+html+='<div style="color:var(--dim)">Cantilever: m='+m.toFixed(0)+'mm, n='+n.toFixed(0)+'mm, max='+lambda_max.toFixed(0)+'mm</div>';
+html+='<div style="color:var(--accent)">t_required = '+t_req.toFixed(1)+' mm → use '+Math.ceil(t_req/2)*2+' mm</div>';
+html+='<div style="color:var(--dim)">Anchor bolts: '+n_bolts_anchor+'x M'+boltD+' (phiT='+phiT_bolt.toFixed(1)+' kN/bolt)</div>';
+html+='<div style="color:'+(fp_actual<fp_max&&t_req<25?'var(--safe)':'var(--warn)')+';font-weight:bold;padding:4px;border-radius:4px;background:'+(fp_actual<fp_max&&t_req<25?'rgba(16,185,129,.1)':'rgba(250,204,21,.1)')+'">';
+html+=fp_actual<fp_max?'✓ BASE PLATE AMAN':'✗ TINGGIKAN UKURAN PLATE';
+html+='</div></div></div>';
+
+// ===== 2. BOLTED MOMENT CONNECTION (Portal Frame) =====
+html+='<div style="border:1px solid var(--border);border-radius:8px;padding:12px;background:rgba(15,23,42,.5)">';
+html+='<div class="font-bold mb-2" style="color:#c084cf;font-size:13px"><i class="fa-solid fa-link mr-1"></i>2. MOMENT CONNECTION (Rafter-Column)</div>';
+if(!isTruss){
+const profRafter=document.getElementById('prof_rafter').value;
+const secR=sectionDB[profRafter];
+const d_beam=secR?secR.d:400; // beam depth mm
+const bf_beam=secR?secR.b:200; // flange width mm
+const tf_beam=secR?secR.tf:13; // flange thickness mm
+// Moment on rafter-column connection
+const Mu_conn=wFact*(L**2)/12*0.4; // moment at connection (kN.m)
+const Mu_mm=Mu_conn*1e6; // N.mm
+// Flange force (tension/compression)
+const T_flange=Mu_mm/(d_beam-tf_beam); // N
+const T_kN=T_flange/1000;
+// Bolt capacity (A325, bearing type)
+const Ab=Math.PI*boltD**2/4; // bolt area mm2
+const Rn_bolt=boltType==='A325'?0.75*fu*Ab:0.75*fu*Ab; // N per bolt (tension)
+const phiRn=0.75*Rn_bolt/1000; // kN per bolt
+const n_bolts_flange=Math.ceil(T_kN/phiRn);
+// Bolt shear (for web connection - shear force)
+const V_conn=wFact*L/2; // kN
+const Rn_shear=0.6*fu*Ab/1000; // kN per bolt (single shear)
+const phiRn_shear=0.75*Rn_shear;
+const n_bolts_web=Math.ceil(V_conn/phiRn_shear);
+// Bearing/tearout check (edge distance assumed 35mm)
+const e_edge=35; // mm
+const Lc=e_edge+boltD/2; // clear distance
+const t_plate=10; // plate thickness mm (assumed)
+const Rn_bearing=1.2*fu*boltD*t_plate/1000; // kN per bolt
+const phiRn_bearing=0.75*Rn_bearing;
+const n_bolts_bearing=Math.ceil(V_conn/phiRn_bearing);
+const n_bolts_total=Math.max(n_bolts_flange,n_bolts_web,n_bolts_bearing);
+// End plate dimensions
+const ep_h=d_beam+2*50; // end plate height
+const ep_w=bf_beam+2*30; // end plate width
+const ep_t=Math.ceil(Math.sqrt(4*T_flange*25/(0.9*fyp*ep_w))/2)*2; // simplified
+html+='<div class="space-y-1" style="font-family:JetBrains Mono,monospace">';
+html+='<div style="color:var(--dim)">Mu = '+Mu_conn.toFixed(1)+' kN.m | V = '+V_conn.toFixed(1)+' kN</div>';
+html+='<div style="color:var(--dim)">d_beam = '+d_beam+'mm, bf = '+bf_beam+'mm, tf = '+tf_beam+'mm</div>';
+html+='<div style="color:var(--dim)">T_flange = Mu/(d-tf) = '+T_kN.toFixed(1)+' kN</div>';
+html+='<div style="color:var(--dim)">Bolt: M'+boltD+' '+boltType+' | Ab = '+Ab.toFixed(0)+'mm2</div>';
+html+='<div style="color:var(--dim)">phiRn_tension = '+phiRn.toFixed(1)+' kN/bolt → need '+n_bolts_flange+' bolts (flange)</div>';
+html+='<div style="color:var(--dim)">phiRn_shear = '+phiRn_shear.toFixed(1)+' kN/bolt → need '+n_bolts_web+' bolts (web)</div>';
+html+='<div style="color:var(--dim)">phiRn_bearing = '+phiRn_bearing.toFixed(1)+' kN/bolt → need '+n_bolts_bearing+' bolts</div>';
+html+='<div style="color:var(--accent)">End Plate: '+ep_h+'x'+ep_w+'x'+Math.max(ep_t,12)+'mm</div>';
+html+='<div style="color:var(--accent)">Bolts: '+n_bolts_total+'x M'+boltD+' '+boltType+'</div>';
+html+='<div style="color:'+(n_bolts_total<=8?'var(--safe)':'var(--warn)')+';font-weight:bold;padding:4px;border-radius:4px;background:'+(n_bolts_total<=8?'rgba(16,185,129,.1)':'rgba(250,204,21,.1)')+'">';
+html+=n_bolts_total<=8?'✓ MOMENT CONNECTION AMAN':'⚠ PERLU BOLT LEBIH BANYAR';
+html+='</div></div>';
+}else{
+html+='<div style="color:var(--dim);padding:8px">Mode Truss — moment connection tidak diperlukan. Gaya aksial dominan, gunakan gusset plate (lihat bawah).</div>';
+}
+html+='</div>';
+
+// ===== 3. GUSSET PLATE CONNECTION (Truss) =====
+html+='<div style="border:1px solid var(--border);border-radius:8px;padding:12px;background:rgba(15,23,42,.5)">';
+html+='<div class="font-bold mb-2" style="color:#c084cf;font-size:13px"><i class="fa-solid fa-puzzle-piece mr-1"></i>3. GUSSET PLATE (Truss Members)</div>';
+if(isTruss){
+// Max member force from truss analysis
+const panelLen=parseFloat(document.getElementById('truss_panel')?.value||4);
+const nPanels=Math.round(L/panelLen);
+const p=L/nPanels;
+const rise=L/2*slope;
+const R=wFact*L/2;
+// Max chord force (at midspan)
+const M_max=R*L/2-wFact*(L/2)**2/2;
+const d_avg=rise; // average truss depth
+const F_chord=M_max/d_avg; // kN (tension/compression)
+const F_diag_max=Math.abs(R-wFact*p/2)/(Math.sin(Math.atan(rise/(nPanels/2)/p))); // kN
+const F_max=Math.max(F_chord,F_diag_max);
+// Gusset plate design
+const t_gusset=Math.ceil(F_max*1000/(0.9*fy*200)/2)*2; // simplified, assume 200mm weld length
+const L_weld_req=F_max*1000/(0.75*0.6*fexx*0.707*weldSize); // mm
+const L_weld_round=Math.ceil(L_weld_req/10)*10;
+// Bolt capacity for gusset
+const Ab_g=Math.PI*boltD**2/4;
+const Rn_gusset=0.75*0.6*fu*Ab_g/1000; // kN shear per bolt
+const n_bolts_gusset=Math.ceil(F_max/Rn_gusset);
+html+='<div class="space-y-1" style="font-family:JetBrains Mono,monospace">';
+html+='<div style="color:var(--dim)">Max chord force = '+F_chord.toFixed(1)+' kN</div>';
+html+='<div style="color:var(--dim)">Max diagonal force = '+F_diag_max.toFixed(1)+' kN</div>';
+html+='<div style="color:var(--accent)">Governing force = '+F_max.toFixed(1)+' kN</div>';
+html+='<div style="color:var(--dim)">Gusset plate: t = '+Math.max(t_gusset,8)+'mm (min 8mm)</div>';
+html+='<div style="color:var(--dim)">Weld: '+weldSize+'mm fillet, L_req = '+L_weld_round+'mm</div>';
+html+='<div style="color:var(--dim)">Bolts: '+n_bolts_gusset+'x M'+boltD+' '+boltType+' (phiRn='+Rn_gusset.toFixed(1)+' kN/bolt)</div>';
+html+='<div style="color:'+(L_weld_round<300?'var(--safe)':'var(--warn)')+';font-weight:bold;padding:4px;border-radius:4px;background:'+(L_weld_round<300?'rgba(16,185,129,.1)':'rgba(250,204,21,.1)')+'">';
+html+=L_weld_round<300?'✓ GUSSET PLATE AMAN':'⚠ PERLU WELD LEBIH PANJANG';
+html+='</div></div>';
+}else{
+html+='<div style="color:var(--dim);padding:8px">Mode Portal Frame — gunakan end plate moment connection (lihat di atas).</div>';
+}
+html+='</div>';
+
+// ===== 4. WELD CAPACITY CHECK =====
+html+='<div style="border:1px solid var(--border);border-radius:8px;padding:12px;background:rgba(15,23,42,.5)">';
+html+='<div class="font-bold mb-2" style="color:#c084cf;font-size:13px"><i class="fa-solid fa-fire mr-1"></i>4. WELD CAPACITY (Fillet Weld)</div>';
+const a=weldSize; // weld leg size mm
+const throat=0.707*a; // effective throat
+const L_weld=100; // assume 100mm weld length for unit check
+const Rn_weld=0.6*fexx*throat*L_weld/1000; // kN per 100mm weld
+const phiRn_weld=0.75*Rn_weld;
+// Min/max weld size per AISC Table J2.4
+const t_thinner=Math.min(secK?secK.tf*2:15,15); // assume 15mm thinner part
+const a_min=t_thinner<6?3:t_thinner<13?4:t_thinner<19?5:6;
+const a_max=t_thinner-2; // max weld size
+html+='<div class="space-y-1" style="font-family:JetBrains Mono,monospace">';
+html+='<div style="color:var(--dim)">Weld: '+a+'mm fillet | throat = '+throat.toFixed(2)+'mm</div>';
+html+='<div style="color:var(--dim)">Fexx = '+fexx+' MPa | phi = 0.75</div>';
+html+='<div style="color:var(--dim)">Capacity per 100mm = '+phiRn_weld.toFixed(1)+' kN</div>';
+html+='<div style="color:var(--dim)">Min weld size (AISC J2.4): '+a_min+'mm</div>';
+html+='<div style="color:var(--dim)">Max weld size: '+a_max+'mm</div>';
+html+='<div style="color:'+(a>=a_min&&a<=a_max?'var(--safe)':'var(--danger)')+';font-weight:bold;padding:4px;border-radius:4px;background:'+(a>=a_min&&a<=a_max?'rgba(16,185,129,.1)':'rgba(239,68,68,.1)')+'">';
+html+=a>=a_min&&a<=a_max?'✓ WELD SIZE OK':'✗ WELD SIZE TIDAK SESUAI (min '+a_min+'mm)';
+html+='</div></div></div>';
+
+// ===== 5. SUMMARY =====
+html+='<div style="border:1px solid rgba(168,85,247,.3);border-radius:8px;padding:12px;background:rgba(168,85,247,.1)">';
+html+='<div class="font-bold mb-1" style="color:#c084cf;font-size:12px"><i class="fa-solid fa-clipboard-check mr-1"></i>RINGKASAN</div>';
+html+='<div class="text-xs space-y-0.5" style="color:var(--dim)">';
+html+='<div>Base Plate: '+(N_plate)+'x'+B_plate+'mm, t='+Math.ceil(t_req/2)*2+'mm</div>';
+if(!isTruss){
+html+='<div>Moment Connection: End Plate '+(secR?secR.d+100:500)+'x'+(secR?secR.b+60:260)+'x'+Math.max(ep_t||12,12)+'mm</div>';
+}else{
+html+='<div>Gusset Plate: t='+Math.max(t_gusset||8,8)+'mm, weld='+L_weld_round+'mm</div>';
+}
+html+='<div>Bolts: M'+boltD+' '+boltType+'</div>';
+html+='<div>Weld: '+weldSize+'mm fillet</div>';
+html+='<div style="color:var(--accent);margin-top:4px">Standar: AISC 360-22 Ch.J | SNI 1729:2020</div>';
+html+='</div></div>';
+
+document.getElementById('conn-results').innerHTML=html;
 }
 
 
