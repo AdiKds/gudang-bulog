@@ -490,7 +490,14 @@ const wDLg=SIDL*gSpc,wLRg=Lr*gSpc;
 const MuFactor=c.name==='1.4D'?1.4*wDLg:(c.name.includes('1.2D')&&c.name.includes('1.6Lr')?1.2*wDLg+1.6*wLRg:(c.name.includes('0.9D')?0.9*wDLg:1.2*wDLg+0.5*wLRg));
 const Mu_g=MuFactor*(bayA**2)/8;
 const phiMn_g=0.9*fy*secGo.Zx*1000/1e6;
-const dcg=Mu_g/phiMn_g;
+let dcg=Mu_g/phiMn_g;
+// Auto-upgrade gording if overstressed
+if(dcg>0.8&&profiles.gording==='CNP150x65x20x2.3'){
+const secGo2=sectionDB['CNP200x75x20x3.2'];
+const phiMn_g2=0.9*fy*secGo2.Zx*1000/1e6;
+dcg=Mu_g/phiMn_g2;
+if(dcg<0.8){profiles.gording='CNP200x75x20x3.2';secGo=secGo2;document.getElementById('prof_gording').value='CNP200x75x20x3.2';console.log('Gording auto-upgraded to CNP200x75x20x3.2');}
+}
 if(dcg>worstDC.gording){worstDC.gording=dcg;worstCombo.gording=c.name;memberResults.gording={dc:dcg,dcA:0,dcM:dcg}}
 const pSize=parseInt(profiles.pedestal.split('x')[0]);
 const phiPcPed=0.65*0.85*fc*pSize*pSize/1000;
@@ -719,13 +726,20 @@ const dc=Pcol/phiPn;
 worstDC.kolom=dc;worstCombo.kolom='1.2D+1.6Lr';memberResults.kolom={dc,dcA:dc,dcM:0,phiPn};
 }
 // Gording (Purlin) - simply supported beam spanning bay spacing
-const secGoT=sectionDB[profiles.gording];
+let secGoT=sectionDB[profiles.gording];
 if(secGoT){
 const gSpcT=parseFloat(document.getElementById('gording_spacing')?.value)||1.5;
 const wDLgT=wDL/bay*gSpcT,wLRgT=wLR/bay*gSpcT;
 const MuT=(1.2*wDLgT+1.6*wLRgT)*(bay**2)/8;
 const phiMnT=0.9*fy*secGoT.Zx*1000/1e6;
 const dcgT=MuT/phiMnT;
+// Auto-upgrade gording if overstressed
+if(dcgT>0.8&&profiles.gording==='CNP150x65x20x2.3'){
+const secGo2T=sectionDB['CNP200x75x20x3.2'];
+const phiMn_g2T=0.9*fy*secGo2T.Zx*1000/1e6;
+dcgT=(1.2*wDLgT+1.6*wLRgT)*(bay**2)/8/phiMn_g2T;
+if(dcgT<0.8){profiles.gording='CNP200x75x20x3.2';secGoT=secGo2T;document.getElementById('prof_gording').value='CNP200x75x20x3.2';console.log('Truss gording auto-upgraded to CNP200x75x20x3.2');}
+}
 worstDC.gording=dcgT;worstCombo.gording='1.2D+1.6Lr';
 memberResults.gording={dc:dcgT,dcA:0,dcM:dcgT};
 }
