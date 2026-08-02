@@ -96,7 +96,7 @@ table.dcr-table td.safe{color:var(--safe);font-weight:600}
 <div><label class="form-label">Nama Proyek</label><input id="proj_name" class="form-input" value="Gudang Bulog 3500 Ton"></div>
 <div><label class="form-label">Lokasi</label><input id="proj_loc" class="form-input" value="Lombok Tengah, NTB"></div>
 <div><label class="form-label">Tipe Bangunan</label><select id="bldg_preset" class="form-input" onchange="loadPreset()"><option value="24x66">24 x 66m (3500 Ton)</option><option value="18x30">18 x 30m (1000 Ton)</option><option value="32x48">32 x 48m (3500 Ton)</option></select></div>
-<div><label class="form-label">Model Struktur</label><select id="model_type" class="form-input" onchange="toggleModel()"><option value="portal">Portal Frame (Baja)</option><option value="cremona">Rangka Cremona (Truss)</option></select></div>
+<div><label class="form-label">Model Struktur</label><select id="model_type" class="form-input" onchange="toggleModel()"><option value="portal">Portal Frame (Baja)</option><option value="cremona">Rangka Cremona (Truss)</option><option value="warren">Rangka Warren (Truss)</option></select></div>
 <div id="truss_panel_length_div" style="display:none"><label class="form-label">Panjang Panel Truss (m)</label><input type="number" id="truss_panel" class="form-input" value="4" onchange="runAnalysis()"></div>
 <div><label class="form-label">Engineer</label><input id="proj_eng" class="form-input" value="Mohamad Hartadi"></div>
 </div>
@@ -290,7 +290,7 @@ function toggleModel(){const m=document.getElementById('model_type').value;const
 // Hide/show profile divs
 function hideProf(id){const el=document.getElementById(id);if(el&&el.parentElement)el.parentElement.style.display='none'}
 function showProf(id){const el=document.getElementById(id);if(el&&el.parentElement)el.parentElement.style.display='block'}
-if(m==='cremona'){tp.style.display='block';pl.style.display='block';hideProf('prof_rafter');hideProf('prof_girder');hideProf('prof_kanopi');showProf('prof_kolom')}
+if(m==='cremona'||m==='warren'){tp.style.display='block';pl.style.display='block';hideProf('prof_rafter');hideProf('prof_girder');hideProf('prof_kanopi');showProf('prof_kolom')}
 else{tp.style.display='none';pl.style.display='none';showProf('prof_rafter');showProf('prof_girder');showProf('prof_kanopi');showProf('prof_kolom')}
 runAnalysis()}
 
@@ -309,10 +309,10 @@ const modelType=document.getElementById('model_type')?document.getElementById('m
 const numBays=Math.ceil(B/bay),bayA=B/numBays,numFrames=numBays+1;
 const ridgeH=H+(L/2)*slope;
 const wDL=SIDL*bayA,wLR=Lr*bayA,wTotal=wDL+wLR;
-if(modelType==='cremona'){
+if(modelType==='cremona'||modelType==='warren'){
 // CREMONA TRUSS PATH
 const trussProfiles={topChord:document.getElementById('prof_topchord').value,bottomChord:document.getElementById('prof_botchord').value,web:document.getElementById('prof_web').value};
-const trussResult=cremonaAnalysis(L,H,slope,bayA,wDL,wLR,fy,E,trussProfiles);
+const trussResult=cremonaAnalysis(L,H,slope,bayA,wDL,wLR,fy,E,trussProfiles,modelType);
 const maxDC=trussResult.maxDC;
 // UI Update
 document.getElementById('out-dc').textContent=maxDC.toFixed(3);
@@ -328,7 +328,7 @@ const tmembers=[
 {name:'Top Chord',profile:trussProfiles.topChord,dc:trussResult.worstDC.topChord,combo:trussResult.worstCombo.topChord,r:trussResult.memberResults.topChord},
 {name:'Bottom Chord',profile:trussProfiles.bottomChord,dc:trussResult.worstDC.bottomChord,combo:trussResult.worstCombo.bottomChord,r:trussResult.memberResults.bottomChord},
 {name:'Diagonal',profile:trussProfiles.web,dc:trussResult.worstDC.diagonal,combo:trussResult.worstCombo.diagonal,r:trussResult.memberResults.diagonal},
-{name:'Vertical',profile:trussProfiles.web,dc:trussResult.worstDC.vertical,combo:trussResult.worstCombo.vertical,r:trussResult.memberResults.vertical},
+{name:'Vertical',profile:trussProfiles.web,dc:modelType==='warren'?0:trussResult.worstDC.vertical,combo:trussResult.worstCombo.vertical,r:trussResult.memberResults.vertical},
 {name:'Kolom',profile:document.getElementById('prof_kolom').value,dc:trussResult.worstDC.kolom,combo:trussResult.worstCombo.kolom,r:trussResult.memberResults.kolom},
 {name:'Pedestal',profile:document.getElementById('prof_pedestal').value+' (Beton)',dc:trussResult.worstDC.pedestal,combo:trussResult.worstCombo.pedestal,r:trussResult.memberResults.pedestal}
 ];
@@ -342,7 +342,7 @@ update3DTruss(trussResult.trussData,trussResult.worstDC,bayA,numBays);
 drawRSChart(parseFloat(document.getElementById('load_sds').value),parseFloat(document.getElementById('load_sd1').value),Ta);
 currentResults=trussResult;
 // Calc log
-rawCalcLog='=== CREMONA TRUSS ANALYSIS ===\nProyek: '+document.getElementById('proj_name').value+'\nSpan: '+L+'m x '+B+'m\nTruss depth: '+((L/2*slope).toFixed(2))+'m\nPanels: '+trussResult.trussData.nPanels+' x '+trussResult.trussData.p.toFixed(1)+'m\n\n--- MEMBER FORCES ---\nTop Chord: '+trussResult.worstDC.topChord.toFixed(3)+' D/C (kompresi)\nBottom Chord: '+trussResult.worstDC.bottomChord.toFixed(3)+' D/C (tension)\nDiagonal: '+trussResult.worstDC.diagonal.toFixed(3)+' D/C\nVertical: '+trussResult.worstDC.vertical.toFixed(3)+' D/C\nKolom: '+trussResult.worstDC.kolom.toFixed(3)+' D/C\nPedestal: '+trussResult.worstDC.pedestal.toFixed(3)+' D/C\n\nMAX D/C='+maxDC.toFixed(3)+'\nDefleksi: '+trussResult.defY.toFixed(2)+'mm / Limit: '+trussResult.defYLimit.toFixed(1)+'mm\n\n=== STATUS: '+(maxDC>1?'TIDAK AMAN':(maxDC>0.8?'AMAN (HATI-HATI)':'AMAN KOKOH'))+' ===';
+rawCalcLog='=== '+(modelType==='warren'?'WARREN':'CREMONA')+' TRUSS ANALYSIS ===\nProyek: '+document.getElementById('proj_name').value+'\nSpan: '+L+'m x '+B+'m\nTruss depth: '+((L/2*slope).toFixed(2))+'m\nPanels: '+trussResult.trussData.nPanels+' x '+trussResult.trussData.p.toFixed(1)+'m\n\n--- MEMBER FORCES ---\nTop Chord: '+trussResult.worstDC.topChord.toFixed(3)+' D/C (kompresi)\nBottom Chord: '+trussResult.worstDC.bottomChord.toFixed(3)+' D/C (tension)\nDiagonal: '+trussResult.worstDC.diagonal.toFixed(3)+' D/C\n'+(modelType==='warren'?'':'Vertical: '+trussResult.worstDC.vertical.toFixed(3)+' D/C\n')+'Kolom: '+trussResult.worstDC.kolom.toFixed(3)+' D/C\nPedestal: '+trussResult.worstDC.pedestal.toFixed(3)+' D/C\n\nMAX D/C='+maxDC.toFixed(3)+'\nDefleksi: '+trussResult.defY.toFixed(2)+'mm / Limit: '+trussResult.defYLimit.toFixed(1)+'mm\n\n=== STATUS: '+(maxDC>1?'TIDAK AMAN':(maxDC>0.8?'AMAN (HATI-HATI)':'AMAN KOKOH'))+' ===';
 return;
 }
 const secK=sectionDB[profiles.kolom],secR=sectionDB[profiles.rafter],secG=sectionDB[profiles.girder],secKa=sectionDB[profiles.kanopi];
@@ -458,7 +458,7 @@ rsChart=new Chart(ctx,{type:'line',data:{datasets:[{label:'Spektrum Desain',data
 
 
 // CREMONA TRUSS ANALYSIS
-function cremonaAnalysis(L,H,slope,bay,wDL,wLR,fy,E,profiles){
+function cremonaAnalysis(L,H,slope,bay,wDL,wLR,fy,E,profiles,modelType){
 const panelLen=parseFloat(document.getElementById('truss_panel')?.value||4);
 const nPanels=Math.round(L/panelLen);
 const p=L/nPanels;
@@ -492,21 +492,30 @@ members.push({type:'bottomChord',i:i,n1:nodes[i],n2:nodes[i+1],Lb:p});
 for(let i=0;i<nPanels;i++){
 members.push({type:'topChord',i:i,n1:topNodes[i],n2:topNodes[i+1],Lb:Math.sqrt(p**2+(topNodes[i+1].y-topNodes[i].y)**2)});
 }
-// Diagonals (Pratt pattern - tension toward center)
+// Diagonals based on truss pattern
+const isWarren=modelType==='warren';
+if(isWarren){
+// Warren: alternating diagonals, no verticals
 for(let i=0;i<nPanels;i++){
-const isLeftHalf=i<nPanels/2;
-// Pratt: diagonals slope from bottom to top, pointing toward center
-if(isLeftHalf){
-// Left half: diagonal goes from bottom node i to top node i+1 (pointing right-up)
+if(i%2===0){
 members.push({type:'diagonal',i:i,n1:nodes[i],n2:topNodes[i+1],Lb:Math.sqrt(p**2+(topNodes[i+1].y-nodes[i].y)**2)});
 }else{
-// Right half: diagonal goes from bottom node i+1 to top node i (pointing left-up)
+members.push({type:'diagonal',i:i,n1:topNodes[i],n2:nodes[i+1],Lb:Math.sqrt(p**2+(nodes[i+1].y-topNodes[i].y)**2)});
+}
+}
+}else{
+// Pratt pattern (Cremona) - tension toward center
+for(let i=0;i<nPanels;i++){
+const isLeftHalf=i<nPanels/2;
+if(isLeftHalf){
+members.push({type:'diagonal',i:i,n1:nodes[i],n2:topNodes[i+1],Lb:Math.sqrt(p**2+(topNodes[i+1].y-nodes[i].y)**2)});
+}else{
 members.push({type:'diagonal',i:i,n1:nodes[i+1],n2:topNodes[i],Lb:Math.sqrt(p**2+(topNodes[i].y-nodes[i+1].y)**2)});
 }
 }
-// Verticals (compression)
 for(let i=1;i<nPanels;i++){
 members.push({type:'vertical',i:i,n1:nodes[i],n2:topNodes[i],Lb:Math.abs(topNodes[i].y-nodes[i].y)});
+}
 }
 // Forces using method of sections
 const wFact=1.2*wDL+1.6*wLR;
@@ -535,17 +544,18 @@ const d2=Math.max(topNodes[m.i+1].y-nodes[m.i+1].y,0.01);
 const d=(d1+d2)/2;
 force=-Mi/d; // compression negative
 }else if(m.type==='diagonal'){
-// Shear at section: V = R - w*x
 const xi=m.i*p+p/2;
 const Vi=R-wFact*xi;
 const dY=Math.abs(m.n2.y-m.n1.y);
 const dX=Math.abs(m.n2.x-m.n1.x);
-const len=Math.sqrt(dX**2+dY**2);
 const theta=Math.atan2(dY,dX);
 const sinT=Math.max(Math.sin(theta),0.01);
-// Left half: positive shear -> tension; Right half: negative shear -> flip sign for tension
+if(isWarren){
+force=(m.i%2===0)?Vi/sinT:-Vi/sinT;
+}else{
 const isLeftHalf=m.i<nPanels/2;
 force=isLeftHalf?Vi/sinT:-Vi/sinT;
+}
 }else if(m.type==='vertical'){
 // Vertical force = shear transfer at panel point (compression)
 const xi=m.i*p;
@@ -667,10 +677,12 @@ createMember(new THREE.Vector3(n1.x,n1.y,z),new THREE.Vector3(n2.x,n2.y,z),profT
 members.filter(m=>m.type==='diagonal').forEach(m=>{
 createMember(new THREE.Vector3(m.n1.x,m.n1.y,z),new THREE.Vector3(m.n2.x,m.n2.y,z),profWeb,diaC,'diagonal');
 });
-// Verticals
+// Verticals (only for Pratt, not Warren)
+if(members.some(m=>m.type==='vertical')){
 members.filter(m=>m.type==='vertical').forEach(m=>{
 createMember(new THREE.Vector3(m.n1.x,m.n1.y,z),new THREE.Vector3(m.n2.x,m.n2.y,z),profWeb,verC,'vertical');
 });
+}
 // Purlins/girts between frames (only on first frame pair)
 if(f===1){
 const pz=(f-1)*tbay;
