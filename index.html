@@ -306,7 +306,7 @@ function showProf(id){const el=document.getElementById(id);if(el&&el.parentEleme
 if(m==='cremona'||m==='warren'){tp.style.display='block';pl.style.display='block';hideProf('prof_rafter');hideProf('prof_girder');hideProf('prof_kanopi');showProf('prof_kolom')}
 else{tp.style.display='none';pl.style.display='none';showProf('prof_rafter');showProf('prof_girder');showProf('prof_kanopi');showProf('prof_kolom')}
 // Warren truss has no verticals → diagonals carry ~2x shear → auto-upgrade web
-if(m==='warren'){const webEl=document.getElementById('prof_web');const upgrades={'H150x75x5x7':'H250x125x6x9','H200x100x5.5x8':'H300x150x6.5x9','H250x125x6x9':'H350x175x7x11','H300x150x6.5x9':'H350x175x7x11'};if(upgrades[webEl.value]){webEl.value=upgrades[webEl.value]}}
+if(m==='warren'){const webEl=document.getElementById('prof_web');const upgrades={'H150x75x5x7':'H250x125x6x9','H200x100x5.5x8':'H300x150x6.5x9','H250x125x6x9':'H350x175x7x11','H300x150x6.5x9':'H350x175x7x11','H350x175x7x11':'H400x200x8x13'};if(upgrades[webEl.value]){webEl.value=upgrades[webEl.value]}}
 runAnalysis()}
 
 function loadPreset(){
@@ -326,7 +326,7 @@ setDropdown('prof_topchord',pr.topChord);
 setDropdown('prof_botchord',pr.botChord);
 setDropdown('prof_web',pr.web);
 // Warren auto-upgrade: if Warren is currently selected, bump web after preset load
-if(document.getElementById('model_type').value==='warren'){const webEl=document.getElementById('prof_web');const upgrades={'H150x75x5x7':'H250x125x6x9','H200x100x5.5x8':'H300x150x6.5x9','H250x125x6x9':'H350x175x7x11','H300x150x6.5x9':'H350x175x7x11'};if(upgrades[webEl.value]){webEl.value=upgrades[webEl.value]}}
+if(document.getElementById('model_type').value==='warren'){const webEl=document.getElementById('prof_web');const upgrades={'H150x75x5x7':'H250x125x6x9','H200x100x5.5x8':'H300x150x6.5x9','H250x125x6x9':'H350x175x7x11','H300x150x6.5x9':'H350x175x7x11','H350x175x7x11':'H400x200x8x13'};if(upgrades[webEl.value]){webEl.value=upgrades[webEl.value]}}
 runAnalysis();
 }
 function setDropdown(id,val){const el=document.getElementById(id);if(el){for(let i=0;i<el.options.length;i++){if(el.options[i].value===val){el.selectedIndex=i;return}}}if(el&&el.options.length>0)el.selectedIndex=0;}
