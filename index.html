@@ -536,9 +536,10 @@ const dY=Math.abs(m.n2.y-m.n1.y);
 const dX=Math.abs(m.n2.x-m.n1.x);
 const len=Math.sqrt(dX**2+dY**2);
 const theta=Math.atan2(dY,dX);
-// Diagonal force = V / sin(theta)
 const sinT=Math.max(Math.sin(theta),0.01);
-force=Vi/sinT;
+// Left half: positive shear -> tension; Right half: negative shear -> flip sign for tension
+const isLeftHalf=m.i<nPanels/2;
+force=isLeftHalf?Vi/sinT:-Vi/sinT;
 }else if(m.type==='vertical'){
 // Vertical force = shear transfer at panel point (compression)
 const xi=m.i*p;
@@ -560,13 +561,15 @@ function checkTrussMember(sec,N,Lb,isTension){
 if(!sec)return{dc:0,dcA:0,dcM:0};
 const A=sec.A*100,ry=sec.ry*10;
 const phiT=0.9,phiC=0.9;
-if(isTension&&N>0){
-// Tension check
+// Determine tension/compression from actual force sign
+const isTens=N>0;
+if(isTens){
+// Tension check (yielding)
 const Pn=fy*A/1000;
 const phiPn=phiT*Pn;
 return{dc:Math.abs(N)/phiPn,dcA:Math.abs(N)/phiPn,dcM:0,phiPn:phiPn,N:N};
 }else{
-// Compression check (with slenderness)
+// Compression check (with slenderness/buckling)
 const K=1.0;
 const KLry=K*Lb*1000/ry;
 const Fe=Math.PI**2*E/(KLry**2);
@@ -586,7 +589,7 @@ let sec,Lb,isTension;
 if(mf.type==='topChord'){sec=secTop;Lb=mf.Lb;isTension=false}
 else if(mf.type==='bottomChord'){sec=secBot;Lb=mf.Lb;isTension=true}
 else if(mf.type==='diagonal'){sec=secWeb;Lb=mf.Lb;isTension=mf.force>0}
-else if(mf.type==='vertical'){sec=secWeb;Lb=mf.Lb;isTension=false}
+else if(mf.type==='vertical'){sec=secWeb;Lb=mf.Lb;isTension=mf.force>0}
 if(!sec)return;
 const chk=checkTrussMember(sec,mf.force,mf.Lb,isTension);
 const key=mf.type;
