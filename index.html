@@ -1442,19 +1442,54 @@ function triggerChatShortcut(action) {
       tts = 'Profil Insinyur Mohamad Hartadi, Geotechnical and Civil Engineer.';
     } else if(action === 'my_aplikasi') {
       const apps = [
-        {u:'https://adikds.github.io/jarvis-ai/',n:'JARVIS AI'},
-        {u:'https://adikds.github.io/gudang-bulog/',n:'Gudang Bulog'},
-        {u:'https://adikds.github.io/edu-market-pro/',n:'EduMarket Pro'},
-        {u:'https://adikds.github.io/iptv-terminal/',n:'IPTV Terminal'},
-        {u:'https://adikds.github.io/stock-manager/',n:'Stock Manager'},
-        {u:'https://adikds.github.io/business-suite/',n:'Business Suite'},
-        {u:'https://adikds.github.io/Al-Quran-Karim/',n:'Al-Quran Karim'},
-        {u:'https://adikds.github.io/AI-VIDEO-EDITOR/',n:'AI Video Editor'},
-        {u:'https://adikds.github.io/pabrik-ai/',n:'Pabrik AI Pro'},
-        {u:'https://adikds.github.io/ai-meeting-assistant/',n:'AI Meeting Pro'}
+        {u:'https://adikds.github.io/jarvis-ai/',i:'fa-cat',n:'JARVIS AI',d:'Superagent HUD'},
+        {u:'https://adikds.github.io/-Doa-Digital-Pro/',i:'fa-hands-praying',n:'Doa Digital Pro',d:'Cyber Islamic Doa'},
+        {u:'https://adikds.github.io/Al-Quran-Karim/',i:'fa-book-quran',n:'Al-Quran Karim',d:'Digital Quran & Audio'},
+        {u:'https://adikds.github.io/ai-meeting-assistant/',i:'fa-microphone',n:'AI Meeting Pro',d:'Notulen & Voice'},
+        {u:'https://adikds.github.io/NEXUS-PAGE-AGENT-VER.1.0/',i:'fa-network-wired',n:'Nexus Page Agent',d:'Agent Simulator'},
+        {u:'https://adikds.github.io/APEX-Foundations-v3.1-Geotechnical-AI/',i:'fa-building',n:'Apex Foundations',d:'Geotechnical AI v3.1'},
+        {u:'https://adikds.github.io/ANALISIS-PONDASI-TELAPAK-/',i:'fa-layer-group',n:'Analisis Pondasi',d:'Telapak & Tiang Pancang'},
+        {u:'https://adikds.github.io/AASHTO-SOIL-CLASSIFIER/',i:'fa-mountain',n:'AASHTO Soil',d:'Soil Classifier'},
+        {u:'https://adikds.github.io/ATLAS-GEOTEKNIK/',i:'fa-earth-americas',n:'Atlas Geoteknik',d:'Expert Validation'},
+        {u:'https://adikds.github.io/GeoStructPro-15-Essential-Geotechnical-Formulas/',i:'fa-mountain',n:'GeoStructPro 15',d:'Geo Formulas'},
+        {u:'https://adikds.github.io/GEOSTRUCT-PRO-20-FORMULA-GEOTECHNICAL/',i:'fa-layer-group',n:'GeoStruct Pro 20',d:'20 Geo Formulas'},
+        {u:'https://adikds.github.io/UNIFIED-SOIL-CLASSIFICATION-SYSTEM/',i:'fa-cubes',n:'USCS Soil',d:'Soil Classifier'},
+        {u:'https://adikds.github.io/WAY-APU-DAM/',i:'fa-building-shield',n:'Way Apu Dam',d:'Dam Analysis'},
+        {u:'https://adikds.github.io/INTEGRATED-DAM-ANALYTICS-ASSESSMENT-SYSTEM/',i:'fa-water',n:'Dam Analytics',d:'Dam Assessment'},
+        {u:'https://adikds.github.io/SISTEM-MONITORING-SEISMIK-PERINGATAN-TSUNAMI/',i:'fa-wave-square',n:'Monitoring Sismic',d:'Tsunami Warning'},
+        {u:'https://adikds.github.io/MONITORING-PREDIKSI-STATUS-EI-NI-O-LA-NI-A/',i:'fa-temperature-half',n:'El Nino La Nina',d:'Climate Predict'},
+        {u:'https://adikds.github.io/MONITORING-PREDIKSI-ANGIN-MUSON-INDONESIA/',i:'fa-wind',n:'Monitoring Cuaca',d:'Monsoon Predict'},
+        {u:'https://adikds.github.io/AERORADAR-PRO/',i:'fa-plane',n:'AeroRadar Pro',d:'Aviation Radar'},
+        {u:'https://adikds.github.io/HYDRACANAL-PRO-GEOMETRIC-DESIGN/',i:'fa-water-ladder',n:'HydraCanal Pro',d:'Canal Design'},
+        {u:'https://adikds.github.io/EVENT-DRIVEN-ARCHITECTURE-FOR-AI-AGENTS/',i:'fa-sitemap',n:'EDA AI Agents',d:'Event Architecture'},
+        {u:'https://adikds.github.io/edu-market-pro/',i:'fa-graduation-cap',n:'EduMarket Pro',d:'E-Learning Market'},
+        {u:'https://adikds.github.io/iptv-terminal/',i:'fa-tv',n:'IPTV Terminal',d:'Streaming TV ID'},
+        {u:'https://adikds.github.io/TV-streaming-live/',i:'fa-signal',n:'TV Streaming Live',d:'Live Broadcast'},
+        {u:'https://adikds.github.io/pos-system/',i:'fa-cash-register',n:'POS Terminal Pro',d:'Cashier System'},
+        {u:'https://adikds.github.io/Aplikasi_Point_of_Sale_-POS-_atau_sistem_kasir/',i:'fa-store',n:'POS Kasir',d:'Point of Sale'},
+        {u:'https://adikds.github.io/business-suite/',i:'fa-chart-bar',n:'Business Suite',d:'AppSuite Manager'},
+        {u:'https://adikds.github.io/stock-manager/',i:'fa-boxes-stacked',n:'Stock Manager',d:'Inventory System'},
+        {u:'https://adikds.github.io/financial-planner/',i:'fa-chart-line',n:'Financial Planner',d:'OTW 1 Milyar'},
+        {u:'https://adikds.github.io/KEUANGANKU/',i:'fa-wallet',n:'Keuanganku',d:'Finance Tracker'},
+        {u:'https://adikds.github.io/DOKTER-AI/',i:'fa-user-doctor',n:'DOKTER AI EXPERT',d:'Medical AI'},
+        {u:'https://adikds.github.io/DARUSSYIFA-MEDIKA/',i:'fa-hospital',n:'DARUSSYIFA V.5.0',d:'Klinik & Apotek'},
+        {u:'https://adikds.github.io/DARUSSYIFA_MEDIKA/',i:'fa-file-medical',n:'DARUSSYIFA V.2.0',d:'Medical Record'},
+        {u:'https://adikds.github.io/SMILE-SYIFA-AI/',i:'fa-face-smile',n:'SMILE SYIFA AI',d:'Dental AI'},
+        {u:'https://adikds.github.io/SKIN_SYIFA_AI/',i:'fa-magnifying-glass-chart',n:'SKIN SYIFA AI',d:'Skin Cancer AI'},
+        {u:'https://adikds.github.io/NEURO-PSYCH_AI/',i:'fa-brain',n:'NEURO-PSYCH AI',d:'Psychological AI'},
+        {u:'https://adikds.github.io/-MEGA-ATLAS-FKG/',i:'fa-tooth',n:'Mega Atlas FKG',d:'Dental Atlas 12 Modul'},
+        {u:'https://adikds.github.io/Mega-Atlas-Kedokteran-Neurologi-Bedah-Syaraf/',i:'fa-brain',n:'Neurology Atlas',d:'Neuro Surgery Atlas'},
+        {u:'https://adikds.github.io/STATISTICS_for_ENGINEERS-/',i:'fa-chart-pie',n:'Statistics Engineers',d:'Engineering Stats'},
+        {u:'https://adikds.github.io/AI-VIDEO-EDITOR/',i:'fa-film',n:'AI Video Editor',d:'5 AI Features'},
+        {u:'https://adikds.github.io/SIMULASI-DAN-JADWAL-SERTA-SCOR-WORLD-CUP-2026/',i:'fa-futbol',n:'World Cup 2026',d:'Schedule & Score'},
+        {u:'https://adikds.github.io/FREE-CLAUDE-CODE/',i:'fa-code',n:'Free Claude Code',d:'Code Tool'},
+        {u:'https://adikds.github.io/konstruksi-ai/',i:'fa-building-columns',n:'KONAI Pro',d:'Konstruksi AI'},
+        {u:'https://adikds.github.io/pabrik-ai/',i:'fa-microchip',n:'Pabrik AI Pro',d:'20+ AI Tools'},
+        {u:'https://adikds.github.io/gudang-bulog/',i:'fa-building-shield',n:'Gudang Bulog FEM',d:'Struktur Baja'},
+        {u:'https://adikds.github.io/Adi_Newbie/',i:'fa-user-astronaut',n:'ADI NEWBIE',d:'Adi Newbie Portfolio'}
       ];
-      let h = '<b style="color:#fbbf24;font-size:12px">MY APLIKASI ('+apps.length+' Apps)</b><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;max-height:200px;overflow-y:auto" class="cs">';
-      apps.forEach(a => { h += '<a href="'+a.u+'" target="_blank" style="display:flex;align-items:center;gap:6px;padding:6px 8px;background:var(--bg);border:1px solid rgba(20,184,166,.3);border-radius:8px;text-decoration:none;color:var(--text);font-size:11px;font-weight:700">'+a.n+'</a>'; });
+      let h = '<b style="color:#fbbf24;font-size:12px">MY APLIKASI ('+apps.length+' Apps)</b><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;max-height:300px;overflow-y:auto" class="cs">';
+      apps.forEach(a => { h += '<a href="'+a.u+'" target="_blank" style="display:flex;align-items:center;gap:6px;padding:6px 8px;background:var(--bg);border:1px solid rgba(20,184,166,.3);border-radius:8px;text-decoration:none;color:var(--text);font-size:11px;font-weight:700"><i class="fa-solid '+a.i+'" style="color:#14b8a6;width:14px;text-align:center"></i> '+a.n+'</a>'; });
       h += '</div>';
       reply = h;
       tts = 'Menampilkan '+apps.length+' aplikasi dari portofolio digital.';
