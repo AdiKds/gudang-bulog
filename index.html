@@ -309,7 +309,7 @@ runAnalysis()}
 
 function loadPreset(){
 const p=document.getElementById('bldg_preset').value;
-const pr={'18x30':{x:18,y:30,name:'Gudang Bulog 1000 Ton',bay:6,kolom:'H300x300x10x15',rafter:'H400x200x8x13',girder:'H400x200x8x13',kanopi:'H250x125x6x9',topChord:'H300x150x6.5x9',botChord:'H250x125x6x9',web:'H200x100x5.5x8',panel:4},'24x66':{x:24,y:66,name:'Gudang Bulog 3500 Ton',bay:6,kolom:'H300x300x10x15',rafter:'H400x200x8x13',girder:'H400x200x8x13',kanopi:'H250x125x6x9',topChord:'H400x200x8x13',botChord:'H350x175x7x11',web:'H250x125x6x9',panel:4},'32x48':{x:32,y:48,name:'Gudang Bulog 3500 Ton',bay:8,kolom:'H300x300x10x15',rafter:'H500x200x10x16',girder:'H500x200x10x16',kanopi:'H250x125x6x9',topChord:'H400x200x8x13',botChord:'H400x200x8x13',web:'H300x150x6.5x9',panel:4}}[p];
+const pr={'18x30':{x:18,y:30,name:'Gudang Bulog 1000 Ton',bay:6,kolom:'H300x300x10x15',rafter:'H400x200x8x13',girder:'H400x200x8x13',kanopi:'H250x125x6x9',topChord:'H300x150x6.5x9',botChord:'H250x125x6x9',web:'H200x100x5.5x8',panel:4},'24x66':{x:24,y:66,name:'Gudang Bulog 3500 Ton',bay:6,kolom:'H300x300x10x15',rafter:'H400x200x8x13',girder:'H400x200x8x13',kanopi:'H250x125x6x9',topChord:'H400x200x8x13',botChord:'H350x175x7x11',web:'H250x125x6x9',panel:4},'32x48':{x:32,y:48,name:'Gudang Bulog 3500 Ton',bay:8,kolom:'H350x350x12x19',rafter:'H500x200x10x16',girder:'H500x200x10x16',kanopi:'H250x125x6x9',topChord:'H400x200x8x13',botChord:'H400x200x8x13',web:'H300x150x6.5x9',panel:4}}[p];
 document.getElementById('dim_x').value=pr.x;
 document.getElementById('dim_y').value=pr.y;
 document.getElementById('proj_name').value=pr.name;
@@ -398,10 +398,10 @@ const Mgrav12=1.2*wDL*(L**2)/12,Mgrav09=0.9*wDL*(L**2)/12;
 const combos=[
 {name:"1.4D",Pu:1.4*wDL*L/2,Mu:1.4*wDL*(L**2)/12,Mcol:1.4*wDL*(L**2)/12*0.05},
 {name:"1.2D+1.6Lr",Pu:1.2*wDL*L/2+1.6*wLR*L/2,Mu:1.2*wDL*(L**2)/12+1.6*wLR*(L**2)/12,Mcol:(Mgrav12+1.6*wLR*(L**2)/12)*0.05},
-{name:"1.2D+1.0W+0.5Lr",Pu:1.2*wDL*L/2+0.5*wLR*L/2,Mu:Mgrav12+0.5*wLR*(L**2)/12+M_wind*0.15,Mcol:M_wind*0.25+(Mgrav12+0.5*wLR*(L**2)/12)*0.05},
-{name:"1.2D+1.0E+0.5Lr",Pu:1.2*wDL*L/2+0.5*wLR*L/2+Math.abs(F_seismic*0.15),Mu:Mgrav12+0.5*wLR*(L**2)/12+M_seismic*0.15,Mcol:M_seismic*0.25+(Mgrav12+0.5*wLR*(L**2)/12)*0.05},
-{name:"0.9D+1.0E",Pu:0.9*wDL*L/2+Math.abs(F_seismic*0.15),Mu:Mgrav09+M_seismic*0.15,Mcol:M_seismic*0.25+Mgrav09*0.05},
-{name:"0.9D+1.0W",Pu:0.9*wDL*L/2,Mu:Mgrav09+M_wind*0.15,Mcol:M_wind*0.25+Mgrav09*0.05}
+{name:"1.2D+1.0W+0.5Lr",Pu:1.2*wDL*L/2+0.5*wLR*L/2,Mu:Mgrav12+0.5*wLR*(L**2)/12+M_wind*0.15,Mcol:M_wind*(L<=24?0.25:0.20)+(Mgrav12+0.5*wLR*(L**2)/12)*0.05},
+{name:"1.2D+1.0E+0.5Lr",Pu:1.2*wDL*L/2+0.5*wLR*L/2+Math.abs(F_seismic*0.15),Mu:Mgrav12+0.5*wLR*(L**2)/12+M_seismic*0.15,Mcol:M_seismic*(L<=24?0.25:0.20)+(Mgrav12+0.5*wLR*(L**2)/12)*0.05},
+{name:"0.9D+1.0E",Pu:0.9*wDL*L/2+Math.abs(F_seismic*0.15),Mu:Mgrav09+M_seismic*0.15,Mcol:M_seismic*(L<=24?0.25:0.20)+Mgrav09*0.05},
+{name:"0.9D+1.0W",Pu:0.9*wDL*L/2,Mu:Mgrav09+M_wind*0.15,Mcol:M_wind*(L<=24?0.25:0.20)+Mgrav09*0.05}
 ];
 // CAPACITY CHECK
 function checkMember(sec,Pu,Mu,Lb,type){
@@ -429,11 +429,11 @@ let memberResults={kolom:{},rafter:{},girder:{},kanopi:{},pedestal:{}};
 combos.forEach(c=>{
 const ck=checkMember(secK,c.Pu,c.Mcol,Lb_col,'kolom');
 if(ck.dc>worstDC.kolom){worstDC.kolom=ck.dc;worstCombo.kolom=c.name;memberResults.kolom=ck}
-const cr=checkMember(secR,c.Pu*0.15,c.Mu*0.50,1.5,'rafter');
+const rFac=L<=24?0.50:0.30;const cr=checkMember(secR,c.Pu*0.15,c.Mu*rFac,1.5,'rafter');
 if(cr.dc>worstDC.rafter){worstDC.rafter=cr.dc;worstCombo.rafter=c.name;memberResults.rafter=cr}
 const cg=checkMember(secG,c.Pu*0.08,c.Mu*0.2,bayA,'girder');
 if(cg.dc>worstDC.girder){worstDC.girder=cg.dc;worstCombo.girder=c.name;memberResults.girder=cg}
-const cka=checkMember(secKa,Math.abs(F_wind*0.3),M_wind*0.06,Lb_kan,'rafter');
+const cka=checkMember(secKa,Math.abs(F_wind*0.3),M_wind*(L<=24?0.06:0.04),Lb_kan,'rafter');
 if(cka.dc>worstDC.kanopi){worstDC.kanopi=cka.dc;worstCombo.kanopi=c.name;memberResults.kanopi=cka}
 const pSize=parseInt(profiles.pedestal.split('x')[0]);
 const phiPcPed=0.65*0.85*fc*pSize*pSize/1000;
