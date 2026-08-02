@@ -730,7 +730,7 @@ const isTruss=(modelType==='cremona'||modelType==='warren');
 const fc=parseFloat(document.getElementById('mat_fc').value);
 const fy=parseFloat(document.getElementById('mat_fy').value);
 const fu=parseFloat(document.getElementById('mat_fu')?document.getElementById('mat_fu').value:410);
-const E=parseFloat(document.getElementById('mat_E')?document.getElementById('mat_E').value:200000);
+const E=parseFloat(document.getElementById('mat_e')?document.getElementById('mat_e').value:200000);
 
 // Input section
 let inputs='<div class="grid grid-cols-2 gap-2">';
@@ -750,6 +750,7 @@ document.getElementById('connectionModal').style.display='flex';
 }
 
 function calcConnections(){
+try{
 const modelType=document.getElementById('model_type').value;
 const isTruss=(modelType==='cremona'||modelType==='warren');
 const fc=parseFloat(document.getElementById('conn_fc').value);
@@ -765,8 +766,8 @@ const E=200000;
 // Get forces from current analysis
 const L=parseFloat(document.getElementById('dim_x').value);
 const H=parseFloat(document.getElementById('dim_h').value);
-const slope=parseFloat(document.getElementById('dim_slope').value)/100;
-const wDL=parseFloat(document.getElementById('load_dl').value);
+const slope=parseFloat(document.getElementById('roof_slope').value)/100;
+const wDL=parseFloat(document.getElementById('load_sidl').value);
 const wLR=parseFloat(document.getElementById('load_lr').value);
 const bayA=parseFloat(document.getElementById('bay_spacing').value);
 const wFact=1.2*wDL*bayA+1.6*wLR*bayA;
@@ -953,6 +954,7 @@ html+='<div style="color:var(--accent);margin-top:4px">Standar: AISC 360-22 Ch.J
 html+='</div></div>';
 
 document.getElementById('conn-results').innerHTML=html;
+}catch(e){document.getElementById('conn-results').innerHTML='<p style="color:#ef4444">Error: '+e.message+'</p>';}
 }
 
 
