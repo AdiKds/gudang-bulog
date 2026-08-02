@@ -825,9 +825,10 @@ html+='</div></div></div>';
 // ===== 2. BOLTED MOMENT CONNECTION (Portal Frame) =====
 html+='<div style="border:1px solid var(--border);border-radius:8px;padding:12px;background:rgba(15,23,42,.5)">';
 html+='<div class="font-bold mb-2" style="color:#c084cf;font-size:13px"><i class="fa-solid fa-link mr-1"></i>2. MOMENT CONNECTION (Rafter-Column)</div>';
-if(!isTruss){
 const profRafter=document.getElementById('prof_rafter').value;
 const secR=sectionDB[profRafter];
+let ep_t=12;
+if(!isTruss){
 const d_beam=secR?secR.d:400; // beam depth mm
 const bf_beam=secR?secR.b:200; // flange width mm
 const tf_beam=secR?secR.tf:13; // flange thickness mm
@@ -858,7 +859,7 @@ const n_bolts_total=Math.max(n_bolts_flange,n_bolts_web,n_bolts_bearing);
 // End plate dimensions
 const ep_h=d_beam+2*50; // end plate height
 const ep_w=bf_beam+2*30; // end plate width
-const ep_t=Math.ceil(Math.sqrt(4*T_flange*25/(0.9*fyp*ep_w))/2)*2; // simplified
+ep_t=Math.ceil(Math.sqrt(4*T_flange*25/(0.9*fyp*ep_w))/2)*2; // simplified
 html+='<div class="space-y-1" style="font-family:JetBrains Mono,monospace">';
 html+='<div style="color:var(--dim)">Mu = '+Mu_conn.toFixed(1)+' kN.m | V = '+V_conn.toFixed(1)+' kN</div>';
 html+='<div style="color:var(--dim)">d_beam = '+d_beam+'mm, bf = '+bf_beam+'mm, tf = '+tf_beam+'mm</div>';
@@ -944,7 +945,7 @@ html+='<div class="font-bold mb-1" style="color:#c084cf;font-size:12px"><i class
 html+='<div class="text-xs space-y-0.5" style="color:var(--dim)">';
 html+='<div>Base Plate: '+(N_plate)+'x'+B_plate+'mm, t='+Math.ceil(t_req/2)*2+'mm</div>';
 if(!isTruss){
-html+='<div>Moment Connection: End Plate '+(secR?secR.d+100:500)+'x'+(secR?secR.b+60:260)+'x'+Math.max(ep_t||12,12)+'mm</div>';
+html+='<div>Moment Connection: End Plate '+(secR?secR.d+100:500)+'x'+(secR?secR.b+60:260)+'x'+Math.max(ep_t,12)+'mm</div>';
 }else{
 html+='<div>Gusset Plate: t='+Math.max(t_gusset||8,8)+'mm, weld='+L_weld_round+'mm</div>';
 }
