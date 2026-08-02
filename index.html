@@ -881,6 +881,7 @@ html+='</div>';
 // ===== 3. GUSSET PLATE CONNECTION (Truss) =====
 html+='<div style="border:1px solid var(--border);border-radius:8px;padding:12px;background:rgba(15,23,42,.5)">';
 html+='<div class="font-bold mb-2" style="color:#c084cf;font-size:13px"><i class="fa-solid fa-puzzle-piece mr-1"></i>3. GUSSET PLATE (Truss Members)</div>';
+let t_gusset=8,L_weld_round=100,n_bolts_gusset=4;
 if(isTruss){
 // Max member force from truss analysis
 const panelLen=parseFloat(document.getElementById('truss_panel')?.value||4);
@@ -895,13 +896,13 @@ const F_chord=M_max/d_avg; // kN (tension/compression)
 const F_diag_max=Math.abs(R-wFact*p/2)/(Math.sin(Math.atan(rise/(nPanels/2)/p))); // kN
 const F_max=Math.max(F_chord,F_diag_max);
 // Gusset plate design
-const t_gusset=Math.ceil(F_max*1000/(0.9*fy*200)/2)*2; // simplified, assume 200mm weld length
+t_gusset=Math.ceil(F_max*1000/(0.9*fy*200)/2)*2; // simplified, assume 200mm weld length
 const L_weld_req=F_max*1000/(0.75*0.6*fexx*0.707*weldSize); // mm
-const L_weld_round=Math.ceil(L_weld_req/10)*10;
+L_weld_round=Math.ceil(L_weld_req/10)*10;
 // Bolt capacity for gusset
 const Ab_g=Math.PI*boltD**2/4;
 const Rn_gusset=0.75*0.6*fu*Ab_g/1000; // kN shear per bolt
-const n_bolts_gusset=Math.ceil(F_max/Rn_gusset);
+n_bolts_gusset=Math.ceil(F_max/Rn_gusset);
 html+='<div class="space-y-1" style="font-family:JetBrains Mono,monospace">';
 html+='<div style="color:var(--dim)">Max chord force = '+F_chord.toFixed(1)+' kN</div>';
 html+='<div style="color:var(--dim)">Max diagonal force = '+F_diag_max.toFixed(1)+' kN</div>';
@@ -947,7 +948,7 @@ html+='<div>Base Plate: '+(N_plate)+'x'+B_plate+'mm, t='+Math.ceil(t_req/2)*2+'m
 if(!isTruss){
 html+='<div>Moment Connection: End Plate '+(secR?secR.d+100:500)+'x'+(secR?secR.b+60:260)+'x'+Math.max(ep_t,12)+'mm</div>';
 }else{
-html+='<div>Gusset Plate: t='+Math.max(t_gusset||8,8)+'mm, weld='+L_weld_round+'mm</div>';
+html+='<div>Gusset Plate: t='+Math.max(t_gusset,8)+'mm, weld='+L_weld_round+'mm</div>';
 }
 html+='<div>Bolts: M'+boltD+' '+boltType+'</div>';
 html+='<div>Weld: '+weldSize+'mm fillet</div>';
