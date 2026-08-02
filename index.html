@@ -426,7 +426,7 @@ currentResults=trussResult;
 rawCalcLog='=== '+(modelType==='warren'?'WARREN':'CREMONA')+' TRUSS ANALYSIS ===\nProyek: '+document.getElementById('proj_name').value+'\nSpan: '+L+'m x '+B+'m\nTruss depth: '+((L/2*slope).toFixed(2))+'m\nPanels: '+trussResult.trussData.nPanels+' x '+trussResult.trussData.p.toFixed(1)+'m\n\n--- MEMBER FORCES ---\nTop Chord: '+trussResult.worstDC.topChord.toFixed(3)+' D/C (kompresi)\nBottom Chord: '+trussResult.worstDC.bottomChord.toFixed(3)+' D/C (tension)\nDiagonal: '+trussResult.worstDC.diagonal.toFixed(3)+' D/C\n'+(modelType==='warren'?'':'Vertical: '+trussResult.worstDC.vertical.toFixed(3)+' D/C\n')+'Kolom: '+trussResult.worstDC.kolom.toFixed(3)+' D/C\nPedestal: '+trussResult.worstDC.pedestal.toFixed(3)+' D/C\n\nMAX D/C='+maxDC.toFixed(3)+'\nDefleksi: '+trussResult.defY.toFixed(2)+'mm / Limit: '+trussResult.defYLimit.toFixed(1)+'mm\n\n=== STATUS: '+(maxDC>1?'TIDAK AMAN':(maxDC>0.8?'AMAN (HATI-HATI)':'AMAN KOKOH'))+' ===';
 return;
 }
-const secK=sectionDB[profiles.kolom],secR=sectionDB[profiles.rafter],secG=sectionDB[profiles.girder],secKa=sectionDB[profiles.kanopi],secGo=sectionDB[profiles.gording];
+const secK=sectionDB[profiles.kolom],secR=sectionDB[profiles.rafter],secG=sectionDB[profiles.girder],secKa=sectionDB[profiles.kanopi];let secGo=sectionDB[profiles.gording];
 const selfW=(secK.A*H*2*numFrames+secR.A*Math.sqrt((L/2)**2+(ridgeH-H)**2)*2*numFrames+secG.A*bayA*numBays*3+secKa.A*2*2*numFrames)*gamma/1000;
 // SEISMIC
 const Cs=SDS/(R/Ie),CsMax=SD1/(R/Ie)/Math.max(Ta_func(H),0.2),CsMin=0.044*SDS*Ie;
