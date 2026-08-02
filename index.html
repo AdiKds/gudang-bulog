@@ -286,7 +286,13 @@ window.addEventListener('load',function(){let p=0;const bar=document.getElementB
 
 function updateClock(){const n=new Date();document.getElementById('clock').textContent=n.toLocaleTimeString('id-ID');document.getElementById('date').textContent=n.toLocaleDateString('id-ID',{weekday:'short',day:'numeric',month:'short',year:'numeric'})}
 
-function toggleModel(){const m=document.getElementById('model_type').value;const tp=document.getElementById('truss_profiles');const pl=document.getElementById('truss_panel_length_div');const pp=document.getElementById('portal_profiles')||document.querySelector('.portal-profiles');if(m==='cremona'){tp.style.display='block';pl.style.display='block';document.getElementById('prof_kolom').parentElement.style.display='none';document.getElementById('prof_rafter').parentElement.style.display='none';document.getElementById('prof_girder').parentElement.style.display='none';document.getElementById('prof_kanopi').parentElement.style.display='none'}else{tp.style.display='none';pl.style.display='none';document.getElementById('prof_kolom').parentElement.style.display='block';document.getElementById('prof_rafter').parentElement.style.display='block';document.getElementById('prof_girder').parentElement.style.display='block';document.getElementById('prof_kanopi').parentElement.style.display='block'}runAnalysis()}
+function toggleModel(){const m=document.getElementById('model_type').value;const tp=document.getElementById('truss_profiles');const pl=document.getElementById('truss_panel_length_div');
+// Hide/show profile divs
+function hideProf(id){const el=document.getElementById(id);if(el&&el.parentElement)el.parentElement.style.display='none'}
+function showProf(id){const el=document.getElementById(id);if(el&&el.parentElement)el.parentElement.style.display='block'}
+if(m==='cremona'){tp.style.display='block';pl.style.display='block';hideProf('prof_rafter');hideProf('prof_girder');hideProf('prof_kanopi');showProf('prof_kolom')}
+else{tp.style.display='none';pl.style.display='none';showProf('prof_rafter');showProf('prof_girder');showProf('prof_kanopi');showProf('prof_kolom')}
+runAnalysis()}
 
 function loadPreset(){const p=document.getElementById('bldg_preset').value;const pr={'18x30':{x:18,y:30,name:'Gudang Bulog 1000 Ton',bay:6},'24x66':{x:24,y:66,name:'Gudang Bulog 3500 Ton',bay:6},'32x48':{x:32,y:48,name:'Gudang Bulog 3500 Ton',bay:8}}[p];document.getElementById('dim_x').value=pr.x;document.getElementById('dim_y').value=pr.y;document.getElementById('proj_name').value=pr.name;document.getElementById('bay_spacing').value=pr.bay;runAnalysis()}
 
@@ -665,16 +671,19 @@ createMember(new THREE.Vector3(m.n1.x,m.n1.y,z),new THREE.Vector3(m.n2.x,m.n2.y,
 members.filter(m=>m.type==='vertical').forEach(m=>{
 createMember(new THREE.Vector3(m.n1.x,m.n1.y,z),new THREE.Vector3(m.n2.x,m.n2.y,z),profWeb,verC,'vertical');
 });
-// Purlins/girts between frames
-if(f>0){
+// Purlins/girts between frames (only on first frame pair)
+if(f===1){
 const pz=(f-1)*tbay;
 for(let i=0;i<=nPanels;i++){
 const tn=topNodes[i];
 createMember(new THREE.Vector3(tn.x,tn.y,pz),new THREE.Vector3(tn.x,tn.y,z),profBot,0x475569,'purlin');
 }
-for(let i=0;i<=nPanels;i++){
-const bn=nodes[i];
-createMember(new THREE.Vector3(bn.x,bn.y,pz),new THREE.Vector3(bn.x,bn.y,z),'H200x100x5.5x8',0x475569,'girt');
+// Profile labels for truss members (only on first frame)
+if(f===1){
+createProfileLabel(new THREE.Vector3(L/4,H+rise*0.5,z),'topChord','Top Chord',profTop);
+createProfileLabel(new THREE.Vector3(L/4,H,z),'bottomChord','Bottom Chord',profBot);
+createProfileLabel(new THREE.Vector3(p*1.5,H+rise*0.15,z),'web','Diagonal',profWeb);
+createProfileLabel(new THREE.Vector3(0,H/2,z),'kolom','Kolom',document.getElementById('prof_kolom').value);
 }
 }
 // Load arrows
