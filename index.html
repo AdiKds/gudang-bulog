@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analisis Struktur Baja Gudang Bulog - FEM Engine</title>
+<meta name="description" content="Aplikasi Analisis Struktur Baja Gudang Bulog dengan FEM, LRFD, dan Visualisasi 3D">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Orbitron:wght@500;700;900&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/renderers/CSS2DRenderer.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{--bg:#020617;--card:#0f172a;--border:#1e293b;--text:#e2e8f0;--dim:#64748b;--accent:#06b6d4;--accent2:#a855f7;--safe:#10b981;--warn:#facc15;--danger:#ef4444}
+*{box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);margin:0;overflow-x:hidden}
+.cyber-font{font-family:'Orbitron',sans-serif;letter-spacing:.05em}
+.mono{font-family:'JetBrains Mono',monospace}
+.cs::-webkit-scrollbar{width:6px;height:6px}.cs::-webkit-scrollbar-track{background:transparent}.cs::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.quake-anim{animation:shake .12s infinite}
+@keyframes shake{0%{transform:translate(0,0)}25%{transform:translate(-1px,1px)}50%{transform:translate(1px,-1px)}75%{transform:translate(-1px,-1px)}100%{transform:translate(1px,1px)}}
+@keyframes glow{0%,100%{box-shadow:0 0 5px rgba(6,182,212,.3)}50%{box-shadow:0 0 20px rgba(6,182,212,.6)}}
+.glow-anim{animation:glow 2s ease-in-out infinite}
+input,select{outline:none}
+input:focus,select:focus{border-color:var(--accent)!important;box-shadow:0 0 0 2px rgba(6,182,212,.2)}
+.form-input{background:var(--card);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:12px;width:100%}
+.form-label{font-size:10px;color:var(--dim);margin-bottom:3px;display:block;font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+.btn-primary{background:var(--accent);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;transition:all .2s;font-family:'Orbitron'}
+.btn-primary:hover{filter:brightness(1.1);transform:translateY(-1px)}
+.btn-secondary{background:var(--card);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:6px;font-size:11px;cursor:pointer;transition:all .15s}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent)}
+.metric-card{background:linear-gradient(135deg,var(--card),#1a2540);border:1px solid var(--border);border-radius:10px;padding:10px 14px;transition:all .3s}
+.metric-card.danger{border-color:rgba(239,68,68,.5);background:linear-gradient(135deg,rgba(239,68,68,.1),var(--card))}
+.metric-card.warn{border-color:rgba(250,204,21,.4);background:linear-gradient(135deg,rgba(250,204,21,.08),var(--card))}
+.metric-card.safe{border-color:rgba(16,185,129,.4);background:linear-gradient(135deg,rgba(16,185,129,.08),var(--card))}
+table.dcr-table{width:100%;border-collapse:collapse;font-size:11px}
+table.dcr-table th{background:#1e293b;padding:6px 8px;text-align:center;border:1px solid var(--border);font-weight:700;font-size:10px;text-transform:uppercase}
+table.dcr-table td{padding:5px 8px;text-align:center;border:1px solid var(--border)}
+table.dcr-table td.unsafe{color:var(--danger);font-weight:700;background:rgba(239,68,68,.1)}
+table.dcr-table td.warn{color:var(--warn);font-weight:700}
+table.dcr-table td.safe{color:var(--safe);font-weight:600}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(4px);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal-content{background:var(--card);border:1px solid var(--border);border-radius:12px;max-width:500px;width:100%;max-height:85vh;overflow-y:auto}
+.credit-bar{position:fixed;bottom:0;left:0;right:0;z-index:50;background:rgba(2,6,23,.95);border-top:1px solid var(--border);padding:6px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.clink{text-decoration:none;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:600;display:inline-flex;align-items:center;gap:4px;transition:all .15s}
+.section-section{border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;background:rgba(15,23,42,.5)}
+.calc-box{background:#0a1120;border:1px solid var(--border);border-radius:6px;padding:8px;font-family:'JetBrains Mono',monospace;font-size:10px;line-height:1.6;overflow-x:auto}
+.result-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:9px;font-weight:700;text-transform:uppercase}
+.badge-safe{background:rgba(16,185,129,.15);color:var(--safe);border:1px solid rgba(16,185,129,.3)}
+.badge-warn{background:rgba(250,204,21,.15);color:var(--warn);border:1px solid rgba(250,204,21,.3)}
+.badge-danger{background:rgba(239,68,68,.15);color:var(--danger);border:1px solid rgba(239,68,68,.3)}
+.lbl-tooltip{cursor:pointer;transition:all .2s}
+.lbl-tooltip:hover{transform:scale(1.1)}
+.toggle-chk{appearance:none;width:32px;height:18px;background:var(--border);border-radius:9px;position:relative;cursor:pointer;transition:all .2s}
+.toggle-chk:checked{background:var(--accent)}
+.toggle-chk::after{content:'';position:absolute;width:14px;height:14px;background:#fff;border-radius:50%;top:2px;left:2px;transition:all .2s}
+.toggle-chk:checked::after{transform:translateX(14px)}
+@media(max-width:768px){.desktop-only{display:none}}
+</style>
+</head>
+<body>
+<div id="loader" class="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-slate-950">
+<div class="text-center">
+<div class="mb-4"><i class="fa-solid fa-building-shield text-5xl text-cyan-400 animate-pulse"></i></div>
+<div class="cyber-font text-lg text-cyan-400 mb-2">STRUCTURAL FEM ENGINE</div>
+<div class="text-xs text-slate-500 mb-4">Initializing analysis modules...</div>
+<div class="w-64 h-1.5 bg-slate-800 rounded-full overflow-hidden mx-auto"><div id="loadBar" class="h-full bg-gradient-to-r from-cyan-500 to-purple-500 transition-all duration-300" style="width:0%"></div></div>
+<div id="loadStatus" class="text-[10px] text-slate-600 mt-2 cyber-font">LOADING...</div>
+</div>
+</div>
+<div id="app" class="min-h-screen pb-16">
+<header class="border-b sticky top-0 z-40" style="background:rgba(2,6,23,.95);border-color:var(--border);backdrop-filter:blur(8px)">
+<div class="max-w-[1600px] mx-auto px-3 py-2 flex items-center justify-between gap-2 flex-wrap">
+<div class="flex items-center gap-2">
+<i class="fa-solid fa-building-shield text-lg sm:text-xl" style="color:var(--accent)"></i>
+<span class="cyber-font text-sm sm:text-base font-black" style="color:var(--accent)">GUDANG BULOG</span>
+<span class="text-[8px] sm:text-[9px] px-2 py-0.5 rounded" style="background:rgba(6,182,212,.15);color:var(--accent);font-family:Orbitron">FEM ENGINE v1.0</span>
+</div>
+<div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+<span id="clock" class="text-xs mono hidden sm:block" style="color:var(--dim)">--:--:--</span>
+<span id="date" class="text-[10px] mono hidden sm:block" style="color:var(--dim)"></span>
+<button onclick="document.getElementById('helpModal').style.display='flex'" class="btn-secondary"><i class="fa-solid fa-circle-question"></i></button>
+<button onclick="document.getElementById('projectModal').style.display='flex'" class="btn-secondary"><i class="fa-solid fa-folder-open"></i></button>
+<button onclick="document.getElementById('creditModal').style.display='flex'" class="btn-secondary"><i class="fa-solid fa-id-badge"></i></button>
+</div>
+</div>
+</header>
+<div class="max-w-[1600px] mx-auto p-3 grid grid-cols-12 gap-3">
+<!-- LEFT PANEL -->
+<div class="col-span-12 lg:col-span-3 space-y-2">
+<div class="section-section">
+<h3 class="text-xs font-bold mb-2" style="color:var(--accent2)"><i class="fa-solid fa-circle-info mr-1"></i>DATA PROYEK</h3>
+<div class="space-y-2">
+<div><label class="form-label">Nama Proyek</label><input id="proj_name" class="form-input" value="Gudang Bulog 3500 Ton"></div>
+<div><label class="form-label">Lokasi</label><input id="proj_loc" class="form-input" value="Lombok Tengah, NTB"></div>
+<div><label class="form-label">Tipe Bangunan</label><select id="bldg_preset" class="form-input" onchange="loadPreset()"><option value="24x66">24 x 66m (3500 Ton)</option><option value="18x30">18 x 30m (1000 Ton)</option><option value="32x48">32 x 48m (3500 Ton)</option></select></div>
+<div><label class="form-label">Engineer</label><input id="proj_eng" class="form-input" value="Mohamad Hartadi"></div>
+</div>
+</div>
+<div class="section-section">
+<h3 class="text-xs font-bold mb-2" style="color:var(--accent)"><i class="fa-solid fa-ruler-combined mr-1"></i>GEOMETRI</h3>
+<div class="grid grid-cols-3 gap-2">
+<div><label class="form-label">Panjang X (m)</label><input id="dim_x" type="number" class="form-input" value="24" onchange="runAnalysis()"></div>
+<div><label class="form-label">Lebar Y (m)</label><input id="dim_y" type="number" class="form-input" value="66" onchange="runAnalysis()"></div>
+<div><label class="form-label">Tinggi (m)</label><input id="dim_h" type="number" class="form-input" value="9.5" step="0.5" onchange="runAnalysis()"></div>
+</div>
+<div class="grid grid-cols-2 gap-2 mt-2">
+<div><label class="form-label">Bay Spacing (m)</label><input id="bay_spacing" type="number" class="form-input" value="6" onchange="runAnalysis()"></div>
+<div><label class="form-label">Kemiringan Atap (%)</label><input id="roof_slope" type="number" class="form-input" value="26" onchange="runAnalysis()"></div>
+</div>
+</div>
+<div class="section-section">
+<h3 class="text-xs font-bold mb-2" style="color:#f59e0b"><i class="fa-solid fa-cubes mr-1"></i>MATERIAL</h3>
+<div class="text-[10px] font-bold mb-1" style="color:var(--dim)">Baja (BJ/ST-37):</div>
+<div class="grid grid-cols-2 gap-2">
+<div><label class="form-label">fy (MPa)</label><input id="mat_fy" type="number" class="form-input" value="250" onchange="runAnalysis()"></div>
+<div><label class="form-label">fu (MPa)</label><input id="mat_fu" type="number" class="form-input" value="410" onchange="runAnalysis()"></div>
+<div><label class="form-label">E (MPa)</label><input id="mat_e" type="number" class="form-input" value="200000" onchange="runAnalysis()"></div>
+<div><label class="form-label">γ (kN/m³)</label><input id="mat_gamma" type="number" class="form-input" value="78.5" onchange="runAnalysis()"></div>
+</div>
+<div class="text-[10px] font-bold mb-1 mt-2" style="color:var(--dim)">Beton Pedestal (K300):</div>
+<div class="grid grid-cols-2 gap-2">
+<div><label class="form-label">fc' (MPa)</label><input id="mat_fc" type="number" class="form-input" value="24.9" onchange="runAnalysis()"></div>
+<div><label class="form-label">E Beton (MPa)</label><input id="mat_eb" type="number" class="form-input" value="23453" onchange="runAnalysis()"></div>
+</div>
+</div>
+<div class="section-section">
+<h3 class="text-xs font-bold mb-2" style="color:#ef4444"><i class="fa-solid fa-weight-hanging mr-1"></i>PEMBEBANAN</h3>
+<div class="text-[10px] font-bold mb-1" style="color:var(--dim)">Gravitasi:</div>
+<div class="grid grid-cols-2 gap-2">
+<div><label class="form-label">SIDL (kN/m²)</label><input id="load_sidl" type="number" class="form-input" value="0.57" step="0.01" onchange="runAnalysis()"></div>
+<div><label class="form-label">Live Roof (kN/m²)</label><input id="load_lr" type="number" class="form-input" value="0.634" step="0.01" onchange="runAnalysis()"></div>
+</div>
+<div class="text-[10px] font-bold mb-1 mt-2" style="color:var(--dim)">Gempa (SNI 1726:2019):</div>
+<div class="grid grid-cols-2 gap-2">
+<div><label class="form-label">Ss (g)</label><input id="load_ss" type="number" class="form-input" value="1.0613" step="0.01" onchange="runAnalysis()"></div>
+<div><label class="form-label">S1 (g)</label><input id="load_s1" type="number" class="form-input" value="0.4343" step="0.01" onchange="runAnalysis()"></div>
+<div><label class="form-label">SDS (g)</label><input id="load_sds" type="number" class="form-input" value="0.75" step="0.01" onchange="runAnalysis()"></div>
+<div><label class="form-label">SD1 (g)</label><input id="load_sd1" type="number" class="form-input" value="0.67" step="0.01" onchange="runAnalysis()"></div>
+<div><label class="form-label">R</label><input id="load_r" type="number" class="form-input" value="8" onchange="runAnalysis()"></div>
+<div><label class="form-label">Ie</label><input id="load_i" type="number" class="form-input" value="1" step="0.25" onchange="runAnalysis()"></div>
+</div>
+<div class="text-[10px] font-bold mb-1 mt-2" style="color:var(--dim)">Angin (SNI 1727:2019):</div>
+<div class="grid grid-cols-2 gap-2">
+<div><label class="form-label">V (m/s)</label><input id="load_v" type="number" class="form-input" value="43.38" step="0.01" onchange="runAnalysis()"></div>
+<div><label class="form-label">Eksposur</label><select id="load_expo" class="form-input" onchange="runAnalysis()"><option value="C">C (Terbuka)</option><option value="B">B (Perkotaan)</option><option value="D">D (Pesisir)</option></select></div>
+</div>
+<div class="text-[10px] font-bold mt-2" style="color:var(--dim)">Tipe Tanah: SE | KDS: D | SRPMK</div>
+</div>
+<div class="section-section">
+<h3 class="text-xs font-bold mb-2" style="color:var(--accent2)"><i class="fa-solid fa-toggle-on mr-1"></i>AKTIVASI BEBAN</h3>
+<div class="space-y-1.5">
+<div class="flex items-center justify-between text-xs"><span><i class="fa-solid fa-square text-emerald-500 mr-1"></i>Beban Mati (DL)</span><input id="t_dl" type="checkbox" class="toggle-chk" checked onchange="runAnalysis()"></div>
+<div class="flex items-center justify-between text-xs"><span><i class="fa-solid fa-square text-blue-500 mr-1"></i>Beban Hidup (Lr)</span><input id="t_lr" type="checkbox" class="toggle-chk" checked onchange="runAnalysis()"></div>
+<div class="flex items-center justify-between text-xs"><span><i class="fa-solid fa-wind text-sky-500 mr-1"></i>Angin Bentang Panjang</span><input id="t_wind_l" type="checkbox" class="toggle-chk" checked onchange="runAnalysis()"></div>
+<div class="flex items-center justify-between text-xs"><span><i class="fa-solid fa-wind text-sky-400 mr-1"></i>Angin Bentang Pendek</span><input id="t_wind_s" type="checkbox" class="toggle-chk" onchange="runAnalysis()"></div>
+<div class="flex items-center justify-between text-xs"><span><i class="fa-solid fa-house-crack text-rose-500 mr-1"></i>Gempa Bentang Panjang</span><input id="t_eq_l" type="checkbox" class="toggle-chk" onchange="runAnalysis()"></div>
+<div class="flex items-center justify-between text-xs"><span><i class="fa-solid fa-house-crack text-rose-400 mr-1"></i>Gempa Bentang Pendek</span><input id="t_eq_s" type="checkbox" class="toggle-chk" checked onchange="runAnalysis()"></div>
+</div>
+</div>
+</div>
+<!-- CENTER -->
+<div class="col-span-12 lg:col-span-6 space-y-3">
+<div class="flex items-center gap-2 flex-wrap">
+<button onclick="runAnalysis()" class="btn-primary glow-anim"><i class="fa-solid fa-microchip mr-1"></i>JALANKAN ANALISIS FEM</button>
+<button onclick="toggleEarthquake()" id="btn-quake" class="btn-secondary" style="background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.4);color:var(--danger)"><i class="fa-solid fa-house-crack mr-1"></i>SIMULASI GEMPA</button>
+<button onclick="exportReport()" class="btn-secondary"><i class="fa-solid fa-file-word mr-1"></i>EXPORT WORD</button>
+<button onclick="exportJSON()" class="btn-secondary"><i class="fa-solid fa-download mr-1"></i>BACKUP JSON</button>
+</div>
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+<div class="metric-card" id="card-dc"><div class="text-[9px] font-bold uppercase" style="color:var(--dim)">MAX D/C RATIO</div><div class="text-2xl font-black mono mt-1" id="out-dc" style="color:var(--text)">0.000</div><div class="result-badge mt-1" id="out-dc-badge">--</div></div>
+<div class="metric-card" id="card-defy"><div class="text-[9px] font-bold uppercase" style="color:var(--dim)">DEFLEKSI VERTIKAL</div><div class="text-lg font-black mono mt-1" id="out-def-y" style="color:var(--text)">0.0 mm</div><div class="text-[9px]" id="out-def-y-stat" style="color:var(--dim)">Limit: --</div></div>
+<div class="metric-card" id="card-defeq"><div class="text-[9px] font-bold uppercase" style="color:var(--dim)">SIMPANGAN GEMPA</div><div class="text-lg font-black mono mt-1" id="out-def-eq" style="color:var(--text)">0.0 mm</div><div class="text-[9px]" id="out-def-eq-stat" style="color:var(--dim)">Limit: --</div></div>
+<div class="metric-card" id="card-status"><div class="text-[9px] font-bold uppercase" style="color:var(--dim)">STATUS GLOBAL</div><div class="text-xl font-black cyber-font mt-1" id="out-status" style="color:var(--text)">--</div><div class="text-[9px]" id="out-status-sub" style="color:var(--dim)">Belum dianalisis</div></div>
+</div>
+<div class="section-section p-0 overflow-hidden">
+<div class="flex items-center justify-between px-3 py-2 border-b" style="border-color:var(--border)">
+<span class="text-xs font-bold" style="color:var(--accent)"><i class="fa-solid fa-cube mr-1"></i>MODEL STRUKTUR 3D</span>
+<div class="flex gap-1.5 items-center">
+<button onclick="setView('iso')" class="btn-secondary text-[10px]">ISO</button>
+<button onclick="setView('front')" class="btn-secondary text-[10px]">FRONT</button>
+<button onclick="setView('top')" class="btn-secondary text-[10px]">TOP</button>
+<button onclick="setView('side')" class="btn-secondary text-[10px]">SIDE</button>
+<span class="text-[9px] mono" style="color:var(--dim)">Drag:rotate|Scroll:zoom</span>
+</div>
+</div>
+<div id="canvas-container" class="relative w-full" style="height:420px;background:#050810"></div>
+</div>
+<div class="section-section">
+<div class="flex items-center justify-between mb-2">
+<span class="text-xs font-bold" style="color:var(--accent2)"><i class="fa-solid fa-table-list mr-1"></i>DEMAND-CAPACITY RATIO</span>
+<span class="text-[9px]" style="color:var(--dim)">AISC 360-22 | LRFD</span>
+</div>
+<div class="overflow-x-auto cs">
+<table class="dcr-table" id="dcr-table">
+<thead><tr><th>ELEMEN</th><th>PROFIL</th><th>DCR AKSIAL</th><th>DCR LENTUR</th><th>DCR GABUNGAN</th><th>STATUS</th></tr></thead>
+<tbody id="dcr-body"><tr><td colspan="6" style="color:var(--dim);padding:20px">Tekan JALANKAN ANALISIS FEM untuk memulai...</td></tr></tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- RIGHT -->
+<div class="col-span-12 lg:col-span-3 space-y-2">
+<div class="section-section">
+<h3 class="text-xs font-bold mb-2" style="color:var(--accent)"><i class="fa-solid fa-pen-ruler mr-1"></i>PROFIL ELEMEN</h3>
+<div class="space-y-2">
+<div><label class="form-label">Kolom (H-Beam)</label><select id="prof_kolom" class="form-input" onchange="runAnalysis()"><option value="H300x300x10x15">H 300x300x10x15</option><option value="H350x350x12x19">H 350x350x12x19</option><option value="H400x400x13x21">H 400x400x13x21</option><option value="H250x250x9x14">H 250x250x9x14</option></select></div>
+<div><label class="form-label">Rafter / Kuda-Kuda</label><select id="prof_rafter" class="form-input" onchange="runAnalysis()"><option value="H400x200x8x13">H 400x200x8x13</option><option value="H500x200x10x16">H 500x200x10x16</option><option value="H350x175x7x11">H 350x175x7x11</option><option value="H450x200x9x14">H 450x200x9x14</option></select></div>
+<div><label class="form-label">Girder (Balok Utama)</label><select id="prof_girder" class="form-input" onchange="runAnalysis()"><option value="H400x200x8x13">H 400x200x8x13</option><option value="H500x200x10x16">H 500x200x10x16</option><option value="H350x175x7x11">H 350x175x7x11</option></select></div>
+<div><label class="form-label">Kanopi (Overhang)</label><select id="prof_kanopi" class="form-input" onchange="runAnalysis()"><option value="H250x125x6x9">H 250x125x6x9</option><option value="H300x150x6.5x9">H 300x150x6.5x9</option><option value="H200x100x5.5x8">H 200x100x5.5x8</option></select></div>
+<div><label class="form-label">Pedestal (Beton)</label><select id="prof_pedestal" class="form-input" onchange="runAnalysis()"><option value="600x600">Beton 600x600 mm</option><option value="500x500">Beton 500x500 mm</option><option value="700x700">Beton 700x700 mm</option></select></div>
+</div>
+</div>
+<div class="section-section">
+<h3 class="text-xs font-bold mb-2" style="color:var(--danger)"><i class="fa-solid fa-wave-square mr-1"></i>ANALISIS GEMPA</h3>
+<div id="seismic-calc" class="space-y-1.5 text-[10px] mono"><div style="color:var(--dim)">Tekan ANALISIS FEM...</div></div>
+</div>
+<div class="section-section">
+<h3 class="text-xs font-bold mb-2" style="color:#0ea5e9"><i class="fa-solid fa-wind mr-1"></i>ANALISIS ANGIN</h3>
+<div id="wind-calc" class="space-y-1.5 text-[10px] mono"><div style="color:var(--dim)">Tekan ANALISIS FEM...</div></div>
+</div>
+<div class="section-section">
+<h3 class="text-xs font-bold mb-2" style="color:var(--accent2)"><i class="fa-solid fa-layer-group mr-1"></i>KOMBINASI LRFD</h3>
+<div id="lrfd-calc" class="space-y-1 text-[10px] mono"><div style="color:var(--dim)">Tekan ANALISIS FEM...</div></div>
+</div>
+<div class="section-section">
+<h3 class="text-xs font-bold mb-2" style="color:var(--danger)"><i class="fa-solid fa-chart-line mr-1"></i>SPEKTRUM RESPONS</h3>
+<div style="height:200px"><canvas id="rs-chart"></canvas></div>
+</div>
+<div class="section-section">
+<h3 class="text-xs font-bold mb-2" style="color:var(--accent)"><i class="fa-solid fa-square-root-variable mr-1"></i>LOG PERHITUNGAN</h3>
+<div id="calc-log" class="calc-box" style="max-height:300px;overflow-y:auto"><div style="color:var(--dim)">Log akan muncul setelah analisis...</div></div>
+</div>
+</div>
+</div>
+</div>
+<div class="credit-bar">
+<div class="flex items-center gap-2">
+<span class="text-[10px]" style="color:var(--dim)">Developed by</span>
+<span class="text-xs font-bold cyber-font" style="color:var(--accent)">MOHAMAD HARTADI</span>
+<span class="text-[9px] hidden sm:inline" style="color:var(--dim)">| Geotechnical & Civil Engineer</span>
+</div>
+<div class="flex items-center gap-1.5">
+<a href="https://facebook.com/m.hartadi" target="_blank" class="clink" style="background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);color:#60a5fa"><i class="fa-brands fa-facebook"></i>FB</a>
+<a href="https://newbieonline7.blogspot.com" target="_blank" class="clink" style="background:rgba(249,115,22,.15);border:1px solid rgba(249,115,22,.3);color:#f97316"><i class="fa-solid fa-blog"></i>Blog</a>
+<a href="https://wa.me/6282231036047" target="_blank" class="clink" style="background:rgba(37,211,102,.15);border:1px solid rgba(37,211,102,.3);color:#25d366"><i class="fa-brands fa-whatsapp"></i>WA</a>
+</div>
+</div>
+<!-- MODALS -->
+<div id="helpModal" class="modal-bg" style="display:none"><div class="modal-content p-4"><div class="flex items-center justify-between mb-3"><span class="text-sm font-bold cyber-font" style="color:var(--accent)">PANDUAN</span><button onclick="document.getElementById('helpModal').style.display='none'" class="text-slate-400 hover:text-red-400"><i class="fa-solid fa-xmark text-xl"></i></button></div><div class="space-y-3 text-xs"><div><p class="font-bold mb-1" style="color:var(--accent)">1. Input Data</p><p style="color:var(--dim)">Isi geometri, material, dan pembebanan. Pilih preset atau ubah manual.</p></div><div><p class="font-bold mb-1" style="color:var(--accent)">2. Pemilihan Profil</p><p style="color:var(--dim)">Pilih profil WF/H-Beam. Double-click label di 3D untuk edit cepat.</p></div><div><p class="font-bold mb-1" style="color:var(--accent)">3. Analisis FEM</p><p style="color:var(--dim)">Klik JALANKAN ANALISIS untuk hitung D/C, defleksi, dan LRFD.</p></div><div><p class="font-bold mb-1" style="color:var(--accent)">4. Visualisasi 3D</p><p style="color:var(--dim)">Warna: <span style="color:var(--safe)">Hijau=Aman</span>, <span style="color:var(--warn)">Kuning=Hati-hati</span>, <span style="color:var(--danger)">Merah=Tidak Aman</span></p></div><div><p class="font-bold mb-1" style="color:var(--danger)">Standar:</p><p style="color:var(--dim)">SNI 1726:2019, SNI 1727:2019, SNI 1729:2020, AISC 360-22, ASCE 7-22</p></div></div></div></div>
+<div id="projectModal" class="modal-bg" style="display:none"><div class="modal-content p-4"><div class="flex items-center justify-between mb-3"><span class="text-sm font-bold" style="color:var(--accent2)">MANAJEMEN PROYEK</span><button onclick="document.getElementById('projectModal').style.display='none'" class="text-slate-400 hover:text-red-400"><i class="fa-solid fa-xmark text-xl"></i></button></div><div class="space-y-3"><div><p class="text-xs font-bold mb-1" style="color:var(--dim)">EXPORT</p><button onclick="exportJSON()" class="btn-primary w-full"><i class="fa-solid fa-download mr-1"></i>Backup JSON</button></div><div><p class="text-xs font-bold mb-1 mt-3" style="color:var(--dim)">IMPORT</p><input type="file" id="importFile" accept=".json" class="form-input" onchange="importJSON(event)"></div><div class="border-t pt-2 mt-2" style="border-color:var(--border)"><p class="text-xs font-bold mb-1" style="color:var(--dim)">WORKSHEET TERSIMPAN</p><div id="worksheet-list" class="space-y-1.5 max-h-48 overflow-y-auto cs"></div></div></div></div></div>
+<div id="creditModal" class="modal-bg" style="display:none"><div class="modal-content p-4 text-center" style="position:relative"><button onclick="document.getElementById('creditModal').style.display='none'" style="position:absolute;top:12px;right:12px;color:#64748b;background:none;border:none;cursor:pointer"><i class="fa-solid fa-xmark text-xl"></i></button><div class="mb-3"><i class="fa-solid fa-building-shield text-4xl" style="color:var(--accent)"></i></div><h3 class="cyber-font text-lg font-black mb-1" style="color:var(--accent2)">MOHAMAD HARTADI</h3><p class="text-xs mb-3" style="color:var(--dim)">Geotechnical & Civil Engineer</p><div class="space-y-2 max-w-xs mx-auto"><a href="https://wa.me/6282231036047" target="_blank" class="clink w-full justify-center" style="background:rgba(37,211,102,.1);border:1px solid rgba(37,211,102,.3);color:#25d366;padding:8px"><i class="fa-brands fa-whatsapp"></i>0822 3103 6047</a><a href="https://facebook.com/m.hartadi" target="_blank" class="clink w-full justify-center" style="background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.3);color:#60a5fa;padding:8px"><i class="fa-brands fa-facebook"></i>facebook.com/m.hartadi</a><a href="https://newbieonline7.blogspot.com" target="_blank" class="clink w-full justify-center" style="background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.3);color:#f97316;padding:8px"><i class="fa-solid fa-blog"></i>newbieonline7.blogspot.com</a></div><div class="mt-3 pt-3 border-t text-[10px]" style="border-color:var(--border);color:var(--dim)">FEM Engine v1.0 | SNI 1726:2019 | AISC 360-22</div></div></div>
+<div id="editProfileModal" class="modal-bg" style="display:none"><div class="modal-content p-4"><div class="flex items-center justify-between mb-3"><span class="text-sm font-bold" style="color:var(--accent)">EDIT PROFIL <span id="epLabel" class="cyber-font"></span></span><button onclick="document.getElementById('editProfileModal').style.display='none'" class="text-slate-400 hover:text-red-400"><i class="fa-solid fa-xmark text-xl"></i></button></div><div class="space-y-2"><p class="text-xs" style="color:var(--dim)">Pilih profil standar:</p><div id="epOptions" class="space-y-1.5"></div></div></div></div>
+
+<script>
+// SECTION PROPERTY DATABASE
+const sectionDB={
+"H300x300x10x15":{d:300,b:300,tf:15,tw:10,A:119.8,Ix:20400,Iy:6750,Sx:1360,Zx:1530,ry:7.51,rx:13.05,h:270},
+"H350x350x12x19":{d:350,b:350,tf:19,tw:12,A:173.9,Ix:39800,Iy:13600,Sx:2280,Zx:2570,ry:8.83,rx:15.1,h:312},
+"H400x400x13x21":{d:400,b:400,tf:21,tw:13,A:218.7,Ix:66600,Iy:22400,Sx:3330,Zx:3780,ry:10.1,rx:17.4,h:358},
+"H250x250x9x14":{d:250,b:250,tf:14,tw:9,A:91.4,Ix:10700,Iy:3650,Sx:858,Zx:960,ry:6.27,rx:10.8,h:222},
+"H400x200x8x13":{d:400,b:200,tf:13,tw:8,A:83.37,Ix:23500,Iy:1740,Sx:1175,Zx:1325,ry:4.56,rx:16.8,h:374},
+"H500x200x10x16":{d:500,b:200,tf:16,tw:10,A:110.7,Ix:41900,Iy:2140,Sx:1676,Zx:1910,ry:4.39,rx:19.5,h:468},
+"H350x175x7x11":{d:350,b:175,tf:11,tw:7,A:62.06,Ix:13500,Iy:987,Sx:772,Zx:869,ry:3.99,rx:14.8,h:328},
+"H450x200x9x14":{d:450,b:200,tf:14,tw:9,A:93.97,Ix:32900,Iy:1870,Sx:1464,Zx:1664,ry:4.46,rx:18.7,h:422},
+"H250x125x6x9":{d:250,b:125,tf:9,tw:6,A:36.97,Ix:3960,Iy:294,Sx:317,Zx:356,ry:2.82,rx:10.4,h:232},
+"H300x150x6.5x9":{d:300,b:150,tf:9,tw:6.5,A:46.78,Ix:7210,Iy:507,Sx:481,Zx:540,ry:3.29,rx:12.4,h:282},
+"H200x100x5.5x8":{d:200,b:100,tf:8,tw:5.5,A:26.66,Ix:1840,Iy:134,Sx:184,Zx:206,ry:2.24,rx:8.3,h:184}
+};
+
+let currentProfiles={kolom:"H300x300x10x15",rafter:"H400x200x8x13",girder:"H400x200x8x13",kanopi:"H250x125x6x9",pedestal:"600x600"};
+let currentResults=null,rsChart=null,scene,camera,renderer,labelRenderer,structGroup,controls,isEarthquake=false,quakeTime=0,memberMeshes=[],savedWorksheets=[],rawCalcLog="";
+
+// LOADER
+window.addEventListener('load',function(){let p=0;const bar=document.getElementById('loadBar'),st=document.getElementById('loadStatus');const steps=['Loading modules...','Init FEM engine...','Loading section DB...','Building 3D...','Ready!'];const iv=setInterval(()=>{p+=25;bar.style.width=p+'%';st.textContent=steps[Math.min(Math.floor(p/25),4)];if(p>=100){clearInterval(iv);setTimeout(()=>{document.getElementById('loader').style.opacity='0';setTimeout(()=>{document.getElementById('loader').style.display='none'},500);init3D();runAnalysis()},300)}},300);updateClock();setInterval(updateClock,1000);loadWorksheets()});
+
+function updateClock(){const n=new Date();document.getElementById('clock').textContent=n.toLocaleTimeString('id-ID');document.getElementById('date').textContent=n.toLocaleDateString('id-ID',{weekday:'short',day:'numeric',month:'short',year:'numeric'})}
+
+function loadPreset(){const p=document.getElementById('bldg_preset').value;const pr={'18x30':{x:18,y:30,name:'Gudang Bulog 1000 Ton',bay:6},'24x66':{x:24,y:66,name:'Gudang Bulog 3500 Ton',bay:6},'32x48':{x:32,y:48,name:'Gudang Bulog 3500 Ton',bay:8}}[p];document.getElementById('dim_x').value=pr.x;document.getElementById('dim_y').value=pr.y;document.getElementById('proj_name').value=pr.name;document.getElementById('bay_spacing').value=pr.bay;runAnalysis()}
+
+// FEM ENGINE
+function runAnalysis(){
+const L=parseFloat(document.getElementById('dim_x').value),B=parseFloat(document.getElementById('dim_y').value),H=parseFloat(document.getElementById('dim_h').value);
+const bay=parseFloat(document.getElementById('bay_spacing').value),slope=parseFloat(document.getElementById('roof_slope').value)/100;
+const fy=parseFloat(document.getElementById('mat_fy').value),fu=parseFloat(document.getElementById('mat_fu').value),E=parseFloat(document.getElementById('mat_e').value),gamma=parseFloat(document.getElementById('mat_gamma').value),fc=parseFloat(document.getElementById('mat_fc').value);
+const SIDL=parseFloat(document.getElementById('load_sidl').value),Lr=parseFloat(document.getElementById('load_lr').value);
+const Ss=parseFloat(document.getElementById('load_ss').value),S1=parseFloat(document.getElementById('load_s1').value),SDS=parseFloat(document.getElementById('load_sds').value),SD1=parseFloat(document.getElementById('load_sd1').value),R=parseFloat(document.getElementById('load_r').value),Ie=parseFloat(document.getElementById('load_i').value),Vw=parseFloat(document.getElementById('load_v').value),expo=document.getElementById('load_expo').value;
+const profiles={kolom:document.getElementById('prof_kolom').value,rafter:document.getElementById('prof_rafter').value,girder:document.getElementById('prof_girder').value,kanopi:document.getElementById('prof_kanopi').value,pedestal:document.getElementById('prof_pedestal').value};
+currentProfiles=profiles;
+const numBays=Math.ceil(B/bay),bayA=B/numBays,numFrames=numBays+1;
+const ridgeH=H+(L/2)*slope;
+const wDL=SIDL*bayA,wLR=Lr*bayA,wTotal=wDL+wLR;
+const secK=sectionDB[profiles.kolom],secR=sectionDB[profiles.rafter],secG=sectionDB[profiles.girder],secKa=sectionDB[profiles.kanopi];
+const selfW=(secK.A*H*2*numFrames+secR.A*Math.sqrt((L/2)**2+(ridgeH-H)**2)*2*numFrames+secG.A*bayA*numBays*3+secKa.A*2*2*numFrames)*gamma/1000;
+// SEISMIC
+const Cs=SDS/(R/Ie),CsMax=SD1/(R/Ie)/Math.max(Ta_func(H),0.2),CsMin=0.044*SDS*Ie;
+function Ta_func(h){return 0.035*Math.pow(h,0.8)}
+const Ta=Ta_func(H);
+const CsUsed=Math.max(Math.min(Cs,CsMax),CsMin);
+const Wtotal=wTotal*B+selfW;
+const Vbase=CsUsed*Wtotal;
+const F_seismic=Vbase/numFrames,M_seismic=F_seismic*H;
+// WIND
+const Kd=0.85,Kzt=1.0;
+const Kz=expo==='C'?0.98*Math.pow(H/10,2/9.5):(expo==='B'?0.7*Math.pow(H/10,2/7):1.03*Math.pow(H/10,2/8.5));
+const qz=0.5*1.225*(Vw**2)*Kz*Kzt*Kd/1000;
+const Cp=1.3,P_wind=qz*Cp,F_wind=P_wind*H*bayA,M_wind=F_wind*H;
+// LRFD COMBINATIONS
+const wFact=1.2*wDL+1.6*wLR;
+const M_grav=wFact*(L**2)/8,P_grav=wFact*L/2;
+const combos=[
+{name:"1.4D",Pu:1.4*wDL*L/2,Mu:1.4*wDL*(L**2)/8},
+{name:"1.2D+1.6Lr",Pu:1.2*wDL*L/2+1.6*wLR*L/2,Mu:1.2*wDL*(L**2)/8+1.6*wLR*(L**2)/8},
+{name:"1.2D+1.0W+0.5Lr",Pu:1.2*wDL*L/2+0.5*wLR*L/2,Mu:1.2*wDL*(L**2)/8+0.5*wLR*(L**2)/8+M_wind*0.3},
+{name:"1.2D+1.0E+0.5Lr",Pu:1.2*wDL*L/2+0.5*wLR*L/2+Math.abs(F_seismic*0.3),Mu:1.2*wDL*(L**2)/8+0.5*wLR*(L**2)/8+M_seismic*0.2},
+{name:"0.9D+1.0E",Pu:0.9*wDL*L/2+Math.abs(F_seismic*0.3),Mu:0.9*wDL*(L**2)/8+M_seismic*0.2},
+{name:"0.9D+1.0W",Pu:0.9*wDL*L/2,Mu:0.9*wDL*(L**2)/8+M_wind*0.3}
+];
+// CAPACITY CHECK
+function checkMember(sec,Pu,Mu,Lb,type){
+if(!sec)return{dcA:0,dcM:0,dc:0};
+const phiB=0.9,phiC=0.9;
+const A=sec.A*100,Iy=sec.Iy*10000,Ix=sec.Ix*10000,Zx=sec.Zx*1000,Sx=sec.Sx*1000,ry=sec.ry*10;
+const K=type==='kolom'?1.0:(type==='rafter'?1.2:1.0);
+const KLry=K*Lb*1000/ry;
+const Fe=Math.PI**2*E/(KLry**2);
+const lc=Math.sqrt(fy/Fe);
+let Fcr=lc<=1.5?Math.pow(0.658,lc**2)*fy:0.877*Fe;
+const Pn=Fcr*A/1000,phiPn=phiC*Pn;
+const Mp=fy*Zx/1e6;
+const Lp=1.76*ry*Math.sqrt(E/fy)/1000;
+let Mn=Lb<=Lp?Mp:Math.min(Mp,Mp-(Mp-0.7*fy*Sx/1e6)*(Lb-Lp)/Math.max(Lp*2-Lp,1));
+Mn=Math.max(Mn,0.7*fy*Sx/1e6);
+const phiMn=phiB*Mn;
+const dcA=Pu/phiPn,dcM=Mu/phiMn,dc=dcA+(8/9)*dcM;
+return{dcA,dcM,dc,phiPn,phiMn};
+}
+const Lb_col=H,Lb_raft=L/2,Lb_gird=bayA,Lb_kan=2;
+let worstDC={kolom:0,rafter:0,girder:0,kanopi:0,pedestal:0};
+let worstCombo={kolom:"",rafter:"",girder:"",kanopi:"",pedestal:""};
+let memberResults={kolom:{},rafter:{},girder:{},kanopi:{},pedestal:{}};
+combos.forEach(c=>{
+const ck=checkMember(secK,c.Pu,c.Mu*0.3,Lb_col,'kolom');
+if(ck.dc>worstDC.kolom){worstDC.kolom=ck.dc;worstCombo.kolom=c.name;memberResults.kolom=ck}
+const cr=checkMember(secR,c.Pu*0.1,c.Mu,Lb_raft,'rafter');
+if(cr.dc>worstDC.rafter){worstDC.rafter=cr.dc;worstCombo.rafter=c.name;memberResults.rafter=cr}
+const cg=checkMember(secG,c.Pu*0.05,c.Mu*0.4,Lb_gird,'girder');
+if(cg.dc>worstDC.girder){worstDC.girder=cg.dc;worstCombo.girder=c.name;memberResults.girder=cg}
+const cka=checkMember(secKa,Math.abs(F_wind*0.3),M_wind*0.1,Lb_kan,'rafter');
+if(cka.dc>worstDC.kanopi){worstDC.kanopi=cka.dc;worstCombo.kanopi=c.name;memberResults.kanopi=cka}
+const pSize=parseInt(profiles.pedestal.split('x')[0]);
+const phiPcPed=0.65*0.85*fc*pSize*pSize/1000;
+const dcp=c.Pu/phiPcPed;
+if(dcp>worstDC.pedestal){worstDC.pedestal=dcp;worstCombo.pedestal=c.name;memberResults.pedestal={dc:dcp,dcA:dcp,dcM:0}}
+});
+const maxDC=Math.max(...Object.values(worstDC));
+// DEFLECTION
+const Ix_r=secR.Ix*10000;
+const defY=5*wTotal*(L*1000)**4/(384*E*Ix_r)/1000;
+const defYLimit=L*1000/200;
+const Ix_k=secK.Ix*10000;
+const defEQ=CsUsed*Wtotal*(H*1000)**3/(3*E*Ix_k*numFrames*2)/1000;
+const defEQLimit=0.015*H*1000;
+// UI UPDATE
+document.getElementById('out-dc').textContent=maxDC.toFixed(3);
+const cardDc=document.getElementById('card-dc'),badge=document.getElementById('out-dc-badge');
+if(maxDC>1.0){document.getElementById('out-dc').style.color='#ef4444';cardDc.className='metric-card danger';badge.className='result-badge badge-danger';badge.textContent='OVERSTRESS';document.getElementById('out-status').textContent='TIDAK AMAN';document.getElementById('out-status').style.color='#ef4444';document.getElementById('card-status').className='metric-card danger';document.getElementById('out-status-sub').textContent='Redesign diperlukan!'}
+else if(maxDC>0.8){document.getElementById('out-dc').style.color='#facc15';cardDc.className='metric-card warn';badge.className='result-badge badge-warn';badge.textContent='OPTIMAL';document.getElementById('out-status').textContent='AMAN (PAS)';document.getElementById('out-status').style.color='#facc15';document.getElementById('card-status').className='metric-card warn';document.getElementById('out-status-sub').textContent='Mendekati batas'}
+else{document.getElementById('out-dc').style.color='#10b981';cardDc.className='metric-card safe';badge.className='result-badge badge-safe';badge.textContent='AMAN';document.getElementById('out-status').textContent='AMAN KOKOH';document.getElementById('out-status').style.color='#10b981';document.getElementById('card-status').className='metric-card safe';document.getElementById('out-status-sub').textContent='Margin keamanan baik'}
+document.getElementById('out-def-y').textContent=defY.toFixed(2)+' mm';document.getElementById('out-def-y-stat').textContent='Limit: '+defYLimit.toFixed(1)+' mm (L/200)';
+document.getElementById('out-def-y').style.color=defY>defYLimit?'#ef4444':'#10b981';
+document.getElementById('out-def-eq').textContent=defEQ.toFixed(2)+' mm';document.getElementById('out-def-eq-stat').textContent='Limit: '+defEQLimit.toFixed(1)+' mm (0.015h)';
+document.getElementById('out-def-eq').style.color=defEQ>defEQLimit?'#ef4444':'#10b981';
+// DCR TABLE
+const members=[{name:'Kolom',profile:profiles.kolom,dc:worstDC.kolom,combo:worstCombo.kolom,r:memberResults.kolom},{name:'Rafter',profile:profiles.rafter,dc:worstDC.rafter,combo:worstCombo.rafter,r:memberResults.rafter},{name:'Girder',profile:profiles.girder,dc:worstDC.girder,combo:worstCombo.girder,r:memberResults.girder},{name:'Kanopi',profile:profiles.kanopi,dc:worstDC.kanopi,combo:worstCombo.kanopi,r:memberResults.kanopi},{name:'Pedestal',profile:profiles.pedestal+' (Beton)',dc:worstDC.pedestal,combo:worstCombo.pedestal,r:memberResults.pedestal}];
+document.getElementById('dcr-body').innerHTML=members.map(m=>{const cls=m.dc>1?'unsafe':(m.dc>0.8?'warn':'safe');const st=m.dc>1?'<span class="result-badge badge-danger">OVERSTRESS</span>':(m.dc>0.8?'<span class="result-badge badge-warn">HATI-HATI</span>':'<span class="result-badge badge-safe">OK</span>');const dcA=m.r.dcA!==undefined?m.r.dcA.toFixed(3):'-';const dcM=m.r.dcM!==undefined?m.r.dcM.toFixed(3):'-';return'<tr><td style="text-align:left;font-weight:700">'+m.name+'</td><td>'+m.profile+'</td><td class="'+cls+'">'+dcA+'</td><td class="'+cls+'">'+dcM+'</td><td class="'+cls+'"><b>'+m.dc.toFixed(3)+'</b></td><td>'+st+'</td></tr>'}).join('');
+// SEISMIC DISPLAY
+document.getElementById('seismic-calc').innerHTML='<div>SDS='+SDS+'g | SD1='+SD1+'g</div><div>R='+R+' | Ie='+Ie+'</div><div style="color:var(--accent)">Cs='+Cs.toFixed(4)+'</div><div>Cs_max='+CsMax.toFixed(4)+'</div><div>Cs_min='+CsMin.toFixed(4)+'</div><div style="color:var(--accent2)">Cs used='+CsUsed.toFixed(4)+'</div><div>Ta='+Ta.toFixed(3)+'s</div><div>W='+Wtotal.toFixed(1)+'kN</div><div style="color:var(--danger)">V='+Vbase.toFixed(1)+'kN</div><div>F/frame='+F_seismic.toFixed(1)+'kN</div>';
+// WIND DISPLAY
+document.getElementById('wind-calc').innerHTML='<div>V='+Vw+'m/s | Kd='+Kd+'</div><div>Eksposur='+expo+' | Kz='+Kz.toFixed(3)+'</div><div style="color:#0ea5e9">qz='+qz.toFixed(3)+'kPa</div><div>Cp='+Cp+'</div><div style="color:#0ea5e9">P='+P_wind.toFixed(3)+'kPa</div><div>F/frame='+F_wind.toFixed(1)+'kN</div><div>M_wind='+M_wind.toFixed(1)+'kN.m</div>';
+// LRFD DISPLAY
+document.getElementById('lrfd-calc').innerHTML=combos.map(c=>'<div style="padding:4px 6px;border-radius:4px;background:rgba(15,23,42,.5);border:1px solid var(--border)"><div>'+c.name+'</div><div style="color:var(--dim)">Pu='+c.Pu.toFixed(1)+'kN | Mu='+c.Mu.toFixed(1)+'kN.m</div></div>').join('');
+// CALC LOG
+rawCalcLog='=== FEM ANALYSIS LOG ===\nProyek: '+document.getElementById('proj_name').value+'\nLokasi: '+document.getElementById('proj_loc').value+'\nDimensi: '+L+'x'+B+'m, Tinggi: '+H+'m\nBay: '+bayA+'m x '+numBays+' buah\n\n--- MATERIAL ---\nBaja: fy='+fy+', fu='+fu+', E='+E+'\nBeton: fc\'='+fc+'\n\n--- BEBAN ---\nSIDL='+SIDL+', Lr='+Lr+'\nwDL='+wDL.toFixed(2)+', wLR='+wLR.toFixed(2)+'\nSelf weight='+selfW.toFixed(1)+'kN\n\n--- GEMPA ---\nSDS='+SDS+', SD1='+SD1+', R='+R+', Ie='+Ie+'\nCs='+Cs.toFixed(4)+' (max='+CsMax.toFixed(4)+', min='+CsMin.toFixed(4)+')\nTa='+Ta.toFixed(3)+'s\nW='+Wtotal.toFixed(1)+'kN\nV='+Vbase.toFixed(1)+'kN\n\n--- ANGIN ---\nV='+Vw+'m/s, Kz='+Kz.toFixed(3)+'\nqz='+qz.toFixed(3)+'kPa\nP='+P_wind.toFixed(3)+'kPa\nF/frame='+F_wind.toFixed(1)+'kN\n\n--- D/C RATIO ---\nKolom: '+worstDC.kolom.toFixed(3)+' ['+worstCombo.kolom+']\nRafter: '+worstDC.rafter.toFixed(3)+' ['+worstCombo.rafter+']\nGirder: '+worstDC.girder.toFixed(3)+' ['+worstCombo.girder+']\nKanopi: '+worstDC.kanopi.toFixed(3)+' ['+worstCombo.kanopi+']\nPedestal: '+worstDC.pedestal.toFixed(3)+' ['+worstCombo.pedestal+']\nMAX D/C='+maxDC.toFixed(3)+'\n\n--- DEFLEKSI ---\nVertikal: '+defY.toFixed(2)+'mm / Limit: '+defYLimit.toFixed(1)+'mm\nGempa: '+defEQ.toFixed(2)+'mm / Limit: '+defEQLimit.toFixed(1)+'mm\n\n=== STATUS: '+(maxDC>1?'TIDAK AMAN':(maxDC>0.8?'AMAN (HATI-HATI)':'AMAN KOKOH'))+' ===';
+document.getElementById('calc-log').innerHTML=rawCalcLog.replace(/\n/g,'<br>');
+// UPDATE 3D
+update3D(L,B,H,bayA,numBays,slope,worstDC);
+// CHART
+drawRSChart(SDS,SD1,Ta);
+// STORE
+currentResults={maxDC,defY,defEQ,defYLimit,defEQLimit,worstDC,combos,memberResults,seismic:{Cs:CsUsed,V:Vbase,Ta},wind:{qz,P:P_wind,F:F_wind}};
+}
+
+// RESPONSE SPECTRUM
+function drawRSChart(SDS,SD1,Ta){
+const c=document.getElementById('rs-chart');if(!c)return;const ctx=c.getContext('2d');
+const T0=0.2*SD1/SDS,Ts=SD1/SDS;let pts=[];
+for(let t=0;t<=4;t+=0.05){let sa=t<=T0?SDS*(0.4+0.6*t/T0):(t<=Ts?SDS:SD1/t);pts.push({x:t,y:sa})}
+if(rsChart)rsChart.destroy();
+rsChart=new Chart(ctx,{type:'line',data:{datasets:[{label:'Spektrum Desain',data:pts,borderColor:'#f43f5e',backgroundColor:'rgba(244,63,94,.15)',borderWidth:2,pointRadius:0,fill:true},{label:'Ta='+Ta.toFixed(3)+'s',data:[{x:Ta,y:0},{x:Ta,y:SDS}],borderColor:'#06b6d4',borderWidth:1.5,borderDash:[4,4],pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:300},scales:{x:{type:'linear',min:0,max:4,title:{display:true,text:'T (detik)',color:'#64748b'},ticks:{color:'#64748b'},grid:{color:'#1e293b'}},y:{title:{display:true,text:'SA (g)',color:'#64748b'},ticks:{color:'#64748b'},grid:{color:'#1e293b'}}},plugins:{legend:{labels:{color:'#94a3b8',font:{size:10}}}}}});
+}
+
+// 3D VISUALIZATION
+function init3D(){
+const container=document.getElementById('canvas-container');
+scene=new THREE.Scene();scene.background=new THREE.Color(0x050810);scene.fog=new THREE.Fog(0x050810,80,200);
+camera=new THREE.PerspectiveCamera(45,container.clientWidth/container.clientHeight,1,1000);camera.position.set(40,35,55);
+renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});renderer.setSize(container.clientWidth,container.clientHeight);renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));container.appendChild(renderer.domElement);
+labelRenderer=new THREE.CSS2DRenderer();labelRenderer.setSize(container.clientWidth,container.clientHeight);labelRenderer.domElement.style.position='absolute';labelRenderer.domElement.style.top='0px';labelRenderer.domElement.style.pointerEvents='none';container.appendChild(labelRenderer.domElement);
+controls=new THREE.OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.target.set(12,5,10);
+scene.add(new THREE.AmbientLight(0xffffff,0.6));
+const d1=new THREE.DirectionalLight(0xffffff,0.8);d1.position.set(30,50,30);scene.add(d1);
+const d2=new THREE.DirectionalLight(0x4488ff,0.3);d2.position.set(-30,20,-30);scene.add(d2);
+const grid=new THREE.GridHelper(100,50,0x1e293b,0x111827);grid.position.y=-1.5;scene.add(grid);
+structGroup=new THREE.Group();scene.add(structGroup);
+window.addEventListener('resize',()=>{if(!container)return;camera.aspect=container.clientWidth/container.clientHeight;camera.updateProjectionMatrix();renderer.setSize(container.clientWidth,container.clientHeight);labelRenderer.setSize(container.clientWidth,container.clientHeight)});
+function animate(){requestAnimationFrame(animate);controls.update();if(isEarthquake&&structGroup){quakeTime+=0.3;const mag=0.8;structGroup.position.x=(Math.sin(quakeTime*1.5)+Math.cos(quakeTime*3))*mag;structGroup.position.z=Math.sin(quakeTime*2.1)*mag*0.5;structGroup.rotation.z=Math.sin(quakeTime*1.2)*0.008;const c=document.getElementById('canvas-container');if(!c.classList.contains('quake-anim'))c.classList.add('quake-anim')}else if(structGroup){structGroup.position.set(0,0,0);structGroup.rotation.set(0,0,0);const c=document.getElementById('canvas-container');c.classList.remove('quake-anim')}renderer.render(scene,camera);labelRenderer.render(scene,camera)}
+animate();
+}
+
+function getColorForDC(dc){return dc>1.0?0xef4444:(dc>0.8?0xfacc15:0x10b981)}
+
+function createMember(p1,p2,profile,color,type){
+const dir=new THREE.Vector3().subVectors(p2,p1);const len=dir.length();
+const sec=sectionDB[profile];let w,h;
+if(sec){w=sec.b/1000*1.5;h=sec.d/1000*1.5}
+else if(type==='pedestal'){const s=parseInt(profile.split('x')[0])/1000;w=s;h=s}
+else{w=0.2;h=0.3}
+const geo=new THREE.BoxGeometry(w,len,h);
+const mat=new THREE.MeshPhongMaterial({color:color,shininess:30,transparent:true,opacity:0.92});
+const mesh=new THREE.Mesh(geo,mat);
+const mid=new THREE.Vector3().addVectors(p1,p2).multiplyScalar(0.5);mesh.position.copy(mid);mesh.lookAt(p2);mesh.rotateX(Math.PI/2);
+const edges=new THREE.EdgesGeometry(geo);const lm=new THREE.LineBasicMaterial({color:0x334155});mesh.add(new THREE.LineSegments(edges,lm));
+structGroup.add(mesh);memberMeshes.push({mesh,type,color});return mesh;
+}
+
+function createProfileLabel(pos,typeKey,displayName,profileValue){
+const div=document.createElement('div');div.className='lbl-tooltip';div.style.cssText='font-size:10px;font-weight:bold;color:#fff;font-family:JetBrains Mono,monospace;padding:2px 8px;border-radius:6px;border:1px solid rgba(168,85,247,.5);background:rgba(15,23,42,.9);pointer-events:auto;cursor:pointer;z-index:20;transition:all .2s';div.innerHTML='<i class="fa-solid fa-pen-ruler" style="color:#c084fc;margin-right:4px"></i>'+profileValue;div.title='Double-click to edit '+displayName;div.ondblclick=(e)=>{e.stopPropagation();openEditProfileModal(typeKey,displayName,profileValue)};
+const label=new THREE.CSS2DObject(div);label.position.copy(pos);structGroup.add(label);
+}
+
+function createArrow(dir,origin,length,color){return new THREE.ArrowHelper(dir,origin,length,color,length*0.2,length*0.1)}
+
+function update3D(L,B,H,bay,numBays,slope,dc){
+while(structGroup.children.length>0){const ch=structGroup.children[0];if(ch.element)ch.element.remove();structGroup.remove(ch)}
+memberMeshes=[];const numFrames=numBays+1;const ridgeH=H+(L/2)*slope;
+const colC=getColorForDC(dc.kolom),raftC=getColorForDC(dc.rafter),girdC=getColorForDC(dc.girder),kanC=getColorForDC(dc.kanopi),pedC=0x64748b;
+for(let i=0;i<numFrames;i++){const z=i*bay;
+createMember(new THREE.Vector3(0,-1.2,z),new THREE.Vector3(0,0,z),currentProfiles.pedestal,pedC,'pedestal');
+createMember(new THREE.Vector3(L,-1.2,z),new THREE.Vector3(L,0,z),currentProfiles.pedestal,pedC,'pedestal');
+createMember(new THREE.Vector3(0,0,z),new THREE.Vector3(0,H,z),currentProfiles.kolom,colC,'kolom');
+createMember(new THREE.Vector3(L,0,z),new THREE.Vector3(L,H,z),currentProfiles.kolom,colC,'kolom');
+createMember(new THREE.Vector3(0,H,z),new THREE.Vector3(L/2,ridgeH,z),currentProfiles.rafter,raftC,'rafter');
+createMember(new THREE.Vector3(L/2,ridgeH,z),new THREE.Vector3(L,H,z),currentProfiles.rafter,raftC,'rafter');
+createMember(new THREE.Vector3(0,H,z),new THREE.Vector3(-2,H-0.2,z),currentProfiles.kanopi,kanC,'kanopi');
+createMember(new THREE.Vector3(L,H,z),new THREE.Vector3(L+2,H-0.2,z),currentProfiles.kanopi,kanC,'kanopi');
+if(i>0){const pz=(i-1)*bay;
+createMember(new THREE.Vector3(0,H,pz),new THREE.Vector3(0,H,z),currentProfiles.girder,girdC,'girder');
+createMember(new THREE.Vector3(L,H,pz),new THREE.Vector3(L,H,z),currentProfiles.girder,girdC,'girder');
+createMember(new THREE.Vector3(L/2,ridgeH,pz),new THREE.Vector3(L/2,ridgeH,z),currentProfiles.girder,girdC,'girder');}
+// Load arrows
+if(document.getElementById('t_dl').checked||document.getElementById('t_lr').checked){structGroup.add(createArrow(new THREE.Vector3(0,-1,0),new THREE.Vector3(L/4,ridgeH+1.5,z),1.5,0x10b981));structGroup.add(createArrow(new THREE.Vector3(0,-1,0),new THREE.Vector3(L*0.75,ridgeH+0.5,z),1.5,0x10b981))}
+if(document.getElementById('t_wind_l').checked)structGroup.add(createArrow(new THREE.Vector3(1,0,0),new THREE.Vector3(-3,H/2,z),3,0x0ea5e9));
+if(document.getElementById('t_eq_s').checked){structGroup.add(createArrow(new THREE.Vector3(1,0,0),new THREE.Vector3(0,H,z),3,0xef4444));structGroup.add(createArrow(new THREE.Vector3(1,0,0),new THREE.Vector3(L,H,z),3,0xef4444))}
+}
+if(document.getElementById('t_wind_s').checked)structGroup.add(createArrow(new THREE.Vector3(0,0,1),new THREE.Vector3(L/2,H/2,-3),4,0x0ea5e9));
+if(document.getElementById('t_eq_l').checked){structGroup.add(createArrow(new THREE.Vector3(0,0,1),new THREE.Vector3(0,H,0),4,0xef4444));structGroup.add(createArrow(new THREE.Vector3(0,0,1),new THREE.Vector3(L,H,0),4,0xef4444))}
+createProfileLabel(new THREE.Vector3(0,H/2,0),'kolom','Kolom',currentProfiles.kolom);
+createProfileLabel(new THREE.Vector3(L/4,H+(ridgeH-H)/2+0.5,0),'rafter','Rafter',currentProfiles.rafter);
+if(numFrames>1)createProfileLabel(new THREE.Vector3(0,H+0.5,bay/2),'girder','Girder',currentProfiles.girder);
+createProfileLabel(new THREE.Vector3(-1,H-0.3,0),'kanopi','Kanopi',currentProfiles.kanopi);
+createProfileLabel(new THREE.Vector3(0,-0.5,0),'pedestal','Pedestal',currentProfiles.pedestal);
+controls.target.set(L/2,H/2,B/2);controls.update();
+}
+
+function setView(view){const L=parseFloat(document.getElementById('dim_x').value),B=parseFloat(document.getElementById('dim_y').value),H=parseFloat(document.getElementById('dim_h').value);switch(view){case'iso':camera.position.set(L*1.8,H*3,B*0.8);break;case'front':camera.position.set(L/2,H/2,B*1.5);break;case'top':camera.position.set(L/2,B*1.5,0.1);break;case'side':camera.position.set(L*1.5,H/2,B/2);break}controls.target.set(L/2,H/2,B/2);controls.update()}
+
+function toggleEarthquake(){isEarthquake=!isEarthquake;const btn=document.getElementById('btn-quake');if(isEarthquake){btn.innerHTML='<i class="fa-solid fa-stop mr-1"></i>HENTIKAN GEMPA';btn.style.background='#ef4444';btn.style.color='#fff'}else{btn.innerHTML='<i class="fa-solid fa-house-crack mr-1"></i>SIMULASI GEMPA';btn.style.background='rgba(239,68,68,.15)';btn.style.color='#ef4444'}}
+
+// EDIT PROFILE MODAL
+function openEditProfileModal(typeKey,displayName,currentVal){
+document.getElementById('epLabel').textContent=displayName.toUpperCase();
+const opts=document.getElementById('epOptions');opts.innerHTML='';
+let options=[];
+if(typeKey==='kolom')options=['H300x300x10x15','H350x350x12x19','H400x400x13x21','H250x250x9x14'];
+else if(typeKey==='rafter')options=['H400x200x8x13','H500x200x10x16','H350x175x7x11','H450x200x9x14'];
+else if(typeKey==='girder')options=['H400x200x8x13','H500x200x10x16','H350x175x7x11'];
+else if(typeKey==='kanopi')options=['H250x125x6x9','H300x150x6.5x9','H200x100x5.5x8'];
+else if(typeKey==='pedestal')options=['600x600','500x500','700x700'];
+options.forEach(opt=>{const sel=opt===currentVal;const div=document.createElement('div');div.style.cssText='padding:8px 12px;border-radius:6px;cursor:pointer;transition:all .15s;'+(sel?'background:rgba(6,182,212,.15);border:1px solid rgba(6,182,212,.4)':'background:var(--card);border:1px solid var(--border)');div.innerHTML='<span style="font-size:12px;font-weight:bold;color:'+(sel?'var(--accent)':'var(--text)')+'"><i class="fa-solid '+(sel?'fa-check-circle':'fa-square')+'" style="margin-right:6px"></i>'+(typeKey==='pedestal'?'Beton '+opt+' mm':opt)+'</span>';div.onmouseover=()=>{if(!sel)div.style.borderColor='var(--accent)'};div.onmouseout=()=>{if(!sel)div.style.borderColor='var(--border)'};div.onclick=()=>{currentProfiles[typeKey]=opt;const sid=typeKey==='kolom'?'prof_kolom':typeKey==='rafter'?'prof_rafter':typeKey==='girder'?'prof_girder':typeKey==='kanopi'?'prof_kanopi':'prof_pedestal';document.getElementById(sid).value=opt;document.getElementById('editProfileModal').style.display='none';runAnalysis()};opts.appendChild(div)});
+document.getElementById('editProfileModal').style.display='flex';
+}
+
+// EXPORT
+function exportReport(){
+if(!currentResults){alert('Jalankan analisis terlebih dahulu!');return}
+const v=id=>document.getElementById(id)?document.getElementById(id).value:'';
+const t=id=>document.getElementById(id)?document.getElementById(id).innerText:'';
+const L=v('dim_x'),B=v('dim_y'),H=v('dim_h'),pn=v('proj_name'),pl=v('proj_loc');
+let h='<!DOCTYPE html><html><head><meta charset="utf-8"><title>Laporan</title><style>@page{size:A4;margin:1in}body{font-family:Times New Roman,serif;font-size:11pt}h1{text-align:center;font-size:16pt}h2{font-size:13pt;border-bottom:1px solid #000}table{width:100%;border-collapse:collapse}th,td{border:1px solid #000;padding:5px}th{background:#e5e5e5}</style></head><body>';
+h+='<h1>LAPORAN ANALISIS STRUKTUR BAJA GUDANG BULOG</h1><p style="text-align:center"><b>Proyek:</b> '+pn+'<br><b>Lokasi:</b> '+pl+'<br><b>Engineer:</b> '+v('proj_eng')+'<br><b>Tanggal:</b> '+new Date().toLocaleDateString('id-ID')+'</p>';
+h+='<h2>1. Data Input</h2><table><tr><th>Parameter</th><th>Nilai</th></tr><tr><td>Dimensi</td><td>'+L+' x '+B+' m</td></tr><tr><td>Tinggi</td><td>'+H+' m</td></tr><tr><td>Baja fy/fu</td><td>'+v('mat_fy')+'/'+v('mat_fu')+' MPa</td></tr><tr><td>Kolom</td><td>'+currentProfiles.kolom+'</td></tr><tr><td>Rafter</td><td>'+currentProfiles.rafter+'</td></tr><tr><td>Girder</td><td>'+currentProfiles.girder+'</td></tr><tr><td>Kanopi</td><td>'+currentProfiles.kanopi+'</td></tr><tr><td>Pedestal</td><td>'+currentProfiles.pedestal+'</td></tr></table>';
+h+='<h2>2. Pembebanan</h2><table><tr><th>Beban</th><th>Nilai</th></tr><tr><td>SIDL</td><td>'+v('load_sidl')+' kN/m2</td></tr><tr><td>Live Roof</td><td>'+v('load_lr')+' kN/m2</td></tr><tr><td>SDS/SD1</td><td>'+v('load_sds')+'/'+v('load_sd1')+' g</td></tr><tr><td>V Angin</td><td>'+v('load_v')+' m/s</td></tr></table>';
+h+='<h2>3. Analisis Gempa</h2><pre>'+document.getElementById('seismic-calc').innerText+'</pre>';
+h+='<h2>4. Analisis Angin</h2><pre>'+document.getElementById('wind-calc').innerText+'</pre>';
+h+='<h2>5. D/C Ratio</h2>'+document.getElementById('dcr-table').outerHTML;
+h+='<h2>6. Defleksi</h2><table><tr><th>Parameter</th><th>Nilai</th><th>Limit</th></tr><tr><td>Vertikal</td><td>'+t('out-def-y')+'</td><td>'+t('out-def-y-stat')+'</td></tr><tr><td>Gempa</td><td>'+t('out-def-eq')+'</td><td>'+t('out-def-eq-stat')+'</td></tr></table>';
+h+='<h2>7. Log Perhitungan</h2><pre>'+rawCalcLog+'</pre>';
+h+='<h2>8. Kesimpulan</h2><p>Max D/C='+t('out-dc')+', Status='+t('out-status')+'</p>';
+h+='<p style="text-align:center"><b>FEM Engine v1.0 | Mohamad Hartadi - Geotechnical & Civil Engineer</b></p></body></html>';
+const blob=new Blob([h],{type:'application/vnd.ms-word'});const link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download='Laporan_Struktur_'+pn.replace(/\s+/g,'_')+'.doc';link.click();
+}
+
+function exportJSON(){
+const data={projName:document.getElementById('proj_name').value,projLoc:document.getElementById('proj_loc').value,projEng:document.getElementById('proj_eng').value,dim:{x:document.getElementById('dim_x').value,y:document.getElementById('dim_y').value,h:document.getElementById('dim_h').value,bay:document.getElementById('bay_spacing').value,slope:document.getElementById('roof_slope').value},material:{fy:document.getElementById('mat_fy').value,fu:document.getElementById('mat_fu').value,e:document.getElementById('mat_e').value,gamma:document.getElementById('mat_gamma').value,fc:document.getElementById('mat_fc').value,eb:document.getElementById('mat_eb').value},loads:{sidl:document.getElementById('load_sidl').value,lr:document.getElementById('load_lr').value,ss:document.getElementById('load_ss').value,s1:document.getElementById('load_s1').value,sds:document.getElementById('load_sds').value,sd1:document.getElementById('load_sd1').value,r:document.getElementById('load_r').value,i:document.getElementById('load_i').value,v:document.getElementById('load_v').value,expo:document.getElementById('load_expo').value},profiles:currentProfiles,results:currentResults,date:new Date().toISOString()};
+savedWorksheets.push(data);localStorage.setItem('bulog_worksheets',JSON.stringify(savedWorksheets));loadWorksheets();
+const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download='Bulog_'+data.projName.replace(/\s+/g,'_')+'.json';link.click();
+}
+
+function importJSON(event){
+const file=event.target.files[0];if(!file)return;const reader=new FileReader();
+reader.onload=function(e){try{const d=JSON.parse(e.target.result);
+if(d.projName)document.getElementById('proj_name').value=d.projName;
+if(d.projLoc)document.getElementById('proj_loc').value=d.projLoc;
+if(d.dim){document.getElementById('dim_x').value=d.dim.x;document.getElementById('dim_y').value=d.dim.y;document.getElementById('dim_h').value=d.dim.h;if(d.dim.bay)document.getElementById('bay_spacing').value=d.dim.bay}
+if(d.material){document.getElementById('mat_fy').value=d.material.fy;document.getElementById('mat_fu').value=d.material.fu;document.getElementById('mat_e').value=d.material.e;if(d.material.fc)document.getElementById('mat_fc').value=d.material.fc}
+if(d.loads){document.getElementById('load_sidl').value=d.loads.sidl;document.getElementById('load_lr').value=d.loads.lr;document.getElementById('load_ss').value=d.loads.ss;document.getElementById('load_s1').value=d.loads.s1;document.getElementById('load_sds').value=d.loads.sds;document.getElementById('load_sd1').value=d.loads.sd1;document.getElementById('load_r').value=d.loads.r;document.getElementById('load_i').value=d.loads.i;document.getElementById('load_v').value=d.loads.v}
+if(d.profiles){currentProfiles=d.profiles;document.getElementById('prof_kolom').value=d.profiles.kolom;document.getElementById('prof_rafter').value=d.profiles.rafter;document.getElementById('prof_girder').value=d.profiles.girder;document.getElementById('prof_kanopi').value=d.profiles.kanopi;document.getElementById('prof_pedestal').value=d.profiles.pedestal}
+document.getElementById('projectModal').style.display='none';runAnalysis();
+}catch(err){alert('File tidak valid: '+err.message)}};
+reader.readAsText(file);
+}
+
+function loadWorksheets(){const s=localStorage.getItem('bulog_worksheets');if(s){savedWorksheets=JSON.parse(s);const list=document.getElementById('worksheet-list');if(list)list.innerHTML=savedWorksheets.map((w,i)=>'<div style="display:flex;align-items:center;justify-content:space-between;padding:8px;border-radius:6px;background:var(--card);border:1px solid var(--border)"><span style="font-size:10px;font-weight:bold">'+w.projName+'</span><div style="display:flex;gap:4px"><button onclick="loadWorksheet('+i+')" class="btn-secondary" style="font-size:10px;padding:4px 8px"><i class="fa-solid fa-upload"></i></button><button onclick="deleteWorksheet('+i+')" class="btn-secondary" style="font-size:10px;padding:4px 8px;color:#ef4444"><i class="fa-solid fa-trash"></i></button></div></div>').join('')}}
+
+function loadWorksheet(idx){const d=savedWorksheets[idx];if(!d)return;if(d.projName)document.getElementById('proj_name').value=d.projName;if(d.dim){document.getElementById('dim_x').value=d.dim.x;document.getElementById('dim_y').value=d.dim.y;document.getElementById('dim_h').value=d.dim.h}if(d.profiles){currentProfiles=d.profiles;document.getElementById('prof_kolom').value=d.profiles.kolom;document.getElementById('prof_rafter').value=d.profiles.rafter;document.getElementById('prof_girder').value=d.profiles.girder;document.getElementById('prof_kanopi').value=d.profiles.kanopi;document.getElementById('prof_pedestal').value=d.profiles.pedestal}document.getElementById('projectModal').style.display='none';runAnalysis()}
+function deleteWorksheet(idx){savedWorksheets.splice(idx,1);localStorage.setItem('bulog_worksheets',JSON.stringify(savedWorksheets));loadWorksheets()}
+</script>
+</body>
+</html>

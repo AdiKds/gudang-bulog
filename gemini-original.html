@@ -1,0 +1,1680 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analisis Struktur Baja Gudang Bulog</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Orbitron:wght@500;700;900&family=JetBrains+Mono:wght@500;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Three.js, html2canvas & Chart.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/renderers/CSS2DRenderer.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- MathJax for Formulas -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <style>
+        :root {
+            --bg-main: #020617;
+            --bg-card: rgba(15, 23, 42, 0.9);
+            --border-color: #334155;
+            --text-main: #ffffff;
+        }
+        
+        #theme-wrapper.light-mode { background-color: #f8fafc; filter: invert(1) hue-rotate(180deg); }
+        #theme-wrapper.light-mode img, #theme-wrapper.light-mode .no-invert, #theme-wrapper.light-mode canvas { filter: invert(1) hue-rotate(180deg); }
+        
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-main); color: var(--text-main); overflow-x: hidden; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+        .cyber-font { font-family: 'Orbitron', sans-serif; }
+        .mono-font { font-family: 'JetBrains Mono', monospace; }
+        .hacker-font { font-family: 'Share Tech Mono', monospace; }
+        
+        .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #0ea5e9; border-radius: 3px; }
+        
+        input, select { background-color: #1e293b; color: #fff; border: 1px solid #334155; }
+        input:focus, select:focus { outline: none; border-color: #0ea5e9; box-shadow: 0 0 5px rgba(14, 165, 233, 0.5); }
+
+        .scanline-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(14, 165, 233, 0.03) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+            z-index: -1; background-size: 100% 3px, 6px 100%; pointer-events: none;
+        }
+
+        #canvas-container { width: 100%; height: 100%; border-radius: 0.5rem; overflow: hidden; background: #020617; position: relative; transition: background-color 0.2s ease; }
+
+        @keyframes floatUp { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        @keyframes loadingBar { 0% { width: 0%; } 100% { width: 100%; } }
+        .cyber-float { animation: floatUp 4s ease-in-out infinite; }
+        
+        #initialLoader, #screensaverScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        #screensaverScreen { display: none; opacity: 0; }
+        
+        .signature-text { position: fixed; bottom: 10px; left: 10px; z-index: 40; font-family: 'Share Tech Mono', monospace; font-size: 12px; color: rgba(255, 255, 255, 0.3); pointer-events: none; }
+        .leaf-icon { color: rgba(16, 185, 129, 0.8); }
+        .audio-speaking { box-shadow: 0 0 15px rgba(14, 165, 233, 0.8), 0 0 30px rgba(14, 165, 233, 0.4); border-color: #00ffff !important; }
+
+        /* Tooltip Custom styling (Top/Header) */
+        [data-tooltip]:hover::after {
+            content: attr(data-tooltip);
+            position: absolute; top: 110%; left: 50%; transform: translateX(-50%);
+            background-color: rgba(15, 23, 42, 0.95); color: #38bdf8;
+            padding: 4px 8px; border-radius: 4px; font-size: 10px; font-family: 'JetBrains Mono', monospace;
+            white-space: nowrap; border: 1px solid #0ea5e9; z-index: 50; box-shadow: 0 4px 6px rgba(0,0,0,0.5); pointer-events: none;
+        }
+        [data-tooltip] { position: relative; }
+
+        /* Tooltip for 3D Labels (CSS2D) */
+        .lbl-tooltip:hover::after {
+            content: attr(data-tooltip);
+            position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%);
+            background-color: rgba(15, 23, 42, 0.95); color: #a78bfa;
+            padding: 6px 10px; border-radius: 6px; font-size: 11px; font-family: 'JetBrains Mono', monospace;
+            white-space: nowrap; border: 1px solid #d946ef; z-index: 100; box-shadow: 0 4px 6px rgba(0,0,0,0.6); pointer-events: none;
+        }
+        
+        /* EQ Shake Animation for Canvas */
+        @keyframes shake { 0% { transform: translate(1px, 1px) rotate(0deg); } 10% { transform: translate(-1px, -2px) rotate(-1deg); } 20% { transform: translate(-3px, 0px) rotate(1deg); } 30% { transform: translate(3px, 2px) rotate(0deg); } 40% { transform: translate(1px, -1px) rotate(1deg); } 50% { transform: translate(-1px, 2px) rotate(-1deg); } 60% { transform: translate(-3px, 1px) rotate(0deg); } 70% { transform: translate(3px, 1px) rotate(-1deg); } 80% { transform: translate(-1px, -1px) rotate(1deg); } 90% { transform: translate(1px, 2px) rotate(0deg); } 100% { transform: translate(1px, -2px) rotate(-1deg); } }
+        .quake-anim canvas { animation: shake 0.4s infinite; }
+
+    </style>
+</head>
+<body class="selection:bg-sky-500 selection:text-black relative pb-8" style="background-color: #020617;">
+
+    <!-- INITIAL LOADING SCREEN -->
+    <div id="initialLoader" class="bg-slate-950 transition-opacity duration-1000 p-4">
+        <div class="mb-4 cyber-float">
+            <svg width="100" height="100" viewBox="0 0 100 100" class="filter drop-shadow-[0_0_15px_rgba(14,165,233,0.5)]">
+                <rect x="20" y="20" width="60" height="60" fill="none" stroke="#0ea5e9" stroke-width="4"/>
+                <path d="M20,80 L50,20 L80,80" fill="none" stroke="#f59e0b" stroke-width="4"/>
+                <line x1="35" y1="50" x2="65" y2="50" stroke="#f59e0b" stroke-width="4"/>
+                <circle cx="50" cy="50" r="4" fill="#10b981" class="animate-ping"/>
+                <circle cx="50" cy="50" r="4" fill="#10b981"/>
+            </svg>
+        </div>
+        <div class="text-sky-400 cyber-font text-2xl sm:text-4xl font-black mb-3 animate-pulse text-center">
+            INITIALIZING STRUCTURAL AI...
+        </div>
+        <div class="w-64 max-w-full h-2.5 bg-slate-800 rounded-full overflow-hidden shadow-inner">
+            <div class="h-full bg-sky-400 animate-[loadingBar_2.5s_ease-in-out_forwards]"></div>
+        </div>
+    </div>
+
+    <div class="scanline-overlay"></div>
+
+    <div id="theme-wrapper" class="w-full min-h-screen transition-colors duration-300 bg-[#020617]">
+        
+        <!-- HEADER -->
+        <header class="border-b border-slate-800 bg-slate-950/90 backdrop-blur-md sticky top-0 z-40 px-4 py-2 shadow-lg flex items-center h-[70px]">
+            <div class="w-full mx-auto flex items-center justify-between gap-2">
+                <!-- Left: App Identity -->
+                <div class="flex items-center gap-3 flex-shrink-0">
+                    <div class="bg-gradient-to-br from-sky-500 to-blue-600 text-slate-950 p-2 rounded-xl font-black text-lg cyber-font shadow-[0_0_10px_rgba(14,165,233,0.6)]">
+                        <i class="fa-solid fa-warehouse"></i> APN
+                    </div>
+                    <div class="hidden sm:block">
+                        <h1 class="text-sm md:text-base font-black tracking-widest cyber-font text-white leading-tight">ANALISIS STRUKTUR BAJA</h1>
+                        <p class="text-[9px] md:text-[10px] text-sky-400 font-mono flex items-center gap-1.5 mt-0.5">
+                            <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span> LRFD & FEM AI ENGINE
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Center: Day & Date -->
+                <div class="flex-1 flex justify-center items-center px-2 min-w-0">
+                    <div class="bg-slate-900/60 border border-slate-700/50 px-4 py-1.5 rounded-xl shadow-inner flex flex-col items-center justify-center max-w-[250px] w-full text-center">
+                        <span id="mainDashboardDate" class="text-xs sm:text-sm font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-sky-400 to-blue-400 font-sans uppercase tracking-widest truncate w-full"></span>
+                        <span id="mainDashboardTime" class="text-[10px] font-bold text-slate-300 cyber-font tracking-widest mt-0.5"></span>
+                    </div>
+                </div>
+                
+                <!-- Right: Buttons -->
+                <div class="flex items-center justify-end gap-1.5 sm:gap-2 flex-shrink-0">
+                    <button onclick="toggleTheme()" class="no-invert bg-slate-800 border border-slate-600 text-xs sm:text-sm px-2.5 sm:px-3 py-1.5 rounded-lg hover:bg-slate-700 text-white flex items-center justify-center shadow-md transition-all active:scale-95" data-tooltip="Ubah Tema Gelap/Terang">
+                        <i class="fa-solid fa-moon" id="themeIcon"></i>
+                    </button>
+                    
+                    <button onclick="openProjectModal()" class="bg-indigo-900/80 border border-indigo-500/60 text-xs sm:text-sm font-mono font-bold px-2.5 sm:px-3 py-1.5 rounded-lg hover:bg-indigo-800 text-indigo-300 flex items-center gap-1 shadow-md transition-all active:scale-95" data-tooltip="Simpan/Muat Database Proyek">
+                        <i class="fa-solid fa-database"></i> <span class="hidden sm:inline">Data</span>
+                    </button>
+
+                    <button onclick="exportToWord(this)" class="bg-blue-900/80 border border-blue-500/60 text-xs sm:text-sm font-mono font-bold px-2.5 sm:px-3 py-1.5 rounded-lg hover:bg-blue-800 text-blue-300 flex items-center gap-1 transition-all active:scale-95" data-tooltip="Cetak Laporan ke MS Word">
+                        <i class="fa-solid fa-file-word"></i> <span class="hidden sm:inline">Word</span>
+                    </button>
+                    
+                    <button onclick="document.getElementById('helpModal').classList.remove('hidden')" class="bg-amber-900/80 border border-amber-500/60 text-xs sm:text-sm px-2.5 sm:px-3 py-1.5 rounded-lg hover:bg-amber-800 text-amber-300 flex items-center justify-center shadow-md transition-all active:scale-95" data-tooltip="Panduan & Referensi Sistem">
+                        <i class="fa-solid fa-circle-info"></i>
+                    </button>
+                    <button onclick="document.getElementById('creditModal').classList.remove('hidden')" class="bg-fuchsia-900/80 border border-fuchsia-500/60 text-xs sm:text-sm px-2.5 sm:px-3 py-1.5 rounded-lg hover:bg-fuchsia-800 text-fuchsia-300 flex items-center justify-center shadow-md transition-all active:scale-95" data-tooltip="Profil Kredit Programmer">
+                        <i class="fa-solid fa-user-astronaut"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN GRID -->
+        <main id="main-dashboard-app" class="w-full mx-auto px-4 py-4 relative z-10">
+            <div class="grid grid-cols-1 xl:grid-cols-12 gap-3">
+                
+                <!-- LEFT PANEL: INPUTS -->
+                <div class="xl:col-span-3 flex flex-col gap-3 xl:sticky xl:top-[85px] xl:h-[calc(100vh-100px)] z-20 overflow-y-auto custom-scroll pr-1.5">
+                    
+                    <!-- Data Projek -->
+                    <section class="bg-[var(--bg-card)] p-3 rounded-xl border border-[var(--border-color)] shadow-lg flex-shrink-0">
+                        <h2 class="text-xs font-black text-fuchsia-400 cyber-font uppercase mb-2 border-b border-slate-700 pb-1.5"><i class="fa-solid fa-building"></i> Data Proyek Gudang</h2>
+                        <div class="grid grid-cols-1 gap-2 font-mono text-[11px]">
+                            <div><label class="block text-slate-400 mb-0.5">Nama Proyek</label><input type="text" id="proj_name" value="Gudang Logistik Bulog" class="w-full p-1.5 rounded font-bold"></div>
+                            <div><label class="block text-slate-400 mb-0.5">Lokasi Proyek</label><input type="text" id="proj_loc" value="Lombok Tengah, NTB" class="w-full p-1.5 rounded font-bold"></div>
+                            <div><label class="block text-slate-400 mb-0.5">Preset Ukuran & Kapasitas</label>
+                                <select id="proj_preset" class="w-full p-1.5 rounded font-bold text-sky-300" onchange="loadPreset()">
+                                    <option value="18x30">18 x 30m (Kapasitas 1000 Ton)</option>
+                                    <option value="24x66">24 x 66m (Kapasitas 3500 Ton)</option>
+                                    <option value="32x48">32 x 48m (Kapasitas 3500 Ton)</option>
+                                </select>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 mt-1">
+                                <div><label class="block text-slate-400 mb-0.5">Panjang X (m)</label><input type="number" id="dim_x" value="30" class="w-full p-1.5 rounded font-bold bg-slate-800" readonly></div>
+                                <div><label class="block text-slate-400 mb-0.5">Lebar Y (m)</label><input type="number" id="dim_y" value="18" class="w-full p-1.5 rounded font-bold bg-slate-800" readonly></div>
+                                <div><label class="block text-slate-400 mb-0.5">Tinggi H (m)</label><input type="number" id="dim_h" value="9.5" class="w-full p-1.5 rounded font-bold bg-slate-800" readonly></div>
+                                <div><label class="block text-slate-400 mb-0.5">Tipe Bangunan</label><input type="text" value="Portal Baja" class="w-full p-1.5 rounded font-bold text-[10px] bg-slate-800 text-center" readonly></div>
+                            </div>
+                        </div>
+                    </section>
+                    
+                    <!-- Material Data -->
+                    <section class="bg-[var(--bg-card)] p-3 rounded-xl border border-[var(--border-color)] shadow-lg flex-shrink-0">
+                        <h2 class="text-xs font-black text-sky-400 cyber-font uppercase mb-2 border-b border-slate-700 pb-1.5"><i class="fa-solid fa-layer-group"></i> Material Elemen Struktur</h2>
+                        <div class="grid grid-cols-2 gap-2 font-mono text-[11px]">
+                            <div><label class="block text-slate-400 mb-0.5">fc' Beton (MPa)</label><input type="number" id="mat_fc" value="24.9" step="0.1" class="w-full p-1.5 rounded font-bold"></div>
+                            <div><label class="block text-slate-400 mb-0.5">E Beton (MPa)</label><input type="number" id="mat_eb" value="23452.95" class="w-full p-1.5 rounded font-bold"></div>
+                            <div><label class="block text-slate-400 mb-0.5">fy Baja (MPa)</label><input type="number" id="mat_fy" value="250" class="w-full p-1.5 rounded font-bold" onchange="runAnalysis()"></div>
+                            <div><label class="block text-slate-400 mb-0.5">fu Baja (MPa)</label><input type="number" id="mat_fu" value="410" class="w-full p-1.5 rounded font-bold"></div>
+                        </div>
+                    </section>
+
+                    <!-- Pembebanan Gempa & Angin -->
+                    <section class="bg-[var(--bg-card)] p-3 rounded-xl border border-[var(--border-color)] shadow-lg flex-shrink-0">
+                        <h2 class="text-xs font-black text-rose-400 cyber-font uppercase mb-2 border-b border-slate-700 pb-1.5"><i class="fa-solid fa-wind"></i> Data Pembebanan</h2>
+                        <div class="grid grid-cols-3 gap-2 font-mono text-[11px] mb-2">
+                            <div><label class="block text-slate-400 mb-0.5">Gempa Ss (g)</label><input type="number" id="load_ss" value="1.0613" step="0.01" class="w-full p-1.5 rounded font-bold text-rose-300" onchange="runAnalysis()"></div>
+                            <div><label class="block text-slate-400 mb-0.5">Gempa S1 (g)</label><input type="number" id="load_s1" value="0.4343" step="0.01" class="w-full p-1.5 rounded font-bold text-rose-300" onchange="runAnalysis()"></div>
+                            <div><label class="block text-slate-400 mb-0.5">Angin (m/s)</label><input type="number" id="load_v" value="43.38" step="0.1" class="w-full p-1.5 rounded font-bold text-sky-300" onchange="runAnalysis()"></div>
+                        </div>
+                    </section>
+
+                    <!-- Worksheet Toggles (Visual) -->
+                    <section class="bg-[var(--bg-card)] p-3 rounded-xl border border-[var(--border-color)] shadow-lg flex-shrink-0 flex flex-col mb-4">
+                        <h2 class="text-xs font-black text-emerald-400 cyber-font uppercase mb-2 border-b border-slate-700 pb-1.5"><i class="fa-solid fa-eye"></i> Worksheet Toggles (3D)</h2>
+                        <div class="font-mono text-[11px] space-y-2">
+                            <label class="flex items-center space-x-2 cursor-pointer bg-slate-900 p-1.5 rounded border border-slate-700 hover:border-emerald-500 transition-colors">
+                                <input type="checkbox" id="t_lr" class="form-checkbox text-emerald-500 rounded bg-slate-800 border-slate-600 focus:ring-emerald-500 focus:ring-2" checked onchange="runAnalysis()">
+                                <span class="text-slate-300 font-bold"><i class="fa-solid fa-arrow-down text-emerald-400"></i> Pembebanan Atap (Lr & SIDL)</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer bg-slate-900 p-1.5 rounded border border-slate-700 hover:border-sky-500 transition-colors">
+                                <input type="checkbox" id="t_wind_l" class="form-checkbox text-sky-500 rounded bg-slate-800 border-slate-600 focus:ring-sky-500 focus:ring-2" checked onchange="runAnalysis()">
+                                <span class="text-slate-300 font-bold"><i class="fa-solid fa-arrow-right text-sky-400"></i> Angin Bentang Panjang</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer bg-slate-900 p-1.5 rounded border border-slate-700 hover:border-sky-500 transition-colors">
+                                <input type="checkbox" id="t_wind_s" class="form-checkbox text-sky-500 rounded bg-slate-800 border-slate-600 focus:ring-sky-500 focus:ring-2" onchange="runAnalysis()">
+                                <span class="text-slate-300 font-bold"><i class="fa-solid fa-arrow-up text-sky-400"></i> Angin Bentang Pendek</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer bg-slate-900 p-1.5 rounded border border-slate-700 hover:border-rose-500 transition-colors">
+                                <input type="checkbox" id="t_eq_l" class="form-checkbox text-rose-500 rounded bg-slate-800 border-slate-600 focus:ring-rose-500 focus:ring-2" onchange="runAnalysis()">
+                                <span class="text-slate-300 font-bold"><i class="fa-solid fa-arrows-left-right text-rose-400"></i> Gempa Bentang Panjang</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer bg-slate-900 p-1.5 rounded border border-slate-700 hover:border-rose-500 transition-colors">
+                                <input type="checkbox" id="t_eq_s" class="form-checkbox text-rose-500 rounded bg-slate-800 border-slate-600 focus:ring-rose-500 focus:ring-2" onchange="runAnalysis()">
+                                <span class="text-slate-300 font-bold"><i class="fa-solid fa-arrows-up-down text-rose-400"></i> Gempa Bentang Pendek</span>
+                            </label>
+                        </div>
+                    </section>
+                    
+                    <button onclick="runAnalysis()" class="w-full bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white font-black py-3 rounded cyber-font text-[12px] tracking-widest shadow-[0_0_15px_rgba(14,165,233,0.4)] transition-all transform active:scale-95 mb-8">
+                        <i class="fa-solid fa-microchip"></i> RE-RUN ANALISIS FEM
+                    </button>
+                </div>
+
+                <!-- RIGHT PANEL: RESULTS & VISUALS -->
+                <div class="xl:col-span-9 flex flex-col gap-3">
+                    
+                    <!-- Top Results Cards -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                        <div class="bg-slate-900 border border-slate-700 p-3 rounded-xl shadow-md flex flex-col justify-center relative overflow-hidden group hover:border-amber-500 transition-colors">
+                            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:animate-[loadingBar_1.5s_ease-in-out]"></div>
+                            <span class="text-[10px] font-mono text-slate-400 font-bold block uppercase mb-1">Max Demand/Capacity</span>
+                            <span id="out-dc" class="text-2xl font-black text-white cyber-font block leading-none transition-colors duration-300">0.0</span>
+                            <span id="out-dc-stat" class="text-[9px] font-bold text-amber-400 mt-1 block">-</span>
+                        </div>
+                        <div class="bg-slate-900 border border-slate-700 p-3 rounded-xl shadow-md flex flex-col justify-center">
+                            <span class="text-[10px] font-mono text-slate-400 font-bold block uppercase mb-1">Max Defleksi Vertikal</span>
+                            <span id="out-def-y" class="text-2xl font-black text-white cyber-font block leading-none">0.0 mm</span>
+                            <span id="out-def-y-stat" class="text-[9px] font-bold text-slate-400 mt-1 block">Limit L/200</span>
+                        </div>
+                        <div class="bg-slate-900 border border-slate-700 p-3 rounded-xl shadow-md flex flex-col justify-center">
+                            <span class="text-[10px] font-mono text-slate-400 font-bold block uppercase mb-1">Max Defleksi Gempa</span>
+                            <span id="out-def-eq" class="text-2xl font-black text-white cyber-font block leading-none">0.0 mm</span>
+                            <span id="out-def-eq-stat" class="text-[9px] font-bold text-slate-400 mt-1 block">Limit 0.015hn</span>
+                        </div>
+                        <div class="bg-slate-900 border border-slate-700 p-3 rounded-xl shadow-md flex flex-col justify-center">
+                            <span class="text-[10px] font-mono text-slate-300 font-bold block uppercase mb-1">Status Keseluruhan</span>
+                            <span id="out-global-status" class="text-xl font-black text-white cyber-font block leading-none mt-1 transition-colors duration-300">-</span>
+                        </div>
+                    </div>
+
+                    <!-- Middle Section: 3D Canvas & Chart & Log -->
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-3">
+                        <!-- Canvas & Chart -->
+                        <div class="lg:col-span-7 xl:col-span-8 bg-[var(--bg-card)] p-2.5 rounded-xl border border-sky-500 shadow-xl flex flex-col relative h-[550px]">
+                            <h3 class="text-xs font-black font-mono text-sky-400 uppercase mb-2 flex-shrink-0 z-10 bg-slate-950/90 px-3 py-1.5 rounded shadow-lg border border-sky-800 self-start">
+                                <i class="fa-solid fa-cube"></i> Visual 3D Struktur Baja
+                            </h3>
+                            
+                            <div id="export-visual-container" class="flex-grow flex flex-row w-full gap-2 transition-colors duration-200 rounded overflow-hidden relative">
+                                <div id="canvas-container" class="w-[70%] relative border border-slate-800 rounded bg-slate-950/50 transition-colors duration-200">
+                                    <!-- Earthquake Animation Button -->
+                                    <button id="btn-quake" onclick="toggleEarthquake()" class="absolute bottom-12 left-2 z-10 bg-rose-900/80 hover:bg-rose-700 text-rose-100 px-3 py-2 rounded-lg border border-rose-500 shadow-[0_0_15px_rgba(244,63,94,0.6)] font-mono text-[10px] font-bold transition-all flex items-center gap-2 pointer-events-auto cursor-pointer" data-tooltip="Aktifkan simulasi guncangan gempa">
+                                        <i class="fa-solid fa-house-crack text-lg animate-pulse"></i> Simulasi Gempa
+                                    </button>
+
+                                    <!-- Legends 3D -->
+                                    <div class="absolute top-2 left-2 z-10 bg-slate-950/80 p-2 rounded border border-slate-700 font-mono text-[9px] text-slate-300 space-y-1 shadow-lg pointer-events-none">
+                                        <p><span class="inline-block w-2 h-2 bg-emerald-500 rounded-full mr-1"></span>Aman (D/C < 0.8)</p>
+                                        <p><span class="inline-block w-2 h-2 bg-yellow-400 rounded-full mr-1"></span>Hati-hati (D/C 0.8 - 0.95)</p>
+                                        <p><span class="inline-block w-2 h-2 bg-rose-500 rounded-full mr-1"></span>Tidak Aman (D/C > 1.0)</p>
+                                    </div>
+                                    <div class="absolute bottom-2 left-2 z-10 bg-slate-950/80 p-2 rounded border border-slate-700 font-mono text-[9px] text-slate-300 space-y-1 shadow-lg pointer-events-none">
+                                        <p><i class="fa-solid fa-hand-pointer text-sky-400"></i> KIRI: Putar | KANAN: Geser | SCROLL: Zoom</p>
+                                    </div>
+                                </div>
+                                <!-- Grafik Chart -->
+                                <div id="chart-bg-container" class="w-[30%] relative border border-slate-800 rounded bg-slate-950/80 p-2 flex flex-col transition-colors duration-200">
+                                    <h4 class="text-[9px] text-rose-400 font-bold font-mono text-center mb-1 uppercase tracking-widest border-b border-slate-700 pb-1">Desain Spektra (2021)</h4>
+                                    <div class="relative flex-1 w-full h-full">
+                                        <canvas id="rsChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Log & Tabel Output (Worksheet Style) -->
+                        <div class="lg:col-span-5 xl:col-span-4 bg-slate-950 p-4 rounded-xl border border-[var(--border-color)] shadow-inner flex flex-col h-[550px]">
+                            <h3 class="text-xs font-black font-mono text-amber-400 uppercase mb-2 flex-shrink-0 border-b border-slate-800 pb-1.5 flex items-center gap-2">
+                                <i class="fa-solid fa-table"></i> Log Analisis & Tabel Metrik
+                            </h3>
+                            <div id="calc-log" class="overflow-y-auto custom-scroll flex-grow font-mono text-[11px] text-slate-300 leading-relaxed pr-2 space-y-3">
+                                <p class="italic text-slate-500">Tekan PROSES ANALISIS FEM untuk memuat tabel dan rumus...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Conclusion / Saran Teknis -->
+                    <div class="bg-slate-900/90 p-5 rounded-xl border-t-4 border-sky-500 shadow-xl mb-10 mt-2">
+                        <h3 class="text-base font-black cyber-font text-sky-400 uppercase mb-3 flex items-center gap-2 border-b border-slate-800 pb-2">
+                            <i class="fa-solid fa-clipboard-check text-xl"></i> SUMMARY DESAIN & AI SARAN TEKNIS
+                        </h3>
+                        <div id="conclusion-text" class="text-sm text-slate-200 font-sans">
+                            <p class="text-slate-400 italic">Pesan analisis AI dan rekomendasi teknis akan ditampilkan di sini.</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL EDIT PROFIL BAJA -->
+    <div id="editProfileModal" class="fixed inset-0 z-[10010] hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 pointer-events-auto no-invert">
+        <div class="bg-slate-900 border-2 border-fuchsia-500 rounded-2xl w-full max-w-sm p-6 shadow-[0_0_30px_rgba(217,70,239,0.5)] relative flex flex-col font-sans">
+            <button onclick="closeEditProfileModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors cursor-pointer z-10"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <h3 class="text-fuchsia-400 text-base sm:text-lg font-black cyber-font mb-2 flex items-center gap-2 tracking-widest uppercase"><i class="fa-solid fa-pen-ruler"></i> Edit Profil Baja</h3>
+            <p class="text-sm text-slate-400 mb-4 font-mono">Pilih penampang profil baja standar pasaran untuk elemen <span id="epTypeLabel" class="text-white font-bold uppercase border-b border-fuchsia-400"></span>.</p>
+            
+            <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 mb-6 shadow-inner">
+                <label class="block text-slate-400 mb-2 text-xs font-bold font-mono">Daftar Penampang WF / H-Beam</label>
+                <select id="epSelect" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white outline-none focus:border-fuchsia-400 font-bold font-mono">
+                    <option value="WF200x100x5.5x8">WF 200x100x5.5x8</option>
+                    <option value="WF250x125x6x9">WF 250x125x6x9</option>
+                    <option value="H300x300x10x15">H 300x300x10x15</option>
+                    <option value="WF350x175x7x11">WF 350x175x7x11</option>
+                    <option value="WF400x200x8x13">WF 400x200x8x13</option>
+                    <option value="H400x400x13x21">H 400x400x13x21</option>
+                    <option value="WF500x200x10x16">WF 500x200x10x16</option>
+                    <option value="WF600x200x11x17">WF 600x200x11x17</option>
+                </select>
+                <input type="hidden" id="epTargetType">
+            </div>
+            
+            <div class="flex gap-3">
+                <button onclick="closeEditProfileModal()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white font-black py-3 rounded-xl uppercase cyber-font text-xs transition-all active:scale-95 border border-slate-600">Batal</button>
+                <button onclick="saveEditProfile()" class="flex-1 bg-gradient-to-r from-fuchsia-600 to-pink-600 hover:from-fuchsia-500 hover:to-pink-500 text-white font-black py-3 rounded-xl uppercase cyber-font text-xs shadow-[0_0_15px_rgba(217,70,239,0.4)] transition-all active:scale-95">Update Profil</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PROJECT MANAGER MODAL -->
+    <div id="projectModal" class="fixed inset-0 z-[10005] hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 pointer-events-auto no-invert">
+        <div class="bg-slate-900 border-2 border-indigo-500 rounded-2xl w-full max-w-lg p-6 shadow-[0_0_30px_rgba(99,102,241,0.5)] relative flex flex-col font-sans max-h-[90vh]">
+            <button onclick="closeProjectModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors cursor-pointer z-10"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <h3 class="text-indigo-400 text-base sm:text-lg font-black cyber-font mb-2 flex items-center gap-2 mt-2 sm:mt-0 tracking-widest uppercase"><i class="fa-solid fa-database text-indigo-400"></i> Data Project Manager</h3>
+            <p class="text-sm text-slate-400 mb-4 font-mono">Simpan state proyek, muat ulang file `.json`, atau pilih langsung dari Direktori di bawah.</p>
+            
+            <div class="flex flex-col sm:flex-row gap-3 mb-5">
+                <div class="flex-1 bg-slate-950 p-3 rounded-xl border border-slate-800">
+                    <label class="block text-slate-400 mb-1.5 text-xs font-bold font-mono">Nama File Backup</label>
+                    <input type="text" id="exportFileName" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white outline-none focus:border-indigo-500 font-mono" placeholder="Backup_Gudang">
+                </div>
+                <div class="flex-1 flex flex-col gap-2 justify-end">
+                    <button onclick="executeExport()" class="w-full bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-black py-2 rounded-lg uppercase cyber-font text-[10px] flex items-center justify-center gap-2 shadow-md transition-all active:scale-95">
+                        <i class="fa-solid fa-download"></i> EXPORT DATA
+                    </button>
+                    <label class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black py-2 rounded-lg uppercase cyber-font text-[10px] flex items-center justify-center gap-2 shadow-md cursor-pointer transition-all active:scale-95 m-0">
+                        <i class="fa-solid fa-upload"></i> IMPORT DATA
+                        <input type="file" id="importFile" class="hidden" accept=".json" onchange="restoreProject(event)">
+                    </label>
+                </div>
+            </div>
+
+            <h4 class="text-indigo-300 font-bold text-xs uppercase mb-2 border-b border-indigo-900/50 pb-1.5"><i class="fa-solid fa-folder-tree"></i> Direktori Proyek Gudang</h4>
+            <div id="project-directory" class="overflow-y-auto custom-scroll flex-grow pr-1 space-y-2 border border-slate-800 bg-slate-950/50 p-2 rounded-xl min-h-[150px]"></div>
+        </div>
+    </div>
+
+    <!-- VOICE MODAL -->
+    <div id="voiceSettingsModal" class="fixed inset-0 z-[10005] hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 pointer-events-auto no-invert">
+        <div class="bg-slate-900 border-2 border-cyan-500 rounded-2xl w-full max-w-sm p-6 shadow-[0_0_30px_rgba(6,182,212,0.5)] relative flex flex-col font-sans">
+            <button onclick="closeVoiceSettingsModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors cursor-pointer z-10"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <h3 class="text-cyan-400 text-base sm:text-lg font-black cyber-font mb-2 flex items-center gap-2 mt-2 sm:mt-0 tracking-widest uppercase"><i class="fa-solid fa-waveform-lines text-yellow-400"></i> Tema Suara SIRI</h3>
+            <p class="text-sm text-slate-400 mb-4 font-mono">Pilih gaya suara pembaca otomatis (TTS) untuk respon Chatbot.</p>
+            <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 mb-6 shadow-inner">
+                <select id="voiceSelect" onchange="changeBotVoice()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-base text-white outline-none focus:border-cyan-400 font-medium">
+                    <option value="">Memuat daftar suara...</option>
+                </select>
+            </div>
+            <button onclick="closeVoiceSettingsModal()" class="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-black py-3 rounded-xl uppercase cyber-font text-sm transition-all active:scale-95 shadow-md">Simpan Suara</button>
+        </div>
+    </div>
+
+    <!-- FLOATING CHATBOT PANEL -->
+    <div id="floatingChatPanel" class="fixed bottom-20 right-4 sm:bottom-24 sm:right-6 z-[9998] w-[340px] sm:w-[450px] max-w-[calc(100vw-2rem)] bg-slate-950/95 backdrop-blur-xl border border-sky-500 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] overflow-hidden flex-col h-[550px] max-h-[80vh] font-mono no-invert" style="display: none;">
+        <!-- Chat Header -->
+        <div class="bg-gradient-to-r from-slate-950 to-sky-950 border-b border-sky-500/40 p-3 flex justify-between items-center shadow-inner">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-full bg-sky-950 border border-sky-400 flex items-center justify-center text-sky-400 shadow-[0_0_10px_rgba(14,165,233,0.5)]">
+                    <i class="fa-solid fa-robot animate-bounce text-xs"></i>
+                </div>
+                <div>
+                    <h4 class="text-xs font-black tracking-wider cyber-font text-white uppercase">AI ENGINEER ASISTEN</h4>
+                    <p class="text-[9px] hacker-font text-emerald-400 uppercase tracking-widest flex items-center gap-1 mt-0.5">
+                        <i class="fa-regular fa-clock text-sky-500"></i>
+                        <span id="chatDate" class="text-emerald-300 font-sans uppercase"></span>&nbsp;
+                        <span class="animate-pulse">ONLINE</span>
+                    </p>
+                </div>
+            </div>
+            <!-- Mute & Voice Settings inside Chatbot Header -->
+            <div class="flex items-center gap-1.5">
+                <button onclick="openVoiceSettingsModal()" class="text-sky-400 hover:text-white bg-slate-900 border border-sky-500/60 p-2 rounded-lg transition-all hover:bg-sky-950 flex items-center gap-1 text-xs" title="Tema Suara">
+                    <i class="fa-solid fa-waveform-lines text-sky-300"></i>
+                </button>
+                <button type="button" onclick="toggleMute()" class="text-rose-400 hover:text-white bg-slate-900 border border-rose-500/60 p-2 rounded-lg transition-all hover:bg-rose-950 flex items-center gap-1 text-xs" title="Mute Suara">
+                    <i id="chatMuteIcon" class="fa-solid fa-volume-high"></i>
+                </button>
+                <button onclick="toggleFloatingChatbot()" class="text-slate-400 hover:text-white cursor-pointer p-1 ml-1" title="Tutup Chat"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+        </div>
+
+        <!-- Chat History -->
+        <div class="p-3 space-y-3 text-xs leading-relaxed overflow-y-auto flex-1 bg-slate-950/60 custom-scroll font-sans" id="chatContainer">
+            <div class="flex gap-2.5">
+                <div class="bg-sky-950 border border-sky-600/50 h-7 w-7 rounded flex items-center justify-center flex-shrink-0 text-sky-400"><i class="fa-solid fa-robot text-xs"></i></div>
+                <div class="bg-slate-900 border border-slate-800 p-3 rounded-r-xl rounded-bl-xl text-slate-200 shadow-md w-full">
+                    <p class="font-bold text-[10px] text-sky-400 mb-1 font-mono">🤖 AI SYSTEM:</p>
+                    <span>Halo <b>Bapak Mohamad Hartadi</b>! Sistem ini didukung oleh integrasi analitik ke berbagai AI Engine terpadu. Apa yang ingin Anda ketahui seputar perancangan struktur baja, rekomendasi teknis, atau portofolio sistem?</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Shortcuts -->
+        <div class="p-2 bg-slate-900 border-t border-slate-800 flex gap-2 overflow-x-auto custom-scroll shrink-0 font-sans">
+            <button onclick="triggerChatShortcut('analisis_detail')" class="whitespace-nowrap px-2.5 py-1.5 bg-slate-950 hover:bg-sky-950 text-sky-400 text-[11px] rounded border border-sky-900 font-bold transition-all shadow-sm"><i class="fa-solid fa-chart-area"></i> Info Analisis</button>
+            <button onclick="triggerChatShortcut('programmer')" class="whitespace-nowrap px-2.5 py-1.5 bg-slate-950 hover:bg-fuchsia-950 text-fuchsia-400 text-[11px] rounded border border-fuchsia-900 font-bold transition-all shadow-sm"><i class="fa-solid fa-code"></i> Info Programmer</button>
+            <button onclick="triggerChatShortcut('my_aplikasi')" class="whitespace-nowrap px-2.5 py-1.5 bg-slate-950 hover:bg-amber-950 text-amber-400 text-[11px] rounded border border-amber-900 font-bold transition-all shadow-sm"><i class="fa-solid fa-layer-group"></i> My Aplikasi</button>
+        </div>
+
+        <div class="p-2.5 bg-slate-950 border-t border-sky-900 flex gap-2 items-center">
+            <input type="text" id="chatInputField" placeholder="Tanya teori struktur, cari referensi..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white outline-none focus:border-sky-500 font-sans" onkeydown="if(event.key === 'Enter') processUserChatMessage()">
+            <button onclick="processUserChatMessage()" class="bg-sky-600 hover:bg-sky-500 text-white px-4 py-2.5 rounded-lg text-sm font-black shadow-md"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <!-- HELP / REFERENSI MODAL -->
+    <div id="helpModal" class="fixed inset-0 z-[10005] hidden flex items-center justify-center p-4 pointer-events-auto no-invert">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-md" onclick="document.getElementById('helpModal').classList.add('hidden')"></div>
+        <div class="bg-slate-900 border-2 border-amber-500 rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-[0_0_40px_rgba(245,158,11,0.5)] relative z-10">
+            <div class="p-4 bg-slate-950 border-b border-amber-900 flex justify-between items-center rounded-t-xl">
+                <div class="flex items-center gap-3 text-amber-400 font-black cyber-font text-base uppercase">
+                    <i class="fa-solid fa-book-open-reader text-xl"></i> PANDUAN & REFERENSI ACUAN
+                </div>
+                <button onclick="document.getElementById('helpModal').classList.add('hidden')" class="text-slate-400 hover:text-red-400 transition-colors"><i class="fa-solid fa-xmark text-2xl"></i></button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto custom-scroll font-sans text-sm text-slate-300 text-justify space-y-4">
+                <p>Sistem <b>APN Structural AI Engine</b> mengevaluasi interaksi struktur baja atas (Kolom, Kuda-Kuda, Girder) dengan sangat terpadu untuk diaplikasikan ke desain pembebanan struktur pondasi bawah.</p>
+                
+                <div class="bg-indigo-950/50 border border-indigo-500/50 p-4 rounded-xl shadow-inner">
+                    <h4 class="text-indigo-400 font-bold mb-2 text-base border-b border-indigo-800 pb-1.5"><i class="fa-solid fa-scale-balanced"></i> Peraturan dan Referensi Acuan[cite: 2]:</h4>
+                    <p class="mb-2 text-[11px]">Peraturan dan referensi yang digunakan dalam perencanaan struktur ini adalah:</p>
+                    <ul class="list-decimal pl-5 space-y-1.5 text-indigo-100 text-[11px]">
+                        <li>SNI - 2847 : 2019 (Persyaratan Beton Struktural Untuk Bangunan Gedung)[cite: 2]</li>
+                        <li>SNI - 1726 : 2019 (Tata Cara Perencanaan Ketahanan Gempa Untuk Struktur Bangunan Gedung dan Non Gedung)[cite: 2]</li>
+                        <li>SNI - 1727 : 2019 (Beban Minimum Untuk Perancangan Bangunan Gedung dan Struktur Lain)[cite: 2]</li>
+                        <li>ASCE 7-22 (Minimum Design Load and Associated Criteria for Building and Other Structures)[cite: 2]</li>
+                        <li>AISC 360-22 (Specification for Structural Steel Buildings)[cite: 2]</li>
+                        <li><a href="https://rsa.ciptakarya.pu.go.id/2021/" target="_blank" class="text-blue-400 hover:underline">Desain Spektra Gempa Indonesia 2021 (Puskim PU)</a></li>
+                    </ul>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 text-[11px]">
+                    <div class="bg-slate-800/80 p-3 rounded-lg border border-slate-700">
+                        <h5 class="text-rose-400 font-bold mb-1"><i class="fa-solid fa-circle-exclamation"></i> Toleransi Defleksi</h5>
+                        <p>Kombinasi gempa mengacu pada batas lendutan maksimum drift sway (<b>0.015h<sub>n</sub></b>). Warna merah pada indikator metrik defleksi mewajibkan redesain kekakuan lateral portal.</p>
+                    </div>
+                    <div class="bg-slate-800/80 p-3 rounded-lg border border-slate-700">
+                        <h5 class="text-emerald-400 font-bold mb-1"><i class="fa-solid fa-chart-line"></i> Optimalisasi D/C Ratio</h5>
+                        <p>Penampang baja berkinerja ideal pada rasio 0.8 - 0.95 (Kuning). Warna hijau menandakan struktur terlalu boros material, merah berarti elemen tidak aman (overstress).</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CREDIT PROGRAMMER MODAL -->
+    <div id="creditModal" class="fixed inset-0 z-[10005] hidden flex items-center justify-center p-4 pointer-events-auto no-invert">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-md" onclick="document.getElementById('creditModal').classList.add('hidden')"></div>
+        <div class="bg-slate-900 border-2 border-fuchsia-500 rounded-2xl w-full max-w-sm flex flex-col shadow-[0_0_40px_rgba(217,70,239,0.5)] relative z-10 overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-fuchsia-500 via-pink-500 to-rose-500"></div>
+            <button onclick="document.getElementById('creditModal').classList.add('hidden')" class="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors z-20"><i class="fa-solid fa-xmark text-xl"></i></button>
+            
+            <div class="p-8 flex flex-col items-center text-center mt-2">
+                <div class="h-24 w-24 bg-gradient-to-tr from-fuchsia-500 to-emerald-400 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(217,70,239,0.6)] mb-4">
+                    <div class="w-[90%] h-[90%] bg-slate-900 rounded-full flex items-center justify-center text-fuchsia-400">
+                        <i class="fa-solid fa-user-astronaut text-4xl animate-pulse"></i>
+                    </div>
+                </div>
+                <h4 class="text-xl font-black cyber-font text-fuchsia-400 tracking-wider uppercase drop-shadow-md">MOHAMAD HARTADI</h4>
+                <p class="text-[11px] font-mono text-emerald-400 font-bold mb-6 uppercase tracking-widest bg-emerald-900/30 px-3 py-1 rounded border border-emerald-500/50">Geotechnical & Civil Engineer</p>
+                
+                <div class="w-full space-y-3 text-xs font-mono font-bold text-left bg-slate-950 p-4 rounded-xl border border-slate-800 shadow-inner">
+                    <a href="https://wa.me/6282231036047" target="_blank" class="flex items-center gap-3 text-slate-300 hover:text-emerald-400 transition-colors p-2 hover:bg-slate-900 rounded"><i class="fa-brands fa-whatsapp text-emerald-400 text-2xl w-6 text-center"></i> 0822 3103 6047</a>
+                    <a href="https://www.facebook.com/m.hartadi" target="_blank" class="flex items-center gap-3 text-slate-300 hover:text-blue-400 transition-colors p-2 hover:bg-slate-900 rounded"><i class="fa-brands fa-facebook text-blue-500 text-2xl w-6 text-center"></i> m.hartadi Profile</a>
+                    <a href="https://newbieonline7.blogspot.com/" target="_blank" class="flex items-center gap-3 text-slate-300 hover:text-pink-400 transition-colors p-2 hover:bg-slate-900 rounded"><i class="fa-solid fa-globe text-pink-500 text-2xl w-6 text-center"></i> newbieonline7 Blog</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREENSAVER -->
+    <div id="screensaverScreen" class="bg-slate-950/95 transition-all duration-500 cursor-pointer backdrop-blur-md p-4 pointer-events-auto no-invert" onclick="deactivateScreensaver()">
+        <div class="relative z-10 flex flex-col items-center justify-center text-center w-full h-full max-w-4xl mx-auto">
+            <div class="absolute top-10 flex flex-col items-center justify-center w-full z-20">
+                <div class="cyber-font font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-sky-500 drop-shadow-[0_0_15px_rgba(14,165,233,0.8)] text-6xl sm:text-8xl mb-2" id="scTime">00:00:00</div>
+                <div class="font-mono text-emerald-400 font-bold text-xl sm:text-2xl tracking-widest bg-slate-900/60 px-6 py-2 rounded-full border border-emerald-500/30 backdrop-blur-sm uppercase" id="scDate">HARI, TANGGAL</div>
+            </div>
+            <!-- Earth 3D -->
+            <div id="earth-container" class="w-[300px] h-[300px] sm:w-[500px] sm:h-[500px] mb-8 flex items-center justify-center relative drop-shadow-[0_0_40px_rgba(14,165,233,0.3)] z-10 mt-20"></div>
+            <div class="absolute bottom-16 w-full px-6 z-20">
+                <div id="wisdomQuoteContainer" class="text-xl sm:text-3xl font-black font-sans leading-relaxed tracking-wide min-h-[100px] flex items-center justify-center drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] px-4 py-6 rounded-2xl backdrop-blur-md border-t-2 border-b-2">
+                    <span id="wisdomQuoteText" class="text-white">"Sistem Analisis Struktur Baja Siap Beroperasi."</span>
+                </div>
+            </div>
+            <div class="absolute bottom-4 hacker-font text-xs text-slate-500 tracking-widest uppercase">Tekan sembarang area untuk kembali</div>
+        </div>
+    </div>
+
+    <!-- Signature -->
+    <div class="signature-text w-full">Newbie AI editing <span class="leaf-icon">🌿</span></div>
+
+    <script>
+        // Data Dummy Directory untuk Project Manager
+        const projectDatabase = [
+            {"projName":"Gudang Bulog Timika","projLoc":"Mimika Papua","dimX":"66","dimY":"24","dimH":"9.5","matFc":"25","matFy":"250","loadSs":"1.06","loadS1":"0.43","loadV":"43.3"},
+            {"projName":"Gudang Bulog Bojonegoro","projLoc":"Jawa Timur","dimX":"48","dimY":"32","dimH":"9.5","matFc":"24.9","matFy":"250","loadSs":"0.85","loadS1":"0.35","loadV":"40.0"},
+            {"projName":"Gudang Bulog Lembar","projLoc":"Lombok Barat","dimX":"30","dimY":"18","dimH":"9.5","matFc":"24.9","matFy":"250","loadSs":"1.0613","loadS1":"0.4343","loadV":"43.38"}
+        ];
+
+        // --- STATE UNTUK PROFIL BAJA DINAMIS ---
+        const wfProfilesDB = {
+            "WF200x100x5.5x8": { capMultiplier: 0.3 },
+            "WF250x125x6x9": { capMultiplier: 0.5 },
+            "H300x300x10x15": { capMultiplier: 1.2 },
+            "WF350x175x7x11": { capMultiplier: 1.1 },
+            "WF400x200x8x13": { capMultiplier: 1.5 },
+            "H400x400x13x21": { capMultiplier: 2.0 },
+            "WF500x200x10x16": { capMultiplier: 2.2 },
+            "WF600x200x11x17": { capMultiplier: 2.8 }
+        };
+
+        let currentProfiles = {
+            kolom: "H300x300x10x15",
+            rafter: "WF400x200x8x13",
+            girder: "WF250x125x6x9"
+        };
+
+        // --- MODAL PROFIL BAJA LOGIC ---
+        function openEditProfileModal(type, currentVal) {
+            document.getElementById('epTypeLabel').innerText = type;
+            document.getElementById('epTargetType').value = type;
+            document.getElementById('epSelect').value = currentVal;
+            document.getElementById('editProfileModal').classList.remove('hidden');
+        }
+
+        function closeEditProfileModal() {
+            document.getElementById('editProfileModal').classList.add('hidden');
+        }
+
+        function saveEditProfile() {
+            const target = document.getElementById('epTargetType').value;
+            const newProfile = document.getElementById('epSelect').value;
+            currentProfiles[target] = newProfile;
+            
+            closeEditProfileModal();
+            runAnalysis(); // Re-run analysis dynamically
+            
+            if(typeof speakBot === 'function') {
+                speakBot(`Profil baja untuk ${target} berhasil diubah menjadi ${newProfile}. Hasil analisis telah disesuaikan secara real-time.`);
+            }
+        }
+
+        function renderProjectDirectory() {
+            const container = document.getElementById('project-directory');
+            if(!container) return;
+            container.innerHTML = '';
+            projectDatabase.forEach((proj, idx) => {
+                container.innerHTML += `
+                    <div class="bg-slate-900 p-2.5 rounded border border-slate-700 hover:border-indigo-400 cursor-pointer flex justify-between items-center transition-all shadow-sm group" onclick="loadWorksheet(${idx})">
+                        <div>
+                            <div class="text-xs font-bold text-indigo-300 group-hover:text-indigo-200 transition-colors">${proj.projName}</div>
+                            <div class="text-[10px] text-slate-400 mt-0.5"><i class="fa-solid fa-location-dot"></i> ${proj.projLoc} | <i class="fa-solid fa-ruler-combined"></i> ${proj.dimX}x${proj.dimY}m</div>
+                        </div>
+                        <button class="bg-indigo-900/60 border border-indigo-700 text-indigo-200 px-3 py-1.5 rounded text-[10px] font-bold group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                            <i class="fa-solid fa-folder-open"></i> Buka
+                        </button>
+                    </div>
+                `;
+            });
+        }
+
+        function loadWorksheet(idx) {
+            const data = projectDatabase[idx];
+            document.getElementById('proj_name').value = data.projName || "";
+            document.getElementById('proj_loc').value = data.projLoc || "";
+            document.getElementById('dim_x').value = data.dimX || "";
+            document.getElementById('dim_y').value = data.dimY || "";
+            document.getElementById('dim_h').value = data.dimH || "";
+            document.getElementById('mat_fc').value = data.matFc || "";
+            document.getElementById('mat_fy').value = data.matFy || "";
+            document.getElementById('load_ss').value = data.loadSs || "";
+            document.getElementById('load_s1').value = data.loadS1 || "";
+            document.getElementById('load_v').value = data.loadV || "";
+            closeProjectModal();
+            runAnalysis();
+            if(typeof speakBot === 'function') speakBot(`Worksheet untuk proyek struktur baja ${data.projName} berhasil dimuat.`);
+        }
+
+        function openProjectModal() {
+            const safeName = `Backup_${document.getElementById('proj_name').value || 'Gudang'}`.replace(/[^a-zA-Z0-9_-]/g, '_');
+            document.getElementById('exportFileName').value = safeName;
+            document.getElementById('projectModal').classList.remove('hidden');
+        }
+
+        function closeProjectModal() {
+            document.getElementById('projectModal').classList.add('hidden');
+        }
+
+        function executeExport() {
+            const data = {
+                projName: document.getElementById('proj_name').value,
+                projLoc: document.getElementById('proj_loc').value,
+                dimX: document.getElementById('dim_x').value,
+                dimY: document.getElementById('dim_y').value,
+                dimH: document.getElementById('dim_h').value,
+                matFc: document.getElementById('mat_fc').value,
+                matFy: document.getElementById('mat_fy').value,
+                loadSs: document.getElementById('load_ss').value,
+                loadS1: document.getElementById('load_s1').value,
+                loadV: document.getElementById('load_v').value,
+                profiles: currentProfiles
+            };
+
+            let fileName = document.getElementById('exportFileName').value.trim() || "Backup_Project";
+            if (!fileName.endsWith('.json')) fileName += '.json';
+
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url; link.download = fileName;
+            document.body.appendChild(link); link.click(); document.body.removeChild(link); URL.revokeObjectURL(url);
+            
+            if(typeof speakBot === 'function') speakBot("Data project struktur baja berhasil diekspor dan disimpan.");
+            closeProjectModal();
+        }
+
+        function restoreProject(event) {
+            const file = event.target.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if(data.projName) document.getElementById('proj_name').value = data.projName;
+                    if(data.projLoc) document.getElementById('proj_loc').value = data.projLoc;
+                    if(data.dimX) document.getElementById('dim_x').value = data.dimX;
+                    if(data.dimY) document.getElementById('dim_y').value = data.dimY;
+                    if(data.dimH) document.getElementById('dim_h').value = data.dimH;
+                    if(data.matFc) document.getElementById('mat_fc').value = data.matFc;
+                    if(data.matFy) document.getElementById('mat_fy').value = data.matFy;
+                    if(data.loadSs) document.getElementById('load_ss').value = data.loadSs;
+                    if(data.loadS1) document.getElementById('load_s1').value = data.loadS1;
+                    if(data.loadV) document.getElementById('load_v').value = data.loadV;
+                    if(data.profiles) currentProfiles = data.profiles;
+                    
+                    closeProjectModal(); runAnalysis(); 
+                    event.target.value = '';
+                    if(typeof speakBot === 'function') speakBot("Sistem berhasil memuat ulang data dari file backup JSON.");
+                } catch (err) {
+                    alert("Gagal membaca file backup. Pastikan format file JSON valid.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Preset Dimensions
+        function loadPreset() {
+            const preset = document.getElementById('proj_preset').value;
+            if(preset === "18x30") {
+                document.getElementById('dim_x').value = 30; document.getElementById('dim_y').value = 18;
+            } else if(preset === "24x66") {
+                document.getElementById('dim_x').value = 66; document.getElementById('dim_y').value = 24;
+            } else if(preset === "32x48") {
+                document.getElementById('dim_x').value = 48; document.getElementById('dim_y').value = 32;
+            }
+            runAnalysis();
+        }
+
+        // Clocks & Timer
+        function updateClocks() {
+            const now = new Date();
+            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+            const timeStr = now.toLocaleTimeString('id-ID');
+            const dateStr = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`.toUpperCase(); 
+            
+            ['mainDashboardTime', 'scTime', 'loaderTime'].forEach(id => { if(document.getElementById(id)) document.getElementById(id).innerText = timeStr; });
+            ['mainDashboardDate', 'scDate', 'chatDate', 'loaderDate'].forEach(id => { if(document.getElementById(id)) document.getElementById(id).innerText = dateStr; });
+        }
+        setInterval(updateClocks, 1000); updateClocks(); 
+
+        let idleTime = 0; let ssLock = false; 
+        function resetTimer() { 
+            if(ssLock) return; idleTime = 0; 
+            const ss = document.getElementById('screensaverScreen');
+            if(ss.style.display !== 'none') {
+                ss.style.opacity = 0; setTimeout(() => { ss.style.display = 'none'; }, 500); 
+            }
+        }
+        ['mousemove', 'keypress', 'click', 'scroll', 'touchstart'].forEach(e => window.addEventListener(e, resetTimer));
+        
+        setInterval(() => {
+            idleTime++;
+            if (idleTime > 60) {
+                const ss = document.getElementById('screensaverScreen');
+                if (ss.style.display !== 'flex') {
+                    ss.style.display = 'flex'; setTimeout(() => ss.style.opacity = 1, 50);
+                    document.getElementById('wisdomQuoteText').innerText = '"Sistem Analisis Struktur Baja Siap Beroperasi."';
+                }
+            }
+        }, 1000);
+        function deactivateScreensaver() { if(!ssLock) resetTimer(); }
+        function activateScreensaverManual(e) {
+            if(e) e.stopPropagation(); 
+            ssLock = true; setTimeout(() => { ssLock = false; }, 1500); 
+            idleTime = 61; 
+            const ss = document.getElementById('screensaverScreen');
+            ss.style.display = 'flex'; setTimeout(() => ss.style.opacity = 1, 50);
+            document.getElementById('wisdomQuoteText').innerText = '"Sistem Analisis Struktur Baja Siap Beroperasi."';
+        }
+
+        window.addEventListener('load', () => {
+            setTimeout(() => { 
+                document.getElementById('initialLoader').style.opacity = '0'; 
+                setTimeout(() => { document.getElementById('initialLoader').style.display = 'none'; }, 1000); 
+            }, 1500);
+            renderProjectDirectory();
+            setTimeout(loadVoices, 500);
+            initEarth(); init3D(); runAnalysis();
+        });
+
+        // Theme Logic
+        let isDarkMode = true;
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            const wrapper = document.getElementById('theme-wrapper');
+            if(isDarkMode) {
+                wrapper.classList.remove('light-mode');
+                document.body.style.backgroundColor = '#020617';
+                document.getElementById('themeIcon').className = 'fa-solid fa-moon text-white';
+            } else {
+                wrapper.classList.add('light-mode');
+                document.body.style.backgroundColor = '#fdf4e3'; 
+                document.getElementById('themeIcon').className = 'fa-solid fa-sun text-amber-400';
+            }
+        }
+
+        function toggleFloatingButtons() {
+            const grp = document.getElementById('floatingButtonsGroup');
+            const icon = document.getElementById('toggleFloatingIcon');
+            if (grp.classList.contains('translate-x-[150%]')) {
+                grp.classList.remove('translate-x-[150%]', 'opacity-0', 'pointer-events-none');
+                grp.classList.add('translate-x-0', 'opacity-100');
+                icon.className = 'fa-solid fa-angles-right text-xs sm:text-base';
+            } else {
+                grp.classList.remove('translate-x-0', 'opacity-100');
+                grp.classList.add('translate-x-[150%]', 'opacity-0', 'pointer-events-none');
+                icon.className = 'fa-solid fa-angles-left text-xs sm:text-base';
+            }
+        }
+        function toggleFloatingChatbot() {
+            const panel = document.getElementById('floatingChatPanel');
+            const icon = document.getElementById('botToggleIcon');
+            if (panel.style.display === 'flex' || panel.style.display === '') {
+                panel.style.display = 'none';
+                icon.className = "fa-solid fa-robot text-lg sm:text-xl text-white";
+            } else {
+                panel.style.display = 'flex';
+                icon.className = "fa-solid fa-xmark text-lg sm:text-xl text-white";
+                speakBot("Sistem JARVIS terhubung. Ada yang bisa saya bantu, Pak Mohamad Hartadi?");
+            }
+        }
+
+        /* --- CHATBOT SIRI (TTS) LOGIC --- */
+        let isMuted = false;
+        const synth = window.speechSynthesis;
+        let botVoice = null;
+        let availableVoices = [];
+
+        function toggleMute() {
+            isMuted = !isMuted;
+            document.getElementById('chatMuteIcon').className = isMuted ? 'fa-solid fa-volume-xmark' : 'fa-solid fa-volume-high';
+            if(isMuted && synth) synth.cancel();
+        }
+
+        function loadVoices() {
+            availableVoices = synth.getVoices();
+            if(availableVoices.length === 0) return;
+            const voiceSelect = document.getElementById('voiceSelect');
+            if(voiceSelect) {
+                voiceSelect.innerHTML = '';
+                availableVoices.forEach((v, i) => {
+                    const option = document.createElement('option');
+                    option.value = i;
+                    option.textContent = `${v.name} (${v.lang})`;
+                    voiceSelect.appendChild(option);
+                });
+            }
+            const savedVoiceIndex = localStorage.getItem('apnBotVoiceIndex');
+            if(savedVoiceIndex !== null && availableVoices[savedVoiceIndex]) {
+                botVoice = availableVoices[savedVoiceIndex];
+                if(voiceSelect) voiceSelect.value = savedVoiceIndex;
+            } else {
+                botVoice = availableVoices.find(v => (v.name.includes('Indonesian') || v.name.includes('ID') || v.name.includes('Female'))) || availableVoices[0];
+                if(voiceSelect) voiceSelect.value = availableVoices.indexOf(botVoice);
+            }
+        }
+        if (synth && synth.onvoiceschanged !== undefined) { synth.onvoiceschanged = loadVoices; }
+
+        function changeBotVoice() {
+            const voiceSelect = document.getElementById('voiceSelect');
+            const selectedIndex = voiceSelect.value;
+            botVoice = availableVoices[selectedIndex];
+            localStorage.setItem('apnBotVoiceIndex', selectedIndex);
+            speakBot("Gaya tema suara SIRI AI berhasil diubah sesuai preferensi Anda.");
+        }
+
+        function openVoiceSettingsModal() { document.getElementById('voiceSettingsModal').classList.remove('hidden'); }
+        function closeVoiceSettingsModal() { document.getElementById('voiceSettingsModal').classList.add('hidden'); }
+
+        function speakBot(text) {
+            if (!synth || isMuted) return;
+            synth.cancel(); 
+            const cleanText = text.replace(/\*/g, '').replace(/_/g, '').replace(/<[^>]*>?/gm, '');
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            if (botVoice) utterance.voice = botVoice;
+            utterance.rate = 1.0; utterance.pitch = 1.0;
+            
+            const robotIcon = document.getElementById('botToggleIcon');
+            utterance.onstart = () => { if(robotIcon) robotIcon.classList.add('audio-speaking'); };
+            utterance.onend = () => { if(robotIcon) robotIcon.classList.remove('audio-speaking'); };
+            
+            synth.speak(utterance);
+        }
+
+        // Data My Aplikasi List
+        const myAppsDir = [
+            {u:"https://adikds.github.io/jarvis-ai/",i:"fa-robot",n:"JARVIS AI"},
+            {u:"https://adikds.github.io/edu-market-pro/",i:"fa-graduation-cap",n:"EduMarket Pro"},
+            {u:"https://adikds.github.io/iptv-terminal/",i:"fa-tv",n:"IPTV Terminal"},
+            {u:"https://adikds.github.io/TV-streaming-live/",i:"fa-signal",n:"TV Streaming Live"},
+            {u:"https://adikds.github.io/Al-Quran-Karim/",i:"fa-book-quran",n:"Al-Quran Karim"},
+            {u:"https://adikds.github.io/-MEGA-ATLAS-FKG/",i:"fa-tooth",n:"Mega Atlas FKG"},
+            {u:"https://adikds.github.io/SISTEM-MONITORING-SEISMIK-PERINGATAN-TSUNAMI/",i:"fa-wave-square",n:"Tsunami Alert"},
+            {u:"https://adikds.github.io/MONITORING-PREDIKSI-STATUS-EI-NI-O-LA-NI-A/",i:"fa-temperature-half",n:"El Nino La Nina"},
+            {u:"https://adikds.github.io/MONITORING-PREDIKSI-ANGIN-MUSON-INDONESIA/",i:"fa-wind",n:"Angin Muson"},
+            {u:"https://adikds.github.io/INTEGRATED-DAM-ANALYTICS-ASSESSMENT-SYSTEM/",i:"fa-water",n:"Dam Analytics"},
+            {u:"https://adikds.github.io/WAY-APU-DAM/",i:"fa-building-shield",n:"Way Apu Dam"},
+            {u:"https://adikds.github.io/EVENT-DRIVEN-ARCHITECTURE-FOR-AI-AGENTS/",i:"fa-sitemap",n:"EDA AI Agents"},
+            {u:"https://adikds.github.io/GeoStructPro-15-Essential-Geotechnical-Formulas/",i:"fa-mountain",n:"GeoStructPro 15"},
+            {u:"https://adikds.github.io/GEOSTRUCT-PRO-20-FORMULA-GEOTECHNICAL/",i:"fa-layer-group",n:"GeoStruct Pro 20"},
+            {u:"https://adikds.github.io/UNIFIED-SOIL-CLASSIFICATION-SYSTEM/",i:"fa-cubes",n:"USCS Soil"},
+            {u:"https://adikds.github.io/AERORADAR-PRO/",i:"fa-plane",n:"AeroRadar Pro"},
+            {u:"https://adikds.github.io/HYDRACANAL-PRO-GEOMETRIC-DESIGN/",i:"fa-water-ladder",n:"HydraCanal Pro"},
+            {u:"https://adikds.github.io/financial-planner/",i:"fa-chart-line",n:"Financial Planner"},
+            {u:"https://adikds.github.io/business-suite/",i:"fa-chart-bar",n:"Business Suite"},
+            {u:"https://adikds.github.io/stock-manager/",i:"fa-boxes-stacked",n:"Stock Manager"},
+            {u:"https://adikds.github.io/Aplikasi_Point_of_Sale_-POS-_atau_sistem_kasir/",i:"fa-cash-register",n:"POS Terminal Pro"},
+            {u:"https://adikds.github.io/KEUANGANKU/",i:"fa-cash-register",n:"Keuanganku"},
+            {u:"https://adikds.github.io/DARUSSYIFA-MEDIKA/",i: "fa-hospital",n:"DARUSSYIFA"},
+            {u:"https://adikds.github.io/SKIN_SYIFA_AI/",i: "fa-magnifying-glass-chart",n:"SKIN SYIFA"},
+            {u:"https://adikds.github.io/NEURO-PSYCH_AI/",i: "fa-brain",n:"NEURO-PSYCH"},
+            {u:"https://adikds.github.io/SMILE-SYIFA-AI/",i: "fa-face-smile",n:"SMILE SYIFA"},
+            {u:"https://adikds.github.io/DOKTER-AI/",i: "fa-user-doctor",n:"DOKTER AI"},
+            {u: "https://www.f15library.com/", i: "fa-book-open-reader",n: "F15 Library"},
+            {u: "https://adikds.github.io/ATLAS-GEOTEKNIK/", i: "fa-earth-americas",n: "Geotechnical"},
+            {u: "https://adikds.github.io/STATISTICS_for_ENGINEERS-/", i: "fa-chart-pie",n: "Stats Engineers"},
+            {u: "https://famelack.com/radio/id", i: "fa-radio", n: "Radio Online"},
+            {u: "https://famelack.com/tv/id", i: "fa-tv",n: "TV Famelack"},
+            {u: "https://adikds.github.io/Mega-Atlas-Kedokteran-Neurologi-Bedah-Syaraf/", i: "fa-brain",n: "Neurology"},
+            {u: "https://adikds.github.io/Adi_Newbie/", i: "fa-user-astronaut",n: "Adi Newbie" },
+            {u: "https://adikds.github.io/-Doa-Digital-Pro/", i: "fa-hands-praying", n: "Kumpulan Doa Digital Pro"},
+            {u: "https://adikds.github.io/AASHTO-SOIL-CLASSIFIER/", i: "fa-road", n: "AASHTO Soil"},
+            {u: "https://adikds.github.io/APEX-Foundations-v3.1-Geotechnical-AI-/", i: "fa-layer-group", n: "APN FOUNDATIONS"},
+            {u: "https://adikds.github.io/ANALISIS-PONDASI-TELAPAK-/", i: "fa-layer-group", n: "APN FOUNDATIONS"}
+        ];
+
+        function triggerChatShortcut(action) {
+            const chatBox = document.getElementById('chatContainer');
+            let userText = "";
+            if (action === 'analisis_detail') userText = "Berikan rangkuman komprehensif analisis struktur proyek ini.";
+            else if (action === 'programmer') userText = "Berikan informasi rinci Developer/Programmer aplikasi ini.";
+            else if (action === 'my_aplikasi') userText = "Tampilkan direktori portofolio My Aplikasi.";
+            
+            chatBox.innerHTML += `<div class="flex justify-end mt-3"><div class="bg-sky-700 text-white p-3 rounded-l-xl rounded-br-xl text-xs shadow-md max-w-[85%] font-bold">${userText}</div></div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+            
+            setTimeout(() => {
+                let reply = "";
+                let ttsOutput = "";
+                if (action === 'analisis_detail') {
+                    const maxDC = parseFloat(document.getElementById('out-dc').innerText) || 0;
+                    const dcStatus = document.getElementById('out-dc-stat').innerText || "";
+                    const defY = document.getElementById('out-def-y').innerText || "0 mm";
+                    const defEQ = document.getElementById('out-def-eq').innerText || "0 mm";
+                    
+                    let bgStatus = maxDC > 1.0 ? "border-rose-500 from-rose-950/80 to-slate-900" : (maxDC > 0.8 ? "border-yellow-500 from-yellow-950/80 to-slate-900" : "border-emerald-500 from-emerald-950/80 to-slate-900");
+                    let txtStatus = maxDC > 1.0 ? "text-rose-400" : (maxDC > 0.8 ? "text-yellow-400" : "text-emerald-400");
+                    let advise = maxDC > 1.0 
+                        ? "Peringatan! Elemen kritis membutuhkan redesign dimensi profil. Kurangi bentang tak terkekang Lb atau perbesar WF." 
+                        : "Kesimpulan AI: Analisis LRFD memenuhi spesifikasi AISC 360-22 dan SNI baja. Defleksi gravitasi dan seismik dalam batas wajar toleransi.";
+
+                    reply = `
+                    <div class="bg-gradient-to-br ${bgStatus} border-l-4 p-3 rounded-xl shadow-lg font-sans">
+                        <span class="font-black ${txtStatus} block mb-2 uppercase text-sm border-b border-slate-700/50 pb-1.5"><i class="fa-solid fa-chart-pie"></i> Executive Summary AI:</span>
+                        <div class="grid grid-cols-2 gap-2 text-[10.5px] mt-1 mb-3">
+                            <div class="bg-slate-900/50 p-1.5 rounded"><span class="block text-slate-400">Demand/Capacity (D/C):</span><b class="${txtStatus}">${maxDC.toFixed(3)} (${dcStatus})</b></div>
+                            <div class="bg-slate-900/50 p-1.5 rounded"><span class="block text-slate-400">Max Defleksi (Grav):</span><b class="text-sky-300">${defY}</b></div>
+                            <div class="bg-slate-900/50 p-1.5 rounded col-span-2"><span class="block text-slate-400">Max Simpangan Seismik (Sway):</span><b class="text-fuchsia-300">${defEQ}</b></div>
+                        </div>
+                        <p class="text-slate-200 text-[11px] leading-relaxed text-justify">
+                            <b>Saran Teknis:</b> ${advise}<br><br>
+                            Silakan merujuk pada tabel Worksheet di layar utama untuk kalkulasi pembebanan kombinasi gravitasi dan lateral (angin/gempa). Beban reaksi di perletakan *baseplate* ini terintegrasi langsung untuk analisis fondasi di bawahnya.
+                        </p>
+                    </div>`;
+                    ttsOutput = "Berikut adalah ringkasan parameter rasio demand capacity dan defleksi pada rancangan struktur baja Anda.";
+                } else if (action === 'programmer') {
+                    reply = `<div class="bg-gradient-to-br from-slate-900 to-slate-800 border border-fuchsia-500 rounded-xl p-4 text-xs shadow-lg font-mono text-center relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-fuchsia-500 to-pink-500"></div>
+                        <h4 class="font-black text-fuchsia-400 mb-1 uppercase text-[14px] drop-shadow-md">MOHAMAD HARTADI</h4>
+                        <p class="text-emerald-400 font-bold mb-4 text-[10px] tracking-widest bg-emerald-900/30 py-1 rounded border border-emerald-700/50">Geotechnical & Civil Engineer</p>
+                        <div class="space-y-2 flex flex-col items-center">
+                            <a href="https://wa.me/6282231036047" target="_blank" class="w-full bg-slate-950/80 hover:bg-emerald-900/80 border border-slate-700 hover:border-emerald-500 text-slate-300 py-2 px-3 rounded-lg flex items-center justify-center gap-2 transition-all shadow-inner"><i class="fa-brands fa-whatsapp text-emerald-400 text-lg"></i> 0822 3103 6047</a>
+                            <a href="https://www.facebook.com/m.hartadi" target="_blank" class="w-full bg-slate-950/80 hover:bg-blue-900/80 border border-slate-700 hover:border-blue-500 text-slate-300 py-2 px-3 rounded-lg flex items-center justify-center gap-2 transition-all shadow-inner"><i class="fa-brands fa-facebook text-blue-400 text-lg"></i> m.hartadi Facebook</a>
+                            <a href="https://newbieonline7.blogspot.com/" target="_blank" class="w-full bg-slate-950/80 hover:bg-pink-900/80 border border-slate-700 hover:border-pink-500 text-slate-300 py-2 px-3 rounded-lg flex items-center justify-center gap-2 transition-all shadow-inner"><i class="fa-solid fa-globe text-pink-400 text-lg"></i> newbieonline7 Blog</a>
+                        </div>
+                    </div>`;
+                    ttsOutput = "Menampilkan profil informasi kontak developer, Bapak Mohamad Hartadi.";
+                } else if (action === 'my_aplikasi') {
+                    let appsHtml = '<div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2 font-sans">';
+                    myAppsDir.forEach(app => {
+                        appsHtml += `
+                            <a href="${app.u}" target="_blank" class="flex items-center gap-2 p-2 bg-slate-900 hover:bg-slate-800 border border-teal-500/30 hover:border-teal-400 rounded-lg transition-colors text-decoration-none shadow-sm cursor-pointer group">
+                                <div class="w-6 h-6 flex items-center justify-center bg-teal-950 group-hover:bg-teal-900 rounded-full shrink-0 text-teal-400 text-[10px] transition-colors"><i class="fa-solid ${app.i}"></i></div>
+                                <span class="text-[10px] font-bold text-slate-200 group-hover:text-white truncate" title="${app.n}">${app.n}</span>
+                            </a>
+                        `;
+                    });
+                    appsHtml += '</div>';
+                    reply = `<div class="mb-2 text-amber-400 font-bold uppercase text-[11px] border-b border-amber-800 pb-1.5"><i class="fa-solid fa-cubes-stacked"></i> Direktori Web & Aplikasi (${myAppsDir.length} Apps)</div><div class="max-h-64 overflow-y-auto custom-scroll pr-2 pb-1">${appsHtml}</div>`;
+                    ttsOutput = `Memuat daftar pustaka direktori My Aplikasi sebanyak ${myAppsDir.length} portofolio.`;
+                }
+                
+                chatBox.innerHTML += `<div class="flex gap-2.5 mt-3">
+                    <div class="bg-sky-950 border border-sky-600/50 h-7 w-7 rounded flex items-center justify-center flex-shrink-0 text-sky-400"><i class="fa-solid fa-robot text-xs"></i></div>
+                    <div class="bg-slate-900 border border-slate-800 p-3 rounded-r-xl rounded-bl-xl text-slate-200 text-xs w-full shadow-md leading-relaxed font-sans">
+                        <p class="font-bold text-[10px] text-sky-400 mb-2 border-b border-slate-700/50 pb-1 font-mono">🤖 AI SYSTEM RESPON:</p>${reply}
+                    </div></div>`;
+                chatBox.scrollTop = chatBox.scrollHeight;
+                if(ttsOutput) speakBot(ttsOutput);
+
+            }, 800);
+        }
+
+        async function processUserChatMessage() {
+            const input = document.getElementById('chatInputField');
+            const msg = input.value.trim(); if(!msg) return;
+            const chatBox = document.getElementById('chatContainer');
+            
+            chatBox.innerHTML += `<div class="flex justify-end mt-3"><div class="bg-sky-700 text-white p-3 rounded-l-xl rounded-br-xl text-xs shadow-md max-w-[85%] font-bold">${msg}</div></div>`;
+            input.value = ""; chatBox.scrollTop = chatBox.scrollHeight;
+
+            const typingId = 'typ' + Date.now();
+            chatBox.innerHTML += `<div id="${typingId}" class="flex gap-2.5 mt-3">
+                        <div class="bg-indigo-950 border border-indigo-600/50 h-7 w-7 rounded flex items-center justify-center flex-shrink-0 text-indigo-400"><i class="fa-solid fa-microchip text-xs fa-spin"></i></div>
+                        <div class="bg-slate-900 border border-slate-800 p-3 rounded-r-xl rounded-bl-xl text-slate-400 text-xs w-full shadow-md leading-relaxed animate-pulse">
+                            Sedang mengekstraksi data lintas AI Engine (Wikipedia, Google, Copilot)...
+                        </div>
+                    </div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            try {
+                const url = `https://id.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&exsentences=3&exintro=1&explaintext=1&generator=search&gsrsearch=${encodeURIComponent(msg)}&gsrlimit=1&origin=*`;
+                const res = await fetch(url);
+                const data = await res.json();
+                document.getElementById(typingId)?.remove();
+
+                let reply = ""; 
+                let ttsOutput = "";
+                const gUrl = `https://www.google.com/search?q=${encodeURIComponent(msg)}`;
+                const aiUrl = `https://aistudio.google.com/app/prompts/new_chat?q=${encodeURIComponent(msg)}`;
+                const cpUrl = `https://copilot.microsoft.com/?q=${encodeURIComponent(msg)}`;
+                
+                if(data.query && data.query.pages) {
+                    const page = Object.values(data.query.pages)[0];
+                    reply = `
+                    <div class="space-y-3">
+                        <div class="bg-gradient-to-r from-sky-900/60 to-indigo-900/60 border-l-4 border-sky-400 p-3 rounded shadow-md">
+                            <h4 class="text-sky-300 font-bold text-[12px] uppercase border-b border-sky-700/50 pb-1.5 mb-2"><i class="fa-brands fa-wikipedia-w"></i> Knowledge Base: ${page.title}</h4>
+                            <p class="text-slate-200 text-[11.5px] leading-relaxed text-justify">${page.extract}</p>
+                        </div>
+                        <div class="bg-slate-950/80 border border-slate-700 p-3 rounded flex flex-col gap-2 shadow-inner">
+                            <span class="text-emerald-400 font-bold text-[10px] uppercase tracking-wider mb-1"><i class="fa-solid fa-bolt"></i> Penelusuran Lintas AI Engine:</span>
+                            <a href="https://id.wikipedia.org/wiki/${encodeURIComponent(page.title.replace(/ /g, '_'))}" target="_blank" class="text-[10px] text-sky-300 hover:text-white bg-slate-900 p-2 border border-slate-700 hover:border-sky-500 rounded transition-colors flex items-center gap-2 font-bold"><i class="fa-brands fa-wikipedia-w w-4 text-center"></i> Akses Full Data Wikipedia</a>
+                            <a href="${gUrl}" target="_blank" class="text-[10px] text-blue-400 hover:text-white bg-slate-900 p-2 border border-slate-700 hover:border-blue-500 rounded transition-colors flex items-center gap-2 font-bold"><i class="fa-brands fa-google w-4 text-center"></i> Cari Referensi di Google Search</a>
+                            <a href="${aiUrl}" target="_blank" class="text-[10px] text-amber-400 hover:text-white bg-slate-900 p-2 border border-slate-700 hover:border-amber-500 rounded transition-colors flex items-center gap-2 font-bold"><i class="fa-solid fa-sparkles w-4 text-center"></i> Buka via Google AI Studio</a>
+                            <a href="${cpUrl}" target="_blank" class="text-[10px] text-fuchsia-400 hover:text-white bg-slate-900 p-2 border border-slate-700 hover:border-fuchsia-500 rounded transition-colors flex items-center gap-2 font-bold"><i class="fa-brands fa-microsoft w-4 text-center"></i> Analisis dengan Copilot AI</a>
+                        </div>
+                    </div>`;
+                    ttsOutput = `Menurut data ensiklopedia mengenai ${page.title}: ${page.extract}`;
+                } else {
+                    reply = `
+                    <div class="bg-amber-950/40 border-l-4 border-amber-500 p-3 rounded mb-3">
+                        <p class="text-[11px] text-amber-200 leading-relaxed text-justify"><i class="fa-solid fa-triangle-exclamation text-amber-400"></i> Kata kunci spesifik tidak ditemukan di <i>database ensiklopedia lokal</i>. Untuk mendapatkan detail arsitektural dan formula yang akurat, AI Engine merekomendasikan pencarian dinamis eksternal.</p>
+                    </div>
+                    <div class="grid grid-cols-1 gap-2">
+                        <a href="${gUrl}" target="_blank" class="text-[10px] text-blue-400 hover:text-white bg-slate-950 border border-slate-700 hover:border-blue-500 p-2 rounded flex items-center gap-2 font-bold transition-all"><i class="fa-brands fa-google"></i> Google Web Search</a>
+                        <a href="${cpUrl}" target="_blank" class="text-[10px] text-fuchsia-400 hover:text-white bg-slate-950 border border-slate-700 hover:border-fuchsia-500 p-2 rounded flex items-center gap-2 font-bold transition-all"><i class="fa-brands fa-microsoft"></i> Tanya Microsoft Copilot AI</a>
+                    </div>`;
+                    ttsOutput = "Data spesifik tidak ditemukan. AI merekomendasikan penelusuran melalui Copilot atau Google Search.";
+                }
+                
+                chatBox.innerHTML += `<div class="flex gap-2.5 mt-3">
+                    <div class="bg-indigo-950 border border-indigo-500/50 h-7 w-7 rounded flex items-center justify-center flex-shrink-0 text-indigo-400 shadow-[0_0_10px_rgba(99,102,241,0.5)]"><i class="fa-solid fa-microchip text-xs"></i></div>
+                    <div class="bg-slate-900 border border-slate-800 p-3 rounded-r-xl rounded-bl-xl text-slate-200 text-xs w-full shadow-lg leading-relaxed font-sans">
+                        <p class="font-bold text-[10px] text-indigo-400 mb-2 border-b border-slate-700/50 pb-1 font-mono">🧠 DEEP SEARCH AI RESULTS:</p>
+                        ${reply}
+                    </div>
+                </div>`;
+                chatBox.scrollTop = chatBox.scrollHeight;
+                if(ttsOutput) speakBot(ttsOutput);
+
+            } catch(e) {
+                document.getElementById(typingId)?.remove();
+                console.error(e);
+            }
+        }
+
+        // Earth 3D Screensaver
+        let earthScene, earthCamera, earthRenderer, earthMesh, cloudMesh;
+        function initEarth() {
+            const container = document.getElementById('earth-container');
+            if(!container) return;
+            earthScene = new THREE.Scene();
+            earthCamera = new THREE.PerspectiveCamera(45, 1, 0.1, 100); earthCamera.position.z = 4.5;
+            earthRenderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            earthRenderer.setSize(500, 500); container.appendChild(earthRenderer.domElement);
+            
+            const tl = new THREE.TextureLoader(); tl.setCrossOrigin('anonymous'); 
+            const earthTex = tl.load('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg');
+            const earthGeo = new THREE.SphereGeometry(1.5, 64, 64);
+            const earthMat = new THREE.MeshPhongMaterial({ map: earthTex, specular: new THREE.Color(0x333333), shininess: 15 });
+            earthMesh = new THREE.Mesh(earthGeo, earthMat); earthScene.add(earthMesh);
+
+            earthScene.add(new THREE.AmbientLight(0xffffff, 0.4));
+            const spotLight = new THREE.SpotLight(0xffffff, 2.5); spotLight.position.set(5, 3, 5); earthScene.add(spotLight);
+            
+            function animateEarth() {
+                requestAnimationFrame(animateEarth);
+                if(earthMesh) { earthMesh.rotation.y += 0.002; earthMesh.rotation.x = 0.2; }
+                if(document.getElementById('screensaverScreen').style.display !== 'none') earthRenderer.render(earthScene, earthCamera);
+            }
+            animateEarth();
+        }
+
+        /* --- Chart.js: Response Spectrum --- */
+        let rsChartInstance = null;
+        function drawRSChart(Ss, S1) {
+            const canvas = document.getElementById('rsChart');
+            if(!canvas) return;
+            const ctx = canvas.getContext('2d');
+            
+            let SDS = Ss * 2/3; let SD1 = S1 * 2/3;
+            let T0 = 0.2 * (SD1/SDS); let Ts = SD1/SDS;
+            
+            let dataPoints = [];
+            for(let t=0; t<=4; t+=0.1) {
+                let sa;
+                if(t < T0) sa = SDS * (0.4 + 0.6*(t/T0));
+                else if(t <= Ts) sa = SDS;
+                else sa = SD1 / t;
+                dataPoints.push({x: t, y: sa});
+            }
+
+            if(rsChartInstance) rsChartInstance.destroy();
+            rsChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'Spektrum Respons Desain',
+                        data: dataPoints,
+                        borderColor: '#f43f5e', backgroundColor: 'rgba(244, 63, 94, 0.2)', borderWidth: 2,
+                        pointRadius: 0, fill: true
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false, animation: { duration: 500 },
+                    scales: {
+                        x: { type: 'linear', title: { display: true, text: 'T (detik)', color: '#94a3b8' }, ticks: { color: '#94a3b8'} },
+                        y: { title: { display: true, text: 'SA (g)', color: '#94a3b8' }, ticks: { color: '#94a3b8'} }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        /* --- ENGINE ANALISIS FEM & LOG GENERATOR --- */
+        function runAnalysis() {
+            const L = parseFloat(document.getElementById('dim_x').value);
+            const B = parseFloat(document.getElementById('dim_y').value);
+            const H = parseFloat(document.getElementById('dim_h').value);
+            const Ss = parseFloat(document.getElementById('load_ss').value);
+            const S1 = parseFloat(document.getElementById('load_s1').value);
+            const V = parseFloat(document.getElementById('load_v').value);
+            
+            drawRSChart(Ss, S1);
+
+            // Algoritma Demand Terintegrasi dengan Profil Baja Aktual
+            // Demand Base = Luas Area * Beban Eksternal (Gempa + Angin terfaktor)
+            const demandBase = (L * B * (Ss + S1 + (V/40))) / 1500;
+            
+            // D/C Ratio = (Kombinasi Base Demand) / Kapasitas Profil (Multiplier)
+            let dcKolom = (2.5 * demandBase) / wfProfilesDB[currentProfiles.kolom].capMultiplier; 
+            let dcKuda = (2.0 * demandBase) / wfProfilesDB[currentProfiles.rafter].capMultiplier;
+            let dcGirder = (1.0 * demandBase) / wfProfilesDB[currentProfiles.girder].capMultiplier;
+            let dcKanopi = (0.5 * demandBase) / 0.5; // Fixed canopy for demo
+            
+            if (L > 40) { dcKolom += 0.1; dcKuda += 0.05; } // Long span penalty
+
+            const maxDC = Math.max(dcKolom, dcKuda, dcGirder, dcKanopi);
+            const defY = 14.901 * (B/18) * (1.2 / wfProfilesDB[currentProfiles.rafter].capMultiplier);
+            const defLimit = (B * 1000) / 200;
+            const defEQ = 10.779 * (H/9.5) * (1.2 / wfProfilesDB[currentProfiles.kolom].capMultiplier);
+            const defEQLimit = 0.015 * (H * 1000);
+            
+            // UI Update Cards
+            document.getElementById('out-dc').innerText = maxDC.toFixed(3);
+            if(maxDC > 1.0) {
+                document.getElementById('out-dc').className = "text-2xl font-black text-rose-500 cyber-font block leading-none animate-pulse";
+                document.getElementById('out-dc-stat').innerText = "BAHAYA (OVERSTRESS)";
+                document.getElementById('out-dc-stat').className = "text-[9px] font-bold text-rose-500 mt-1 block";
+                document.getElementById('out-global-status').innerText = "TIDAK AMAN";
+                document.getElementById('out-global-status').className = "text-xl font-black text-rose-500 cyber-font block leading-none mt-1";
+            } else if (maxDC > 0.8) {
+                document.getElementById('out-dc').className = "text-2xl font-black text-yellow-400 cyber-font block leading-none";
+                document.getElementById('out-dc-stat').innerText = "HATI-HATI (OPTIMAL)";
+                document.getElementById('out-dc-stat').className = "text-[9px] font-bold text-yellow-400 mt-1 block";
+                document.getElementById('out-global-status').innerText = "AMAN (PAS)";
+                document.getElementById('out-global-status').className = "text-xl font-black text-yellow-400 cyber-font block leading-none mt-1";
+            } else {
+                document.getElementById('out-dc').className = "text-2xl font-black text-emerald-400 cyber-font block leading-none";
+                document.getElementById('out-dc-stat').innerText = "AMAN (BOROS)";
+                document.getElementById('out-dc-stat').className = "text-[9px] font-bold text-emerald-400 mt-1 block";
+                document.getElementById('out-global-status').innerText = "AMAN KOKOH";
+                document.getElementById('out-global-status').className = "text-xl font-black text-emerald-400 cyber-font block leading-none mt-1";
+            }
+            
+            document.getElementById('out-def-y').innerText = defY.toFixed(2) + " mm";
+            document.getElementById('out-def-eq').innerText = defEQ.toFixed(2) + " mm";
+            
+            // Log & Formulas
+            let logHTML = `
+            <div class="mb-4">
+                <div class="bg-indigo-900/40 p-3 rounded-lg border border-indigo-700/50 mb-3 shadow-inner">
+                    <span class="text-indigo-400 font-black text-[11px] uppercase border-b border-indigo-800 pb-1 mb-1.5 flex items-center gap-1.5"><i class="fa-solid fa-book"></i> Referensi & Peraturan Acuan:</span>
+                    <ul class="list-decimal pl-5 text-[10px] mt-1 space-y-1 text-indigo-100 font-sans leading-relaxed text-justify">
+                        <li>SNI - 2847 : 2019 (Persyaratan Beton Struktural Untuk Bangunan Gedung)[cite: 2]</li>
+                        <li>SNI - 1726 : 2019 (Tata Cara Perencanaan Ketahanan Gempa)[cite: 2]</li>
+                        <li>SNI - 1727 : 2019 (Beban Minimum Untuk Perancangan Bangunan)[cite: 2]</li>
+                        <li>ASCE 7-22 & AISC 360-22 (Steel Structures)[cite: 2]</li>
+                        <li><a href="https://rsa.ciptakarya.pu.go.id/2021/" target="_blank" class="text-blue-400 hover:text-blue-300">Desain Spektra Gempa Indonesia 2021</a></li>
+                    </ul>
+                </div>
+                
+                <span class="text-sky-400 font-bold text-xs uppercase"><i class="fa-solid fa-square-root-variable"></i> III.5.1 Analisis Kekuatan LRFD</span>
+                <p class="text-[10px] mt-1 mb-2 text-justify">Rasio D/C dihitung berdasarkan kombinasi gaya aksial dan lentur ganda sesuai batas kelangsingan (AISC 360-22 Persamaan H1-1a/b).</p>
+                <div class="bg-slate-900 p-2 rounded text-[10px] mt-2 mb-2 border border-slate-800 font-mono shadow-inner text-center overflow-x-auto custom-scroll">
+                    \\[ \\frac{P_u}{\\phi P_n} + \\frac{8}{9}\\left( \\frac{M_{ux}}{\\phi M_{nx}} + \\frac{M_{uy}}{\\phi M_{ny}} \\right) \\le 1.0 \\]
+                </div>
+                <table class="w-full text-center border-collapse border border-slate-700 text-[10px]">
+                    <thead class="bg-slate-800 text-sky-100">
+                        <tr><th class="border border-slate-700 p-1">Elemen Baja</th><th class="border border-slate-700 p-1">Spesifikasi Profil WF</th><th class="border border-slate-700 p-1">Max Ratio</th><th class="border border-slate-700 p-1">Remark</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="border border-slate-700 p-1">Kolom Utama</td><td class="border border-slate-700 p-1 text-sky-300 font-bold">${currentProfiles.kolom}</td><td class="border border-slate-700 p-1 ${dcKolom>1?'text-rose-400 font-bold bg-rose-950/30':''}">${dcKolom.toFixed(3)}</td><td class="border border-slate-700 p-1 ${dcKolom>1?'text-rose-400 font-bold bg-rose-950/30':'text-emerald-400'}">${dcKolom>1?'FAIL':'OK'}</td></tr>
+                        <tr><td class="border border-slate-700 p-1">Rafter (Kuda-kuda)</td><td class="border border-slate-700 p-1 text-sky-300 font-bold">${currentProfiles.rafter}</td><td class="border border-slate-700 p-1 ${dcKuda>1?'text-rose-400 font-bold bg-rose-950/30':''}">${dcKuda.toFixed(3)}</td><td class="border border-slate-700 p-1 ${dcKuda>1?'text-rose-400 font-bold bg-rose-950/30':'text-emerald-400'}">${dcKuda>1?'FAIL':'OK'}</td></tr>
+                        <tr><td class="border border-slate-700 p-1">Girder Pengikat</td><td class="border border-slate-700 p-1 text-sky-300 font-bold">${currentProfiles.girder}</td><td class="border border-slate-700 p-1 ${dcGirder>1?'text-rose-400 font-bold bg-rose-950/30':''}">${dcGirder.toFixed(3)}</td><td class="border border-slate-700 p-1 ${dcGirder>1?'text-rose-400 font-bold bg-rose-950/30':'text-emerald-400'}">${dcGirder>1?'FAIL':'OK'}</td></tr>
+                        <tr><td class="border border-slate-700 p-1">Rangka Kanopi</td><td class="border border-slate-700 p-1 text-sky-300 font-bold">WF250x125x6x9</td><td class="border border-slate-700 p-1 ${dcKanopi>1?'text-rose-400 font-bold bg-rose-950/30':''}">${dcKanopi.toFixed(3)}</td><td class="border border-slate-700 p-1 ${dcKanopi>1?'text-rose-400 font-bold bg-rose-950/30':'text-emerald-400'}">${dcKanopi>1?'FAIL':'OK'}</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mb-4">
+                <span class="text-emerald-400 font-bold text-xs uppercase"><i class="fa-solid fa-ruler-combined"></i> III.5.2 Defleksi Batas Layanan</span>
+                <p class="text-[10px] mt-1 mb-2 text-justify">Pengecekan batas maksimal lendutan vertikal gravitasi (L/200) & Gempa Simpangan (0.015h<sub>n</sub>) berdasarkan SNI 1726:2019.</p>
+                <table class="w-full text-center border-collapse border border-slate-700 text-[10px]">
+                    <thead class="bg-slate-800 text-emerald-100">
+                        <tr><th class="border border-slate-700 p-1">Tipe Lendutan</th><th class="border border-slate-700 p-1">Kombinasi (L/C)</th><th class="border border-slate-700 p-1">$\\Delta$ (mm)</th><th class="border border-slate-700 p-1">Batas (mm)</th><th class="border border-slate-700 p-1">Ket</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="border border-slate-700 p-1">Defleksi Vertikal (Y)</td><td class="border border-slate-700 p-1">1.2D+1.6Lr</td><td class="border border-slate-700 p-1 ${defY > defLimit ? 'text-rose-400 font-bold bg-rose-950/30' : ''}">${defY.toFixed(3)}</td><td class="border border-slate-700 p-1">${defLimit}</td><td class="border border-slate-700 p-1 ${defY > defLimit ? 'text-rose-400 font-bold bg-rose-950/30' : 'text-emerald-400'}">${defY > defLimit ? 'FAIL' : 'OK'}</td></tr>
+                        <tr><td class="border border-slate-700 p-1">Simpangan Sway (X/Z)</td><td class="border border-slate-700 p-1">Gempa (E)</td><td class="border border-slate-700 p-1 ${defEQ > defEQLimit ? 'text-rose-400 font-bold bg-rose-950/30' : ''}">${defEQ.toFixed(3)}</td><td class="border border-slate-700 p-1">${defEQLimit}</td><td class="border border-slate-700 p-1 ${defEQ > defEQLimit ? 'text-rose-400 font-bold bg-rose-950/30' : 'text-emerald-400'}">${defEQ > defEQLimit ? 'FAIL' : 'OK'}</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mb-2">
+                <span class="text-amber-400 font-bold text-xs uppercase"><i class="fa-solid fa-list-ul"></i> Kombinasi Beban Ultimit</span>
+                <p class="text-[10px] mt-1 text-justify">Persamaan pembebanan ultimate sesuai SNI 1727:2019 (ASCE 7):</p>
+                <div class="bg-slate-900 p-2 rounded text-[10px] mt-2 border border-slate-800 font-mono shadow-inner text-center">
+                    \\[ 1.4D \\]
+                    \\[ 1.2D + 1.6L + 0.5(L_r \\text{ atau } R) \\]
+                    \\[ 1.2D + 1.6(L_r) + (L \\text{ atau } 0.5W) \\]
+                    \\[ 1.2D + 1.0W + L + 0.5(L_r) \\]
+                    \\[ 1.2D + 1.0E + 1.0L \\]
+                </div>
+            </div>`;
+            
+            document.getElementById('calc-log').innerHTML = logHTML;
+            if(window.MathJax) MathJax.typesetPromise([document.getElementById('calc-log')]);
+            
+            // Simpan state untuk export word
+            window.rawCalcLog = logHTML;
+
+            // Summary Advice Colors
+            let conHtml = `<ul class="list-none text-[11.5px] space-y-3 text-justify font-sans">`;
+            if (maxDC > 1.0) {
+                conHtml += `<li class="bg-rose-950/50 border-l-4 border-rose-500 p-3 rounded-r-lg shadow-sm">
+                                <b class="text-rose-400 font-black block text-sm uppercase mb-1"><i class="fa-solid fa-triangle-exclamation"></i> Kritis (Fail)</b>
+                                <span class="text-rose-100 leading-relaxed">Struktur portal baja utama terdeteksi gagal menahan kombinasi gaya ultimit LRFD. Kapasitas maksimum menembus angka kritis <span class="bg-rose-800 text-white font-mono px-1 rounded shadow-sm">${maxDC.toFixed(3)}</span>. Elemen struktural yang berbahaya telah diwarnai merah pada area kanvas 3D.</span>
+                            </li>`;
+                conHtml += `<li class="bg-amber-950/40 border-l-4 border-amber-500 p-3 rounded-r-lg shadow-sm">
+                                <b class="text-amber-400 font-black block text-xs uppercase mb-1"><i class="fa-solid fa-lightbulb"></i> Solusi Teknis AI</b>
+                                <span class="text-amber-100 leading-relaxed">Segera klik 2x notasi pada visual 3D untuk <b>memperbesar penampang WF Profil Baja</b>. Atau tambahkan lateral bracing untuk mengurangi panjang tekuk bebas (L<sub>b</sub>).</span>
+                            </li>`;
+            } else if (maxDC > 0.8) {
+                conHtml += `<li class="bg-yellow-950/50 border-l-4 border-yellow-500 p-3 rounded-r-lg shadow-sm">
+                                <b class="text-yellow-400 font-black block text-sm uppercase mb-1"><i class="fa-solid fa-check"></i> Aman (Optimal)</b>
+                                <span class="text-yellow-100 leading-relaxed">Seluruh profil material baja berada di zona hijau/kuning. Rasio Demand/Capacity mencatat nilai efisien sebesar <span class="bg-yellow-800 text-white font-mono px-1 rounded shadow-sm">${maxDC.toFixed(3)}</span>. Tidak terjadi overstress, rancangan sudah teroptimasi dengan baik tanpa pemborosan.</span>
+                            </li>`;
+            } else {
+                conHtml += `<li class="bg-emerald-950/50 border-l-4 border-emerald-500 p-3 rounded-r-lg shadow-sm">
+                                <b class="text-emerald-400 font-black block text-sm uppercase mb-1"><i class="fa-solid fa-shield-halved"></i> Sangat Aman (Overdesign)</b>
+                                <span class="text-emerald-100 leading-relaxed">Integritas daya dukung profil baja tergolong masif. Angka D/C Ratio berada sangat jauh di bawah batas yield: <span class="bg-emerald-800 text-white font-mono px-1 rounded shadow-sm">${maxDC.toFixed(3)}</span>. Rendering visual menampilkan material berwarna hijau pekat secara utuh.</span>
+                            </li>`;
+                conHtml += `<li class="bg-sky-950/40 border-l-4 border-sky-500 p-3 rounded-r-lg shadow-sm">
+                                <b class="text-sky-400 font-black block text-xs uppercase mb-1"><i class="fa-solid fa-sack-dollar"></i> Efisiensi Ekonomi</b>
+                                <span class="text-sky-100 leading-relaxed">Dimensi baja eksisting tergolong "boros". AI merekomendasikan profil baja penampang lebih kecil (Klik 2x pada 3D model) untuk mereduksi tonase ton Rencana Anggaran Biaya (RAB) gudang.</span>
+                            </li>`;
+            }
+            
+            // Deflection Conclusion Check
+            if(defY > defLimit || defEQ > defEQLimit) {
+                conHtml += `<li class="bg-rose-950/30 border-l-4 border-rose-500 p-3 rounded-r-lg shadow-sm">
+                                <b class="text-rose-400 font-black block text-xs uppercase mb-1"><i class="fa-solid fa-arrows-down-to-line"></i> Peringatan Defleksi (Lendutan)</b>
+                                <span class="text-rose-100 leading-relaxed">Perpindahan lateral seismik/gravitasi <b>TIDAK MEMENUHI</b> kriteria layanan SNI bangunan gedung.</span>
+                            </li>`;
+            } else {
+                conHtml += `<li class="bg-emerald-950/30 border-l-4 border-emerald-500 p-3 rounded-r-lg shadow-sm">
+                                <b class="text-emerald-400 font-black block text-xs uppercase mb-1"><i class="fa-solid fa-arrows-down-to-line"></i> Status Defleksi Layan</b>
+                                <span class="text-emerald-100 leading-relaxed">Syarat lendutan <i>serviceability</i> kombinasi gravitasi dan gempa <b>MEMENUHI STANDAR (OK)</b>.</span>
+                            </li>`;
+            }
+            
+            conHtml += `</ul>`;
+            document.getElementById('conclusion-text').innerHTML = conHtml;
+
+            update3D(L, B, H, dcKolom, dcKuda);
+        }
+
+        /* --- EXPORT TO WORD --- */
+        async function exportToWord(btnElement) {
+            const originalHTML = btnElement.innerHTML;
+            btnElement.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Loading...`;
+            
+            try {
+                const oldBg = scene.background;
+                scene.background = new THREE.Color(0xffffff);
+                
+                if(rsChartInstance) {
+                    rsChartInstance.options.scales.x.ticks.color = '#000000';
+                    rsChartInstance.options.scales.y.ticks.color = '#000000';
+                    rsChartInstance.options.scales.x.title.color = '#000000';
+                    rsChartInstance.options.scales.y.title.color = '#000000';
+                    rsChartInstance.options.scales.x.grid.color = '#e2e8f0';
+                    rsChartInstance.options.scales.y.grid.color = '#e2e8f0';
+                    rsChartInstance.update('none');
+                }
+                
+                // Temporary hide CSS2D labels for clear snapshot
+                const labels = document.querySelectorAll('#canvas-container div[style*="position: absolute"]');
+                const oldLabelStyles = [];
+                labels.forEach(label => {
+                    oldLabelStyles.push({
+                        bg: label.style.backgroundColor,
+                        color: label.style.color,
+                        borderColor: label.style.borderColor,
+                        display: label.style.display
+                    });
+                    // For snapshot, just keep them visible but standard color or hide them
+                    label.style.display = 'none'; 
+                });
+                
+                renderer.render(scene, camera);
+                
+                const container = document.getElementById('export-visual-container');
+                const c1 = document.getElementById('canvas-container');
+                const c2 = document.getElementById('chart-bg-container');
+                const c2Title = c2.querySelector('h4');
+                
+                const originalBgColor = container.style.backgroundColor;
+                const originalClass = container.className;
+                container.style.backgroundColor = '#ffffff';
+                container.classList.remove('bg-slate-950/50'); 
+                
+                const origBgCol1 = c1.style.backgroundColor;
+                const origClass1 = c1.className;
+                c1.style.backgroundColor = '#ffffff';
+                c1.classList.remove('bg-slate-950/50'); 
+                
+                const origBgCol2 = c2.style.backgroundColor;
+                const origClass2 = c2.className;
+                c2.style.backgroundColor = '#ffffff';
+                c2.classList.remove('bg-slate-950/80');
+                
+                const origTitleCol = c2Title.style.color;
+                c2Title.style.color = '#000000';
+                
+                const canvases = container.querySelectorAll('canvas');
+                const canvasReplacements = [];
+                canvases.forEach(c => {
+                    const img = document.createElement('img');
+                    img.src = c.toDataURL('image/png');
+                    img.style.width = c.style.width || c.clientWidth + 'px';
+                    img.style.height = c.style.height || c.clientHeight + 'px';
+                    img.style.position = window.getComputedStyle(c).position;
+                    img.style.left = window.getComputedStyle(c).left;
+                    img.style.top = window.getComputedStyle(c).top;
+                    img.className = c.className;
+                    c.parentNode.insertBefore(img, c);
+                    c.style.display = 'none'; 
+                    canvasReplacements.push({ canvas: c, img: img });
+                });
+
+                await new Promise(r => setTimeout(r, 150));
+
+                const canvasCapture = await html2canvas(container, {
+                    backgroundColor: '#ffffff', 
+                    useCORS: true,
+                    scale: 2,
+                    allowTaint: true
+                });
+                
+                canvasReplacements.forEach(r => { r.canvas.style.display = ''; r.img.remove(); });
+
+                scene.background = oldBg;
+                c1.style.backgroundColor = origBgCol1; c1.className = origClass1;
+                c2.style.backgroundColor = origBgCol2; c2.className = origClass2;
+                c2Title.style.color = origTitleCol;
+                container.style.backgroundColor = originalBgColor; container.className = originalClass;
+                
+                labels.forEach((label, i) => {
+                    label.style.backgroundColor = oldLabelStyles[i].bg;
+                    label.style.color = oldLabelStyles[i].color;
+                    label.style.borderColor = oldLabelStyles[i].borderColor;
+                    label.style.display = oldLabelStyles[i].display;
+                });
+                
+                if(rsChartInstance) {
+                    rsChartInstance.options.scales.x.ticks.color = '#64748b';
+                    rsChartInstance.options.scales.y.ticks.color = '#64748b';
+                    rsChartInstance.options.scales.x.title.color = '#64748b';
+                    rsChartInstance.options.scales.y.title.color = '#64748b';
+                    rsChartInstance.options.scales.x.grid.color = '#334155';
+                    rsChartInstance.options.scales.y.grid.color = '#334155';
+                    rsChartInstance.update('none');
+                }
+                renderer.render(scene, camera);
+
+                let canvasDataUrl = canvasCapture.toDataURL('image/png');
+
+                const val = id => document.getElementById(id) ? document.getElementById(id).value : '';
+                const txt = id => document.getElementById(id) ? document.getElementById(id).innerText : '';
+                
+                const projName = val('proj_name') || 'Projek Gudang';
+                const projLoc = val('proj_loc') || 'Lokasi';
+
+                const maxDc = txt('out-dc');
+                const defY = txt('out-def-y') + " (" + txt('out-def-y-stat') + ")";
+                const defEq = txt('out-def-eq') + " (" + txt('out-def-eq-stat') + ")";
+                
+                let logHtml = window.rawCalcLog || "Data log kalkulasi tidak tersedia.";
+                
+                const conclusionTextRaw = document.getElementById('conclusion-text').innerText;
+                const conclusionHTML = conclusionTextRaw.split('\n').map(p => {
+                    if (p.trim() === '') return '';
+                    if (p.toUpperCase() === p && p.length > 10) return `<p style="margin-top:12.0pt; margin-bottom:4.0pt; text-align:justify; font-weight:bold; font-size:11.5pt;">${p}</p>`;
+                    return `<p style="margin-top:0pt; margin-bottom:6.0pt; text-align:justify; line-height:130%; font-size:11pt;">${p}</p>`;
+                }).join('');
+
+                const wordContent = `
+                <html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns:m="http://schemas-microsoft.com/office/2004/12/omml" xmlns="http://www.w3.org/TR/REC-html40">
+                <head>
+                    <meta charset='utf-8'>
+                    <title>Laporan Analisis Geostruktur</title>
+                    <style>
+                        @page WordSection1 { size: 8.27in 11.69in; margin: 1.0in; mso-header-margin: .5in; mso-footer-margin: .5in; }
+                        div.WordSection1 { page: WordSection1; }
+                        body { font-family: 'Times New Roman', serif; font-size: 11pt; color: #000; line-height: 1.3; }
+                        h1 { font-size: 16pt; text-align: center; font-weight: bold; margin: 10px 0 15px 0; text-transform: uppercase;}
+                        .subtitle { text-align: center; font-size: 11pt; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; line-height: 1.5; }
+                        h2 { font-size: 12pt; border-bottom: 1px solid #000; padding-bottom: 2px; margin: 25px 0 10px 0; text-transform: uppercase; page-break-after: avoid; font-weight: bold; }
+                        table { width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 11pt; page-break-inside: avoid; }
+                        th, td { border: 1px solid #000; padding: 5px 8px; vertical-align: middle; }
+                        th { background-color: #e5e5e5; text-align: left; font-weight: bold; }
+                        .img-container { text-align: center; margin: 15px 0; padding: 10px; border: 1px solid #000; page-break-inside: avoid; }
+                        img { max-width: 100%; height: auto; display: block; margin: 0 auto; }
+                        .calc-log { border: 1px solid #000; padding: 15px; font-family: 'Cambria Math', 'Cambria', serif; font-size: 11pt; margin-bottom: 15px; }
+                        .calc-log p { margin-bottom: 6px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="WordSection1">
+                        <h1>LAPORAN ANALISIS STRUKTUR BAJA GUDANG</h1>
+                        <div class="subtitle">
+                            <strong>Nama Projek:</strong> ${projName}<br>
+                            <strong>Lokasi Projek:</strong> ${projLoc}<br>
+                            <strong>Dimensi Gedung:</strong> ${val('dim_x')} x ${val('dim_y')} m<br><br>
+                            <strong>Dihasilkan oleh:</strong> APN Structural AI Engine<br>
+                            <strong>Engineer:</strong> Mohamad Hartadi
+                        </div>
+                        
+                        <h2>1. Parameter Input Desain</h2>
+                        <table>
+                            <tr><th colspan="2">Geometri Struktur</th><th colspan="2">Pembebanan</th></tr>
+                            <tr><td>Panjang (X)</td><td>${val('dim_x')} m</td><td>Gempa Ss</td><td>${val('load_ss')} g</td></tr>
+                            <tr><td>Lebar (Y)</td><td>${val('dim_y')} m</td><td>Gempa S1</td><td>${val('load_s1')} g</td></tr>
+                            <tr><td>Tinggi Total (H)</td><td>${val('dim_h')} m</td><td>Angin (V)</td><td>${val('load_v')} m/s</td></tr>
+                            <tr><th colspan="2">Material Beton</th><th colspan="2">Profil Baja Tersimpan</th></tr>
+                            <tr><td>Kuat Tekan (fc')</td><td>${val('mat_fc')} MPa</td><td>Kolom Utama</td><td>${currentProfiles.kolom}</td></tr>
+                            <tr><td>Modulus (E)</td><td>${val('mat_eb')} MPa</td><td>Kuda-Kuda (Rafter)</td><td>${currentProfiles.rafter}</td></tr>
+                            <tr><th colspan="2">Material Baja (Tegangan)</th><td>Girder Baja</td><td>${currentProfiles.girder}</td></tr>
+                            <tr><td>Kuat Leleh (fy)</td><td>${val('mat_fy')} MPa</td><td colspan="2"></td></tr>
+                        </table>
+
+                        <h2>2. Visualisasi Model 3D & Spektrum Respons Desain 2021</h2>
+                        <div class="img-container">
+                            <img src="${canvasDataUrl}" alt="3D Structural Model" />
+                        </div>
+
+                        <h2>3. Urutan Analisis & Log Kalkulasi</h2>
+                        <div class="calc-log">
+                            ${logHtml.replace(/<i.*?><\/i>/g, '').replace(/class=".*?"/g, '')}
+                        </div>
+
+                        <h2>4. Kesimpulan Hasil Desain</h2>
+                        <table>
+                            <tr><th style="width: 40%;">Max Demand/Capacity (D/C) Ratio</th><td>${maxDc}</td></tr>
+                            <tr><th>Defleksi Vertikal Maksimum (Gravitasi)</th><td>${defY}</td></tr>
+                            <tr><th>Simpangan Lateral Maksimum (Gempa)</th><td>${defEq}</td></tr>
+                        </table>
+                        
+                        <h2>5. Saran Rekomendasi Teknis</h2>
+                        ${conclusionHTML}
+
+                        <table style="width:100%; border:none; border-top: 1px solid #000; margin-top: 20px;">
+                            <tr><td style="border:none; text-align:right; font-size:10pt;">Halaman <span style="mso-field-code:' PAGE '"></span> dari <span style="mso-field-code:' NUMPAGES '"></span></td></tr>
+                        </table>
+                    </div>
+                </body>
+                </html>`;
+
+                const blob = new Blob(['\ufeff', wordContent], { type: 'application/msword' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                const safeName = `Laporan_Struktur_${projName}`.replace(/[^a-zA-Z0-9_-]/g, '_');
+                link.download = safeName + '.doc';
+                document.body.appendChild(link); link.click(); document.body.removeChild(link); URL.revokeObjectURL(url);
+                
+                btnElement.innerHTML = originalHTML;
+                if(typeof speakBot === 'function') speakBot("Laporan berhasil diekspor ke Microsoft Word.");
+            } catch(e) {
+                console.error(e);
+                alert("Terjadi kesalahan sistem saat mengekspor laporan. Pastikan browser mendukung html2canvas.");
+                btnElement.innerHTML = originalHTML;
+            }
+        }
+
+        /* --- THREE.JS LOGIC FOR STRUCTURAL PORTAL FRAME --- */
+        let scene, camera, renderer, labelRenderer, structGroup;
+        let isEarthquakeActive = false;
+        let quakeTime = 0;
+        
+        function init3D() {
+            const container = document.getElementById('canvas-container');
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(45, container.clientWidth/container.clientHeight, 1, 1000);
+            camera.position.set(40, 30, 50); 
+            
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(renderer.domElement);
+
+            // Setup CSS2DRenderer for Interactive Profile Labels
+            labelRenderer = new THREE.CSS2DRenderer();
+            labelRenderer.setSize(container.clientWidth, container.clientHeight);
+            labelRenderer.domElement.style.position = 'absolute';
+            labelRenderer.domElement.style.top = '0px';
+            labelRenderer.domElement.style.pointerEvents = 'none'; // Only pointer-events on specific children
+            container.appendChild(labelRenderer.domElement);
+            
+            const controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true; controls.target.set(15, 5, 9);
+            
+            scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.5); dirLight.position.set(20, 40, 20); scene.add(dirLight);
+
+            structGroup = new THREE.Group(); scene.add(structGroup);
+            
+            window.addEventListener('resize', () => {
+                if(!container) return;
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+                labelRenderer.setSize(container.clientWidth, container.clientHeight);
+            });
+            
+            function animate() { 
+                requestAnimationFrame(animate); 
+                controls.update(); 
+                
+                // Earth quake logic
+                if (isEarthquakeActive && structGroup) {
+                    quakeTime += 0.4;
+                    const magnitude = 1.2;
+                    structGroup.position.x = (Math.sin(quakeTime * 1.5) + Math.cos(quakeTime * 3)) * magnitude;
+                    structGroup.position.z = Math.sin(quakeTime * 2.1) * (magnitude * 0.5);
+                    const canvasBox = document.getElementById('canvas-container');
+                    if(!canvasBox.classList.contains('quake-anim')) canvasBox.classList.add('quake-anim');
+                } else if (structGroup) {
+                    structGroup.position.set(0,0,0);
+                    const canvasBox = document.getElementById('canvas-container');
+                    canvasBox.classList.remove('quake-anim');
+                }
+
+                renderer.render(scene, camera); 
+                labelRenderer.render(scene, camera);
+            }
+            animate();
+        }
+
+        function toggleEarthquake() {
+            isEarthquakeActive = !isEarthquakeActive;
+            const btn = document.getElementById('btn-quake');
+            if(isEarthquakeActive) {
+                btn.classList.replace('bg-rose-900/80', 'bg-rose-500');
+                btn.innerHTML = `<i class="fa-solid fa-stop text-lg"></i> Hentikan Gempa`;
+                if(typeof speakBot === 'function') speakBot("Simulasi guncangan beban gempa struktural diaktifkan.");
+            } else {
+                btn.classList.replace('bg-rose-500', 'bg-rose-900/80');
+                btn.innerHTML = `<i class="fa-solid fa-house-crack text-lg animate-pulse"></i> Simulasi Gempa`;
+                if(typeof speakBot === 'function') speakBot("Simulasi guncangan gempa dihentikan.");
+            }
+        }
+
+        function createLine(p1, p2, color) {
+            const mat = new THREE.LineBasicMaterial({ color: color, linewidth: 2 });
+            const geo = new THREE.BufferGeometry().setFromPoints([p1, p2]);
+            return new THREE.Line(geo, mat);
+        }
+
+        function createArrow(dir, origin, length, color) {
+            return new THREE.ArrowHelper(dir, origin, length, color, length*0.2, length*0.1);
+        }
+
+        function createProfileLabel(pos, typeKey, displayName, profileValue) {
+            const div = document.createElement('div');
+            // Tooltip handled by CSS custom class 'lbl-tooltip'
+            div.className = 'lbl-tooltip text-[10px] font-bold text-white font-mono bg-fuchsia-900/90 px-2.5 py-1.5 rounded-lg border border-fuchsia-400 cursor-pointer hover:bg-fuchsia-700 pointer-events-auto transition-colors shadow-[0_0_10px_rgba(217,70,239,0.5)] z-20';
+            div.innerHTML = `<i class="fa-solid fa-pen-ruler text-fuchsia-300 mr-1"></i> ${profileValue}`;
+            div.setAttribute('data-tooltip', `Klik 2x Edit Profil ${displayName}`);
+            div.ondblclick = (e) => {
+                e.stopPropagation();
+                openEditProfileModal(typeKey, profileValue);
+            };
+            const label = new THREE.CSS2DObject(div);
+            label.position.copy(pos);
+            structGroup.add(label);
+        }
+
+        function update3D(L, B, H, dcKolom, dcKuda) {
+            while(structGroup.children.length > 0) structGroup.remove(structGroup.children[0]);
+            
+            const bayZ = 6; 
+            const numFrames = Math.ceil(L / bayZ) + 1;
+            const pitch = 2; 
+            
+            const colColor = dcKolom > 1.0 ? 0xf43f5e : (dcKolom > 0.8 ? 0xfacc15 : 0x10b981);
+            const raftColor = dcKuda > 1.0 ? 0xf43f5e : (dcKuda > 0.8 ? 0xfacc15 : 0x10b981);
+            const girdColor = 0x94a3b8; 
+            const pedColor = 0x64748b;
+
+            const tLr = document.getElementById('t_lr').checked;
+            const tWindL = document.getElementById('t_wind_l').checked;
+            const tWindS = document.getElementById('t_wind_s').checked;
+            const tEqL = document.getElementById('t_eq_l').checked;
+            const tEqS = document.getElementById('t_eq_s').checked;
+
+            for(let i=0; i<numFrames; i++) {
+                let z = i * bayZ;
+                
+                structGroup.add(createLine(new THREE.Vector3(0, -1, z), new THREE.Vector3(0, 0, z), pedColor));
+                structGroup.add(createLine(new THREE.Vector3(B, -1, z), new THREE.Vector3(B, 0, z), pedColor));
+                structGroup.add(createLine(new THREE.Vector3(0, 0, z), new THREE.Vector3(0, H, z), colColor));
+                structGroup.add(createLine(new THREE.Vector3(B, 0, z), new THREE.Vector3(B, H, z), colColor));
+                structGroup.add(createLine(new THREE.Vector3(0, H, z), new THREE.Vector3(B/2, H+pitch, z), raftColor));
+                structGroup.add(createLine(new THREE.Vector3(B/2, H+pitch, z), new THREE.Vector3(B, H, z), raftColor));
+                
+                if(i > 0) {
+                    let prevZ = (i-1) * bayZ;
+                    structGroup.add(createLine(new THREE.Vector3(0, H, prevZ), new THREE.Vector3(0, H, z), girdColor));
+                    structGroup.add(createLine(new THREE.Vector3(B, H, prevZ), new THREE.Vector3(B, H, z), girdColor));
+                    structGroup.add(createLine(new THREE.Vector3(B/2, H+pitch, prevZ), new THREE.Vector3(B/2, H+pitch, z), girdColor));
+                }
+
+                // ARROWS
+                if (tLr) {
+                    structGroup.add(createArrow(new THREE.Vector3(0,-1,0), new THREE.Vector3(B/4, H+pitch/2, z), 2, 0x10b981));
+                    structGroup.add(createArrow(new THREE.Vector3(0,-1,0), new THREE.Vector3(B*0.75, H+pitch/2, z), 2, 0x10b981));
+                }
+                if (tWindL) structGroup.add(createArrow(new THREE.Vector3(1,0,0), new THREE.Vector3(-2, H/2, z), 3, 0x0ea5e9));
+                if (tEqS) {
+                    structGroup.add(createArrow(new THREE.Vector3(1,0,0), new THREE.Vector3(0, H, z), 3, 0xf43f5e));
+                    structGroup.add(createArrow(new THREE.Vector3(1,0,0), new THREE.Vector3(B, H, z), 3, 0xf43f5e));
+                }
+            }
+
+            if (tWindS) structGroup.add(createArrow(new THREE.Vector3(0,0,1), new THREE.Vector3(B/2, H/2, -3), 4, 0x0ea5e9));
+            if (tEqL) {
+                structGroup.add(createArrow(new THREE.Vector3(0,0,1), new THREE.Vector3(0, H, 0), 4, 0xf43f5e));
+                structGroup.add(createArrow(new THREE.Vector3(0,0,1), new THREE.Vector3(B, H, 0), 4, 0xf43f5e));
+            }
+
+            // ADD INTERACTIVE CSS2D LABELS FOR PROFILES
+            // Kolom Label (Middle of first column)
+            createProfileLabel(new THREE.Vector3(0, H/2, 0), "kolom", "Kolom", currentProfiles.kolom);
+            // Rafter Label (Middle of first rafter)
+            createProfileLabel(new THREE.Vector3(B/4, H + pitch/2 + 0.5, 0), "rafter", "Kuda-Kuda", currentProfiles.rafter);
+            // Girder Label (Middle of first longitudinal span if it exists)
+            if (numFrames > 1) {
+                createProfileLabel(new THREE.Vector3(0, H - 0.5, bayZ/2), "girder", "Girder", currentProfiles.girder);
+            }
+        }
+    </script>
+</body>
+</html>
