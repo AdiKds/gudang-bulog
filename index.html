@@ -515,13 +515,18 @@ if(m.type==='bottomChord'){
 // Tension: N = M / d
 const xi=m.i*p+p/2;
 const Mi=R*xi-wFact*xi*xi/2;
-const d=topNodes[m.i+1].y-nodes[m.i+1].y; // depth at this panel
+// Use average depth of panel endpoints to avoid div-by-zero at eaves
+const d1=Math.max(topNodes[m.i].y-nodes[m.i].y,0.01);
+const d2=Math.max(topNodes[m.i+1].y-nodes[m.i+1].y,0.01);
+const d=(d1+d2)/2;
 force=Mi/d; // tension positive
 }else if(m.type==='topChord'){
 // Compression: N = -M / d
 const xi=m.i*p+p/2;
 const Mi=R*xi-wFact*xi*xi/2;
-const d=Math.max(topNodes[m.i].y-nodes[m.i].y,topNodes[m.i+1].y-nodes[m.i+1].y);
+const d1=Math.max(topNodes[m.i].y-nodes[m.i].y,0.01);
+const d2=Math.max(topNodes[m.i+1].y-nodes[m.i+1].y,0.01);
+const d=(d1+d2)/2;
 force=-Mi/d; // compression negative
 }else if(m.type==='diagonal'){
 // Shear at section: V = R - w*x
@@ -532,10 +537,18 @@ const dX=Math.abs(m.n2.x-m.n1.x);
 const len=Math.sqrt(dX**2+dY**2);
 const theta=Math.atan2(dY,dX);
 // Diagonal force = V / sin(theta)
-force=Vi/Math.sin(theta);
+const sinT=Math.max(Math.sin(theta),0.01);
+force=Vi/sinT;
 }else if(m.type==='vertical'){
-// Vertical force = panel load (compression)
-force=-panelLoad; // compression
+// Vertical force = shear transfer at panel point (compression)
+const xi=m.i*p;
+const Vi=R-wFact*xi;
+// Vertical takes the shear difference
+const dX=Math.abs(m.n2.x-m.n1.x);
+const dY=Math.abs(m.n2.y-m.n1.y);
+const len=Math.sqrt(dX**2+dY**2);
+const dY_safe=Math.max(dY,0.01);
+force=-Math.abs(Vi)*dY_safe/len; // compression
 }
 memberForces.push({...m,force:force});
 });
