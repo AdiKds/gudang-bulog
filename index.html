@@ -310,13 +310,14 @@ const Cp=1.3,P_wind=qz*Cp,F_wind=P_wind*H*bayA,M_wind=F_wind*H;
 // LRFD COMBINATIONS
 const wFact=1.2*wDL+1.6*wLR;
 const M_grav=wFact*(L**2)/12,P_grav=wFact*L/2;
+const Mgrav12=1.2*wDL*(L**2)/12,Mgrav09=0.9*wDL*(L**2)/12;
 const combos=[
-{name:"1.4D",Pu:1.4*wDL*L/2,Mu:1.4*wDL*(L**2)/12},
-{name:"1.2D+1.6Lr",Pu:1.2*wDL*L/2+1.6*wLR*L/2,Mu:1.2*wDL*(L**2)/12+1.6*wLR*(L**2)/12},
-{name:"1.2D+1.0W+0.5Lr",Pu:1.2*wDL*L/2+0.5*wLR*L/2,Mu:1.2*wDL*(L**2)/12+0.5*wLR*(L**2)/12+M_wind*0.15},
-{name:"1.2D+1.0E+0.5Lr",Pu:1.2*wDL*L/2+0.5*wLR*L/2+Math.abs(F_seismic*0.3),Mu:1.2*wDL*(L**2)/12+0.5*wLR*(L**2)/12+M_seismic*0.15},
-{name:"0.9D+1.0E",Pu:0.9*wDL*L/2+Math.abs(F_seismic*0.15),Mu:0.9*wDL*(L**2)/12+M_seismic*0.15},
-{name:"0.9D+1.0W",Pu:0.9*wDL*L/2,Mu:0.9*wDL*(L**2)/12+M_wind*0.15}
+{name:"1.4D",Pu:1.4*wDL*L/2,Mu:1.4*wDL*(L**2)/12,Mcol:1.4*wDL*(L**2)/12*0.05},
+{name:"1.2D+1.6Lr",Pu:1.2*wDL*L/2+1.6*wLR*L/2,Mu:1.2*wDL*(L**2)/12+1.6*wLR*(L**2)/12,Mcol:(Mgrav12+1.6*wLR*(L**2)/12)*0.05},
+{name:"1.2D+1.0W+0.5Lr",Pu:1.2*wDL*L/2+0.5*wLR*L/2,Mu:Mgrav12+0.5*wLR*(L**2)/12+M_wind*0.15,Mcol:M_wind*0.42+(Mgrav12+0.5*wLR*(L**2)/12)*0.05},
+{name:"1.2D+1.0E+0.5Lr",Pu:1.2*wDL*L/2+0.5*wLR*L/2+Math.abs(F_seismic*0.15),Mu:Mgrav12+0.5*wLR*(L**2)/12+M_seismic*0.15,Mcol:M_seismic*0.42+(Mgrav12+0.5*wLR*(L**2)/12)*0.05},
+{name:"0.9D+1.0E",Pu:0.9*wDL*L/2+Math.abs(F_seismic*0.15),Mu:Mgrav09+M_seismic*0.15,Mcol:M_seismic*0.42+Mgrav09*0.05},
+{name:"0.9D+1.0W",Pu:0.9*wDL*L/2,Mu:Mgrav09+M_wind*0.15,Mcol:M_wind*0.42+Mgrav09*0.05}
 ];
 // CAPACITY CHECK
 function checkMember(sec,Pu,Mu,Lb,type){
