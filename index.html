@@ -224,10 +224,11 @@ table.dcr-table td.safe{color:var(--safe);font-weight:600}
 <button onclick="setView('front')" class="btn-secondary text-[10px]">FRONT</button>
 <button onclick="setView('top')" class="btn-secondary text-[10px]">TOP</button>
 <button onclick="setView('side')" class="btn-secondary text-[10px]">SIDE</button>
+<button onclick="try{if(!scene)init3D();runAnalysis()}catch(e){}" class="btn-secondary text-[10px]" title="Refresh 3D">R</button>
 <span class="text-[9px] mono" style="color:var(--dim)">Drag:rotate|Scroll:zoom</span>
 </div>
 </div>
-<div id="canvas-container" class="relative w-full" style="height:420px;background:#050810"></div>
+<div id="canvas-container" class="relative w-full" style="height:420px;min-height:300px;background:#050810;overflow:hidden"></div>
 </div>
 <div class="section-section">
 <div class="flex items-center justify-between mb-2">
@@ -340,7 +341,31 @@ let currentProfiles={kolom:"H300x300x10x15",rafter:"H400x200x8x13",girder:"H400x
 let currentResults=null,rsChart=null,scene,camera,renderer,labelRenderer,structGroup,controls,isEarthquake=false,quakeTime=0,memberMeshes=[],savedWorksheets=[],rawCalcLog="";
 
 // LOADER
-window.addEventListener('load',function(){let p=0;const bar=document.getElementById('loadBar'),st=document.getElementById('loadStatus');const steps=['Loading modules...','Init FEM engine...','Loading section DB...','Building 3D...','Ready!'];const iv=setInterval(()=>{p+=25;bar.style.width=p+'%';st.textContent=steps[Math.min(Math.floor(p/25),4)];if(p>=100){clearInterval(iv);setTimeout(()=>{document.getElementById('loader').style.opacity='0';setTimeout(()=>{document.getElementById('loader').style.display='none'},500);init3D();runAnalysis()},300)}},300);updateClock();setInterval(updateClock,1000);loadWorksheets()});
+function ensureThree(cb,r){
+if(typeof THREE!=='undefined'&&THREE.Scene){cb();return}
+if(r<=0){console.error('Three.js failed to load');var c=document.getElementById('canvas-container');if(c)c.innerHTML='<div style="display:flex;align-items:center;justify-content:center;flex-direction:column;height:100%;color:#64748b;text-align:center;padding:20px"><div style="font-size:32px;margin-bottom:8px">[3D]</div><div style="font-size:12px;font-weight:700;color:#94a3b8">3D Visualization</div><div style="font-size:10px;margin-top:4px">WebGL tidak tersedia. Klik tombol R untuk refresh.</div></div>';return}
+setTimeout(function(){ensureThree(cb,r-1)},500);
+}
+function tryInit3D(){
+try{init3D();runAnalysis()}
+catch(e){console.error('3D init error:',e);var c=document.getElementById('canvas-container');if(c)c.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#64748b">3D Error: '+e.message+'</div>'}
+}
+window.addEventListener('load',function(){
+var p=0;var bar=document.getElementById('loadBar');var st=document.getElementById('loadStatus');
+var steps=['Loading modules...','Init FEM engine...','Loading section DB...','Building 3D...','Ready!'];
+var iv=setInterval(function(){
+p+=25;bar.style.width=p+'%';st.textContent=steps[Math.min(Math.floor(p/25),4)];
+if(p>=100){
+clearInterval(iv);
+setTimeout(function(){
+document.getElementById('loader').style.opacity='0';
+setTimeout(function(){document.getElementById('loader').style.display='none'},500);
+ensureThree(function(){tryInit3D()},10);
+},300);
+}
+},300);
+updateClock();setInterval(updateClock,1000);loadWorksheets();
+});
 
 function updateClock(){const n=new Date();document.getElementById('clock').textContent=n.toLocaleTimeString('id-ID');document.getElementById('date').textContent=n.toLocaleDateString('id-ID',{weekday:'short',day:'numeric',month:'short',year:'numeric'})}
 
@@ -810,6 +835,7 @@ profilesUsed:profiles};
 
 // RENDER CREMONA TRUSS IN 3D
 function update3DTruss(trussData,dc,bay,numBays){
+if(!scene||!structGroup||!renderer){console.warn('3D not ready, skip update3DTruss');return}
 while(structGroup.children.length>0){const ch=structGroup.children[0];if(ch.element)ch.element.remove();structGroup.remove(ch)}
 memberMeshes=[];
 const{nodes,topNodes,members,L,H,bay:tbay,rise,ridgeH,nPanels,p}=trussData;
@@ -1131,6 +1157,7 @@ document.getElementById('conn-results').innerHTML=html;
 // 3D VISUALIZATION
 function init3D(){
 const container=document.getElementById('canvas-container');
+if(!container||container.clientWidth===0){console.warn('Container not ready, retry in 500ms');setTimeout(()=>{try{init3D()}catch(e){console.error(e)}},500);return}
 scene=new THREE.Scene();scene.background=new THREE.Color(0x050810);scene.fog=new THREE.Fog(0x050810,80,200);
 camera=new THREE.PerspectiveCamera(45,container.clientWidth/container.clientHeight,1,1000);camera.position.set(40,35,55);
 renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});renderer.setSize(container.clientWidth,container.clientHeight);renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));container.appendChild(renderer.domElement);
@@ -1141,9 +1168,10 @@ const d1=new THREE.DirectionalLight(0xffffff,0.8);d1.position.set(30,50,30);scen
 const d2=new THREE.DirectionalLight(0x4488ff,0.3);d2.position.set(-30,20,-30);scene.add(d2);
 const grid=new THREE.GridHelper(100,50,0x1e293b,0x111827);grid.position.y=-1.5;scene.add(grid);
 structGroup=new THREE.Group();scene.add(structGroup);
-window.addEventListener('resize',()=>{if(!container)return;camera.aspect=container.clientWidth/container.clientHeight;camera.updateProjectionMatrix();renderer.setSize(container.clientWidth,container.clientHeight);labelRenderer.setSize(container.clientWidth,container.clientHeight)});
+window.addEventListener('resize',function(){if(!container)return;var w=container.clientWidth||400;var h=container.clientHeight||300;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h);labelRenderer.setSize(w,h)});
 function animate(){requestAnimationFrame(animate);controls.update();if(isEarthquake&&structGroup){quakeTime+=0.3;const mag=0.8;structGroup.position.x=(Math.sin(quakeTime*1.5)+Math.cos(quakeTime*3))*mag;structGroup.position.z=Math.sin(quakeTime*2.1)*mag*0.5;structGroup.rotation.z=Math.sin(quakeTime*1.2)*0.008;const c=document.getElementById('canvas-container');if(!c.classList.contains('quake-anim'))c.classList.add('quake-anim')}else if(structGroup){structGroup.position.set(0,0,0);structGroup.rotation.set(0,0,0);const c=document.getElementById('canvas-container');c.classList.remove('quake-anim')}renderer.render(scene,camera);labelRenderer.render(scene,camera)}
 animate();
+setTimeout(function(){if(renderer&&container){var w=container.clientWidth||400;var h=container.clientHeight||300;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h);labelRenderer.setSize(w,h);renderer.render(scene,camera);labelRenderer.render(scene,camera)}},500);
 }
 
 function getColorForDC(dc){return dc>1.0?0xef4444:(dc>0.8?0xfacc15:0x10b981)}
@@ -1170,6 +1198,7 @@ const label=new THREE.CSS2DObject(div);label.position.copy(pos);structGroup.add(
 function createArrow(dir,origin,length,color){return new THREE.ArrowHelper(dir,origin,length,color,length*0.2,length*0.1)}
 
 function update3D(L,B,H,bay,numBays,slope,dc){
+if(!scene||!structGroup||!renderer){console.warn('3D not ready, skip update3D');return}
 while(structGroup.children.length>0){const ch=structGroup.children[0];if(ch.element)ch.element.remove();structGroup.remove(ch)}
 memberMeshes=[];const numFrames=numBays+1;const ridgeH=H+(L/2)*slope;
 const colC=getColorForDC(dc.kolom),raftC=getColorForDC(dc.rafter),girdC=getColorForDC(dc.girder),kanC=getColorForDC(dc.kanopi),pedC=0x64748b;
@@ -1273,6 +1302,9 @@ let h=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Laporan</title><s
 #voiceSettingsModal{position:fixed;inset:0;z-index:10005;display:none;background:rgba(0,0,0,.8);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:16px}
 .voice-modal-content{background:var(--card);border:2px solid var(--accent);border-radius:24px;max-width:420px;width:100%;padding:32px;position:relative;box-shadow:0 0 40px rgba(6,182,212,.5)}
 
+
+#canvas-container canvas{display:block!important;width:100%!important;height:100%!important}
+@media(max-width:768px){#canvas-container{height:300px!important;min-height:250px!important}}
 </style></head><body>`;
 h+='<h1>LAPORAN ANALISIS STRUKTUR BAJA GUDANG BULOG</h1><p style="text-align:center"><b>Proyek:</b> '+pn+'<br><b>Lokasi:</b> '+pl+'<br><b>Engineer:</b> '+v('proj_eng')+'<br><b>Tanggal:</b> '+new Date().toLocaleDateString('id-ID')+'</p>';
 h+='<h2>1. Data Input</h2><table><tr><th>Parameter</th><th>Nilai</th></tr><tr><td>Dimensi</td><td>'+L+' x '+B+' m</td></tr><tr><td>Tinggi</td><td>'+H+' m</td></tr><tr><td>Baja fy/fu</td><td>'+v('mat_fy')+'/'+v('mat_fu')+' MPa</td></tr><tr><td>Kolom</td><td>'+currentProfiles.kolom+'</td></tr><tr><td>Rafter</td><td>'+currentProfiles.rafter+'</td></tr><tr><td>Girder</td><td>'+currentProfiles.girder+'</td></tr><tr><td>Kanopi</td><td>'+currentProfiles.kanopi+'</td></tr><tr><td>Pedestal</td><td>'+currentProfiles.pedestal+'</td></tr></table>';
