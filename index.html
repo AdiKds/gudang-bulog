@@ -1108,7 +1108,11 @@ if(d.dim){document.getElementById('dim_x').value=d.dim.x;document.getElementById
 if(d.material){document.getElementById('mat_fy').value=d.material.fy;document.getElementById('mat_fu').value=d.material.fu;document.getElementById('mat_e').value=d.material.e;if(d.material.fc)document.getElementById('mat_fc').value=d.material.fc}
 if(d.loads){document.getElementById('load_sidl').value=d.loads.sidl;document.getElementById('load_lr').value=d.loads.lr;document.getElementById('load_ss').value=d.loads.ss;document.getElementById('load_s1').value=d.loads.s1;document.getElementById('load_sds').value=d.loads.sds;document.getElementById('load_sd1').value=d.loads.sd1;document.getElementById('load_r').value=d.loads.r;document.getElementById('load_i').value=d.loads.i;document.getElementById('load_v').value=d.loads.v}
 if(d.profiles){currentProfiles=d.profiles;document.getElementById('prof_kolom').value=d.profiles.kolom;document.getElementById('prof_rafter').value=d.profiles.rafter;document.getElementById('prof_girder').value=d.profiles.girder;document.getElementById('prof_kanopi').value=d.profiles.kanopi;document.getElementById('prof_pedestal').value=d.profiles.pedestal}
-document.getElementById('projectModal').style.display='none';runAnalysis();
+document.getElementById('projectModal').style.display='none';
+// URL preset auto-selection
+(function(){const params=new URLSearchParams(window.location.search);const preset=params.get('preset');if(preset&&['18x30','24x66','32x48'].includes(preset)){const sel=document.getElementById('bldg_preset');if(sel){sel.value=preset;loadPreset();}}const model=params.get('model');if(model&&['portal','cremona','warren'].includes(model)){const sel=document.getElementById('model_type');if(sel){sel.value=model;}}})();
+
+runAnalysis();
 }catch(err){alert('File tidak valid: '+err.message)}};
 reader.readAsText(file);
 }
