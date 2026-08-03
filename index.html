@@ -207,7 +207,7 @@ table.dcr-table td.safe{color:var(--safe);font-weight:600}
 </div>
 <!-- CENTER -->
 <div class="col-span-12 lg:col-span-6 space-y-3">
-<div class="flex items-center gap-2 flex-wrap">
+<div class="flex items-center gap-2 flex-wrap toolbar">
 <button onclick="runAnalysis()" class="btn-primary glow-anim"><i class="fa-solid fa-microchip mr-1"></i>JALANKAN ANALISIS FEM</button>
 <button onclick="toggleEarthquake()" id="btn-quake" class="btn-secondary" style="background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.4);color:var(--danger)"><i class="fa-solid fa-house-crack mr-1"></i>SIMULASI GEMPA</button>
 <button onclick="exportReport()" class="btn-secondary"><i class="fa-solid fa-file-word mr-1"></i>EXPORT WORD</button>
@@ -1479,8 +1479,8 @@ let h=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Laporan</title><s
 #canvas-container .lbl-tooltip:hover{transform:scale(1.15);box-shadow:0 0 12px rgba(168,85,247,.4)}
 #canvas-container canvas{display:block!important;width:100%!important;height:100%!important}
 @media(max-width:768px){#canvas-container{height:300px!important;min-height:250px!important}
-.toolbar{flex-wrap:wrap;gap:4px!important;padding:4px!important}
-.toolbar .btn-secondary,.toolbar button{font-size:9px!important;padding:4px 8px!important;margin:1px!important;white-space:nowrap}
+.toolbar{flex-wrap:wrap;gap:4px!important;padding:4px!important;justify-content:flex-start!important}
+.toolbar .btn-secondary,.toolbar button{font-size:9px!important;padding:4px 8px!important;margin:1px!important;white-space:nowrap;flex:0 0 auto!important}
 .toolbar button i{margin-right:2px!important}
 .metric-row{gap:4px!important}
 .metric-card{padding:6px 8px!important;min-width:0!important}
@@ -1530,6 +1530,19 @@ let h=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Laporan</title><s
 #canvas-container{height:350px!important;min-height:300px!important}
 .float-btn-group{bottom:45px!important}
 .fbtn{width:38px!important;height:38px!important}
+}
+
+@media(max-width:768px){
+.btn-primary{font-size:10px!important;padding:6px 10px!important;width:100%!important;margin-bottom:4px!important}
+.btn-primary i{font-size:10px!important}
+#btn-quake{font-size:9px!important}
+}
+@media(max-width:480px){
+.btn-primary{font-size:9px!important;padding:5px 8px!important}
+.metric-card{min-width:calc(50% - 4px)!important}
+#canvas-container{height:220px!important;min-height:200px!important}
+header .max-w-\[1600px\]{padding:4px 6px!important}
+.cyber-font{font-size:11px!important}
 }
 </style></head><body>`;
 h+='<h1>LAPORAN ANALISIS STRUKTUR BAJA GUDANG BULOG</h1><p style="text-align:center"><b>Proyek:</b> '+pn+'<br><b>Lokasi:</b> '+pl+'<br><b>Engineer:</b> '+v('proj_eng')+'<br><b>Tanggal:</b> '+new Date().toLocaleDateString('id-ID')+'</p>';
