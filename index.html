@@ -404,6 +404,40 @@ runAnalysis();
 }
 function setDropdown(id,val){const el=document.getElementById(id);if(el){for(let i=0;i<el.options.length;i++){if(el.options[i].value===val){el.selectedIndex=i;return}}}if(el&&el.options.length>0)el.selectedIndex=0;}
 
+// THEME TOGGLE (global scope)
+function toggleTheme(){
+var html=document.documentElement;
+var isLight=html.classList.toggle('light');
+var icon=document.getElementById('themeIcon');
+if(isLight){
+icon.className='fa-solid fa-sun';
+localStorage.setItem('gb_theme','light');
+}else{
+icon.className='fa-solid fa-moon';
+localStorage.setItem('gb_theme','dark');
+}
+if(scene){
+var bg=getComputedStyle(document.documentElement).getPropertyValue('--canvas-bg').trim();
+scene.background=new THREE.Color(bg);
+var gridColor=getComputedStyle(document.documentElement).getPropertyValue('--3d-grid').trim();
+if(scene.children){
+scene.children.forEach(function(ch){
+if(ch.isGridHelper){ch.material.color=new THREE.Color(gridColor);ch.material.opacity=0.4}
+});
+}
+renderer.render(scene,camera);
+if(labelRenderer)labelRenderer.render(scene,camera);
+}
+}
+(function(){
+var saved=localStorage.getItem('gb_theme');
+if(saved==='light'){
+document.documentElement.classList.add('light');
+var icon=document.getElementById('themeIcon');
+if(icon)icon.className='fa-solid fa-sun';
+}
+})();
+
 // FEM ENGINE
 function runAnalysis(){
 const L=parseFloat(document.getElementById('dim_x').value),B=parseFloat(document.getElementById('dim_y').value),H=parseFloat(document.getElementById('dim_h').value);
@@ -1827,49 +1861,12 @@ if(d.material){document.getElementById('mat_fy').value=d.material.fy;document.ge
 if(d.loads){document.getElementById('load_sidl').value=d.loads.sidl;document.getElementById('load_lr').value=d.loads.lr;document.getElementById('load_ss').value=d.loads.ss;document.getElementById('load_s1').value=d.loads.s1;document.getElementById('load_sds').value=d.loads.sds;document.getElementById('load_sd1').value=d.loads.sd1;document.getElementById('load_r').value=d.loads.r;document.getElementById('load_i').value=d.loads.i;document.getElementById('load_v').value=d.loads.v}
 if(d.profiles){currentProfiles=d.profiles;document.getElementById('prof_kolom').value=d.profiles.kolom;document.getElementById('prof_rafter').value=d.profiles.rafter;document.getElementById('prof_girder').value=d.profiles.girder;document.getElementById('prof_kanopi').value=d.profiles.kanopi;if(d.profiles.gording)document.getElementById('prof_gording').value=d.profiles.gording;document.getElementById('prof_pedestal').value=d.profiles.pedestal}
 document.getElementById('projectModal').style.display='none';
-// URL preset auto-selection
-// THEME TOGGLE
-function toggleTheme(){
-var html=document.documentElement;
-var isLight=html.classList.toggle('light');
-var icon=document.getElementById('themeIcon');
-if(isLight){
-icon.className='fa-solid fa-sun';
-localStorage.setItem('gb_theme','light');
-}else{
-icon.className='fa-solid fa-moon';
-localStorage.setItem('gb_theme','dark');
-}
-// Update 3D scene colors if active
-if(scene){
-var bg=getComputedStyle(document.documentElement).getPropertyValue('--canvas-bg').trim();
-scene.background=new THREE.Color(bg);
-var gridColor=getComputedStyle(document.documentElement).getPropertyValue('--3d-grid').trim();
-if(scene.children){
-scene.children.forEach(function(ch){
-if(ch.isGridHelper){ch.material.color=new THREE.Color(gridColor);ch.material.opacity=0.4}
-});
-}
-renderer.render(scene,camera);
-if(labelRenderer)labelRenderer.render(scene,camera);
-}
-}
-// Apply saved theme on load
-(function(){
-var saved=localStorage.getItem('gb_theme');
-if(saved==='light'){
-document.documentElement.classList.add('light');
-var icon=document.getElementById('themeIcon');
-if(icon)icon.className='fa-solid fa-sun';
-}
-})();
-
-(function(){const params=new URLSearchParams(window.location.search);const preset=params.get('preset');if(preset&&['18x30','24x66','32x48','18x24'].includes(preset)){const sel=document.getElementById('bldg_preset');if(sel){sel.value=preset;loadPreset();}}const model=params.get('model');if(model&&['portal','cremona','warren'].includes(model)){const sel=document.getElementById('model_type');if(sel){sel.value=model;}}})();
-
 runAnalysis();
 }catch(err){alert('File tidak valid: '+err.message)}};
 reader.readAsText(file);
 }
+
+(function(){const params=new URLSearchParams(window.location.search);const preset=params.get('preset');if(preset&&['18x30','24x66','32x48','18x24'].includes(preset)){const sel=document.getElementById('bldg_preset');if(sel){sel.value=preset;loadPreset();}}const model=params.get('model');if(model&&['portal','cremona','warren'].includes(model)){const sel=document.getElementById('model_type');if(sel){sel.value=model;}}})()
 
 function loadWorksheets(){const s=localStorage.getItem('bulog_worksheets');if(s){savedWorksheets=JSON.parse(s);const list=document.getElementById('worksheet-list');if(list)list.innerHTML=savedWorksheets.map((w,i)=>'<div style="display:flex;align-items:center;justify-content:space-between;padding:8px;border-radius:6px;background:var(--card);border:1px solid var(--border)"><span style="font-size:10px;font-weight:bold">'+w.projName+'</span><div style="display:flex;gap:4px"><button onclick="loadWorksheet('+i+')" class="btn-secondary" style="font-size:10px;padding:4px 8px"><i class="fa-solid fa-upload"></i></button><button onclick="deleteWorksheet('+i+')" class="btn-secondary" style="font-size:10px;padding:4px 8px;color:#ef4444"><i class="fa-solid fa-trash"></i></button></div></div>').join('')}}
 
