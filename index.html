@@ -258,7 +258,7 @@ table.dcr-table td.safe{color:var(--safe);font-weight:600}
 <div><label class="form-label">Rafter / Kuda-Kuda</label><select id="prof_rafter" class="form-input" onchange="runAnalysis()"><option value="H400x200x8x13">H 400x200x8x13</option><option value="H500x200x10x16">H 500x200x10x16</option><option value="H350x175x7x11">H 350x175x7x11</option><option value="H450x200x9x14">H 450x200x9x14</option></select></div>
 <div><label class="form-label">Girder (Balok Utama)</label><select id="prof_girder" class="form-input" onchange="runAnalysis()"><option value="H400x200x8x13">H 400x200x8x13</option><option value="H500x200x10x16">H 500x200x10x16</option><option value="H350x175x7x11">H 350x175x7x11</option></select></div>
 <div><label class="form-label">Kanopi (Overhang)</label><select id="prof_kanopi" class="form-input" onchange="runAnalysis()"><option value="H250x125x6x9">H 250x125x6x9</option><option value="H300x150x6.5x9">H 300x150x6.5x9</option><option value="H200x100x5.5x8">H 200x100x5.5x8</option></select></div>
-<div><label class="form-label">Gording (Purlin/CNP)</label><select id="prof_gording" class="form-input" onchange="runAnalysis()"><option value="CNP150x65x20x2.3">CNP 150x65x20x2.3</option><option value="CNP125x50x20x2.3">CNP 125x50x20x2.3</option><option value="CNP200x75x20x3.2">CNP 200x75x20x3.2</option></select></div>
+<div><label class="form-label">Gording (Purlin/CNP)</label><select id="prof_gording" class="form-input" onchange="runAnalysis()"><option value="CNP150x65x20x2.3">CNP 150x65x20x2.3</option><option value="CNP125x50x20x2.3">CNP 125x50x20x2.3</option><option value="CNP200x75x20x3.2">CNP 200x75x20x3.2</option><option value="CNP250x80x20x3.0">CNP 250x80x20x3.0</option><option value="CNP300x90x20x4.0">CNP 300x90x20x4.0</option><option value="CNP350x100x20x4.5">CNP 350x100x20x4.5</option></select></div>
 <div><label class="form-label">Jarak Gording (m)</label><input id="gording_spacing" type="number" class="form-input" value="1.5" step="0.1" onchange="runAnalysis()"></div>
 <div id="truss_profiles" style="display:none">
 <div><label class="form-label">Top Chord (Kompresi)</label><select id="prof_topchord" class="form-input" onchange="runAnalysis()"><option value="H300x150x6.5x9">H 300x150x6.5x9</option><option value="H250x125x6x9">H 250x125x6x9</option><option value="H200x100x5.5x8">H 200x100x5.5x8</option><option value="H400x200x8x13">H 400x200x8x13</option><option value="H350x175x7x11">H 350x175x7x11</option><option value="H450x200x9x14">H 450x200x9x14</option><option value="H500x200x10x16">H 500x200x10x16</option><option value="H600x200x11x17">H 600x200x11x17</option><option value="H700x300x13x24">H 700x300x13x24</option></select></div>
@@ -343,7 +343,10 @@ const sectionDB={
 "H150x75x5x7":{d:150,b:75,tf:7,tw:5,A:17.85,Ix:666,Iy:33.1,Sx:88.8,Zx:97.8,ry:1.36,rx:6.1,h:136},
 "CNP150x65x20x2.3":{d:150,b:65,tf:2.3,tw:2.3,A:7.15,Ix:254,Iy:42.6,Sx:33.9,Zx:38,ry:2.44,rx:5.97,h:147.7},
 "CNP125x50x20x2.3":{d:125,b:50,tf:2.3,tw:2.3,A:5.62,Ix:132,Iy:20.1,Sx:21.1,Zx:24.3,ry:1.89,rx:4.85,h:120.4},
-"CNP200x75x20x3.2":{d:200,b:75,tf:3.2,tw:3.2,A:12.85,Ix:601,Iy:79.8,Sx:60.1,Zx:69.5,ry:2.49,rx:6.84,h:193.6}
+"CNP200x75x20x3.2":{d:200,b:75,tf:3.2,tw:3.2,A:12.85,Ix:601,Iy:79.8,Sx:60.1,Zx:69.5,ry:2.49,rx:6.84,h:193.6},
+"CNP250x80x20x3.0":{d:250,b:80,tf:3.0,tw:3.0,A:14.5,Ix:1200,Iy:103,Sx:96,Zx:110,ry:2.67,rx:9.1,h:244},
+"CNP300x90x20x4.0":{d:300,b:90,tf:4.0,tw:4.0,A:19.2,Ix:2160,Iy:162,Sx:144,Zx:167,ry:2.91,rx:10.6,h:292},
+"CNP350x100x20x4.5":{d:350,b:100,tf:4.5,tw:4.5,A:23.8,Ix:3450,Iy:247,Sx:197,Zx:229,ry:3.22,rx:12.0,h:341}
 };
 
 let currentProfiles={kolom:"H300x300x10x15",rafter:"H400x200x8x13",girder:"H400x200x8x13",kanopi:"H250x125x6x9",gording:"CNP150x65x20x2.3",pedestal:"600x600"};
@@ -567,12 +570,17 @@ const MuFactor=c.name==='1.4D'?1.4*wDLg:(c.name.includes('1.2D')&&c.name.include
 const Mu_g=MuFactor*(bayA**2)/8;
 const phiMn_g=0.9*fy*secGo.Zx*1000/1e6;
 let dcg=Mu_g/phiMn_g;
-// Auto-upgrade gording if overstressed
-if(dcg>0.8&&profiles.gording==='CNP150x65x20x2.3'){
-const secGo2=sectionDB['CNP200x75x20x3.2'];
-const phiMn_g2=0.9*fy*secGo2.Zx*1000/1e6;
-dcg=Mu_g/phiMn_g2;
-if(dcg<0.8){profiles.gording='CNP200x75x20x3.2';secGo=secGo2;document.getElementById('prof_gording').value='CNP200x75x20x3.2';console.log('Gording auto-upgraded to CNP200x75x20x3.2');}
+// Multi-pass gording upgrade
+const gordingUpgradeMap={'CNP125x50x20x2.3':'CNP150x65x20x2.3','CNP150x65x20x2.3':'CNP200x75x20x3.2','CNP200x75x20x3.2':'CNP250x80x20x3.0','CNP250x80x20x3.0':'CNP300x90x20x4.0','CNP300x90x20x4.0':'CNP350x100x20x4.5'};
+for(let gPass=0;gPass<5;gPass++){
+if(dcg<=0.8||!gordingUpgradeMap[profiles.gording])break;
+const nextG=gordingUpgradeMap[profiles.gording];
+const secGoN=sectionDB[nextG];
+if(!secGoN)break;
+const phiMnN=0.9*fy*secGoN.Zx*1000/1e6;
+dcg=Mu_g/phiMnN;
+profiles.gording=nextG;secGo=secGoN;document.getElementById('prof_gording').value=nextG;
+console.log('Gording auto-upgraded to '+nextG+' (pass '+gPass+', D/C='+dcg.toFixed(3)+')');
 }
 if(dcg>worstDC.gording){worstDC.gording=dcg;worstCombo.gording=c.name;memberResults.gording={dc:dcg,dcA:0,dcM:dcg}}
 const pSize=parseInt(profiles.pedestal.split('x')[0]);
@@ -855,12 +863,17 @@ const wDLgT=wDL/bay*gSpcT,wLRgT=wLR/bay*gSpcT;
 const MuT=(1.2*wDLgT+1.6*wLRgT)*(bay**2)/8;
 const phiMnT=0.9*fy*secGoT.Zx*1000/1e6;
 let dcgT=MuT/phiMnT;
-// Auto-upgrade gording if overstressed
-if(dcgT>0.8&&profiles.gording==='CNP150x65x20x2.3'){
-const secGo2T=sectionDB['CNP200x75x20x3.2'];
-const phiMn_g2T=0.9*fy*secGo2T.Zx*1000/1e6;
-dcgT=(1.2*wDLgT+1.6*wLRgT)*(bay**2)/8/phiMn_g2T;
-if(dcgT<0.8){profiles.gording='CNP200x75x20x3.2';secGoT=secGo2T;document.getElementById('prof_gording').value='CNP200x75x20x3.2';console.log('Truss gording auto-upgraded to CNP200x75x20x3.2');}
+// Multi-pass gording upgrade (truss)
+const gordingUpgradeMapT={'CNP125x50x20x2.3':'CNP150x65x20x2.3','CNP150x65x20x2.3':'CNP200x75x20x3.2','CNP200x75x20x3.2':'CNP250x80x20x3.0','CNP250x80x20x3.0':'CNP300x90x20x4.0','CNP300x90x20x4.0':'CNP350x100x20x4.5'};
+for(let gPassT=0;gPassT<5;gPassT++){
+if(dcgT<=0.8||!gordingUpgradeMapT[profiles.gording])break;
+const nextGT=gordingUpgradeMapT[profiles.gording];
+const secGoNT=sectionDB[nextGT];
+if(!secGoNT)break;
+const phiMnNT=0.9*fy*secGoNT.Zx*1000/1e6;
+dcgT=(1.2*wDLgT+1.6*wLRgT)*(bay**2)/8/phiMnNT;
+profiles.gording=nextGT;secGoT=secGoNT;document.getElementById('prof_gording').value=nextGT;
+console.log('Truss gording auto-upgraded to '+nextGT+' (pass '+gPassT+', D/C='+dcgT.toFixed(3)+')');
 }
 worstDC.gording=dcgT;worstCombo.gording='1.2D+1.6Lr';
 memberResults.gording={dc:dcgT,dcA:0,dcM:dcgT};
@@ -1411,7 +1424,7 @@ if(typeKey==='kolom')options=['H300x300x10x15','H350x350x12x19','H400x400x13x21'
 else if(typeKey==='rafter')options=['H400x200x8x13','H500x200x10x16','H350x175x7x11','H450x200x9x14'];
 else if(typeKey==='girder')options=['H400x200x8x13','H500x200x10x16','H350x175x7x11'];
 else if(typeKey==='kanopi')options=['H250x125x6x9','H300x150x6.5x9','H200x100x5.5x8'];
-else if(typeKey==='gording')options=['CNP150x65x20x2.3','CNP125x50x20x2.3','CNP200x75x20x3.2'];
+else if(typeKey==='gording')options=['CNP150x65x20x2.3','CNP125x50x20x2.3','CNP200x75x20x3.2','CNP250x80x20x3.0','CNP300x90x20x4.0','CNP350x100x20x4.5'];
 else if(typeKey==='pedestal')options=['600x600','500x500','700x700'];
 options.forEach(opt=>{const sel=opt===currentVal;const div=document.createElement('div');div.style.cssText='padding:8px 12px;border-radius:6px;cursor:pointer;transition:all .15s;'+(sel?'background:rgba(6,182,212,.15);border:1px solid rgba(6,182,212,.4)':'background:var(--card);border:1px solid var(--border)');div.innerHTML='<span style="font-size:12px;font-weight:bold;color:'+(sel?'var(--accent)':'var(--text)')+'"><i class="fa-solid '+(sel?'fa-check-circle':'fa-square')+'" style="margin-right:6px"></i>'+(typeKey==='pedestal'?'Beton '+opt+' mm':opt)+'</span>';div.onmouseover=()=>{if(!sel)div.style.borderColor='var(--accent)'};div.onmouseout=()=>{if(!sel)div.style.borderColor='var(--border)'};div.onclick=()=>{currentProfiles[typeKey]=opt;const sid=typeKey==='kolom'?'prof_kolom':typeKey==='rafter'?'prof_rafter':typeKey==='girder'?'prof_girder':typeKey==='kanopi'?'prof_kanopi':typeKey==='gording'?'prof_gording':'prof_pedestal';document.getElementById(sid).value=opt;document.getElementById('editProfileModal').style.display='none';runAnalysis()};opts.appendChild(div)});
 document.getElementById('editProfileModal').style.display='flex';
