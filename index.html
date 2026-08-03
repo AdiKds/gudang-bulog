@@ -13,8 +13,9 @@
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/renderers/CSS2DRenderer.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-:root{--bg:#020617;--card:#0f172a;--border:#1e293b;--text:#e2e8f0;--dim:#64748b;--accent:#06b6d4;--accent2:#a855f7;--safe:#10b981;--warn:#facc15;--danger:#ef4444}
-*{box-sizing:border-box}
+:root{--bg:#020617;--card:#0f172a;--border:#1e293b;--text:#e2e8f0;--dim:#64748b;--accent:#06b6d4;--accent2:#a855f7;--safe:#10b981;--warn:#facc15;--danger:#ef4444;--header-bg:rgba(2,6,23,.95);--header-border:var(--border);--canvas-bg:#0a0e1a;--table-th:#1e293b;--calc-bg:#0a1120;--modal-bg:rgba(0,0,0,.8);--credit-bg:rgba(2,6,23,.95);--chat-bg:#0a1120;--section-bg:rgba(15,23,42,.5);--3d-grid:#1a2a4a;--3d-ambient:#1e3a5f}
+html.light{--bg:#f0f4f8;--card:#ffffff;--border:#cbd5e1;--text:#1e293b;--dim:#64748b;--accent:#0891b2;--accent2:#7c3aed;--safe:#059669;--warn:#ca8a04;--danger:#dc2626;--header-bg:rgba(255,255,255,.95);--header-border:#cbd5e1;--canvas-bg:#e8edf5;--table-th:#f1f5f9;--calc-bg:#f8fafc;--modal-bg:rgba(0,0,0,.4);--credit-bg:rgba(248,250,252,.95);--chat-bg:#f8fafc;--section-bg:rgba(255,255,255,.7);--3d-grid:#c0d0e8;--3d-ambient:#a0bcd8}
+*{box-sizing:border-box;transition:background-color .3s ease,color .3s ease,border-color .3s ease}
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);margin:0;overflow-x:hidden}
 .cyber-font{font-family:'Orbitron',sans-serif;letter-spacing:.05em}
 .mono{font-family:'JetBrains Mono',monospace}
@@ -36,17 +37,17 @@ input:focus,select:focus{border-color:var(--accent)!important;box-shadow:0 0 0 2
 .metric-card.warn{border-color:rgba(250,204,21,.4);background:linear-gradient(135deg,rgba(250,204,21,.08),var(--card))}
 .metric-card.safe{border-color:rgba(16,185,129,.4);background:linear-gradient(135deg,rgba(16,185,129,.08),var(--card))}
 table.dcr-table{width:100%;border-collapse:collapse;font-size:11px}
-table.dcr-table th{background:#1e293b;padding:6px 8px;text-align:center;border:1px solid var(--border);font-weight:700;font-size:10px;text-transform:uppercase}
+table.dcr-table th{background:var(--table-th);padding:6px 8px;text-align:center;border:1px solid var(--border);font-weight:700;font-size:10px;text-transform:uppercase}
 table.dcr-table td{padding:5px 8px;text-align:center;border:1px solid var(--border)}
 table.dcr-table td.unsafe{color:var(--danger);font-weight:700;background:rgba(239,68,68,.1)}
 table.dcr-table td.warn{color:var(--warn);font-weight:700}
 table.dcr-table td.safe{color:var(--safe);font-weight:600}
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(4px);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal-bg{position:fixed;inset:0;background:var(--modal-bg);backdrop-filter:blur(4px);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px}
 .modal-content{background:var(--card);border:1px solid var(--border);border-radius:12px;max-width:500px;width:100%;max-height:85vh;overflow-y:auto}
-.credit-bar{position:fixed;bottom:0;left:0;right:0;z-index:50;background:rgba(2,6,23,.95);border-top:1px solid var(--border);padding:6px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.credit-bar{position:fixed;bottom:0;left:0;right:0;z-index:50;background:var(--credit-bg);border-top:1px solid var(--border);padding:6px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .clink{text-decoration:none;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:600;display:inline-flex;align-items:center;gap:4px;transition:all .15s}
-.section-section{border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;background:rgba(15,23,42,.5)}
-.calc-box{background:#0a1120;border:1px solid var(--border);border-radius:6px;padding:8px;font-family:'JetBrains Mono',monospace;font-size:10px;line-height:1.6;overflow-x:auto}
+.section-section{border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;background:var(--section-bg)}
+.calc-box{background:var(--calc-bg);border:1px solid var(--border);border-radius:6px;padding:8px;font-family:'JetBrains Mono',monospace;font-size:10px;line-height:1.6;overflow-x:auto}
 .result-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:9px;font-weight:700;text-transform:uppercase}
 .badge-safe{background:rgba(16,185,129,.15);color:var(--safe);border:1px solid rgba(16,185,129,.3)}
 .badge-warn{background:rgba(250,204,21,.15);color:var(--warn);border:1px solid rgba(250,204,21,.3)}
@@ -83,7 +84,7 @@ table.dcr-table td.safe{color:var(--safe);font-weight:600}
 
 /* CHATBOT PANEL */
 #floatingChatPanel{position:fixed;bottom:60px;right:8px;z-index:9998;width:370px;max-width:calc(100vw - 1rem);height:560px;max-height:80vh;background:rgba(2,6,23,.97);border:2px solid var(--accent);border-radius:16px;box-shadow:0 10px 50px rgba(6,182,212,.4);overflow:hidden;display:none;flex-direction:column}
-.chat-header{background:linear-gradient(90deg,#020617,#0e7490);border-bottom:1px solid rgba(6,182,212,.5);padding:12px 16px;display:flex;justify-content:space-between;align-items:center}
+.chat-header{background:linear-gradient(90deg,var(--bg),#0e7490);border-bottom:1px solid rgba(6,182,212,.5);padding:12px 16px;display:flex;justify-content:space-between;align-items:center}
 .chat-body{padding:16px;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;font-size:13px;line-height:1.5}
 .chat-shortcuts{padding:8px 12px;background:var(--card);border-top:1px solid var(--border);display:flex;gap:6px;overflow-x:auto}
 .chat-input-bar{padding:10px 12px;background:var(--bg);border-top:1px solid var(--border);display:flex;gap:6px;align-items:center}
@@ -109,7 +110,7 @@ table.dcr-table td.safe{color:var(--safe);font-weight:600}
 </div>
 </div>
 <div id="app" class="min-h-screen pb-16">
-<header class="border-b sticky top-0 z-40" style="background:rgba(2,6,23,.95);border-color:var(--border);backdrop-filter:blur(8px)">
+<header class="border-b sticky top-0 z-40" style="background:var(--header-bg);border-color:var(--header-border);backdrop-filter:blur(8px)">
 <div class="max-w-[1600px] mx-auto px-3 py-2 flex items-center justify-between gap-2 flex-wrap">
 <div class="flex items-center gap-2">
 <i class="fa-solid fa-building-shield text-lg sm:text-xl" style="color:var(--accent)"></i>
@@ -119,6 +120,7 @@ table.dcr-table td.safe{color:var(--safe);font-weight:600}
 <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
 <span id="clock" class="text-xs mono hidden sm:block" style="color:var(--dim)">--:--:--</span>
 <span id="date" class="text-[10px] mono hidden sm:block" style="color:var(--dim)"></span>
+<button id="themeToggle" onclick="toggleTheme()" class="btn-secondary" title="Ganti Tema Dark/Light"><i class="fa-solid fa-moon" id="themeIcon"></i></button>
 <button onclick="document.getElementById('helpModal').style.display='flex'" class="btn-secondary"><i class="fa-solid fa-circle-question"></i></button>
 <button onclick="document.getElementById('projectModal').style.display='flex'" class="btn-secondary"><i class="fa-solid fa-folder-open"></i></button>
 <button onclick="document.getElementById('creditModal').style.display='flex'" class="btn-secondary"><i class="fa-solid fa-id-badge"></i></button>
@@ -1355,7 +1357,7 @@ let h=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Laporan</title><s
 
 /* CHATBOT PANEL */
 #floatingChatPanel{position:fixed;bottom:60px;right:8px;z-index:9998;width:370px;max-width:calc(100vw - 1rem);height:560px;max-height:80vh;background:rgba(2,6,23,.97);border:2px solid var(--accent);border-radius:16px;box-shadow:0 10px 50px rgba(6,182,212,.4);overflow:hidden;display:none;flex-direction:column}
-.chat-header{background:linear-gradient(90deg,#020617,#0e7490);border-bottom:1px solid rgba(6,182,212,.5);padding:12px 16px;display:flex;justify-content:space-between;align-items:center}
+.chat-header{background:linear-gradient(90deg,var(--bg),#0e7490);border-bottom:1px solid rgba(6,182,212,.5);padding:12px 16px;display:flex;justify-content:space-between;align-items:center}
 .chat-body{padding:16px;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;font-size:13px;line-height:1.5}
 .chat-shortcuts{padding:8px 12px;background:var(--card);border-top:1px solid var(--border);display:flex;gap:6px;overflow-x:auto}
 .chat-input-bar{padding:10px 12px;background:var(--bg);border-top:1px solid var(--border);display:flex;gap:6px;align-items:center}
@@ -1826,6 +1828,42 @@ if(d.loads){document.getElementById('load_sidl').value=d.loads.sidl;document.get
 if(d.profiles){currentProfiles=d.profiles;document.getElementById('prof_kolom').value=d.profiles.kolom;document.getElementById('prof_rafter').value=d.profiles.rafter;document.getElementById('prof_girder').value=d.profiles.girder;document.getElementById('prof_kanopi').value=d.profiles.kanopi;if(d.profiles.gording)document.getElementById('prof_gording').value=d.profiles.gording;document.getElementById('prof_pedestal').value=d.profiles.pedestal}
 document.getElementById('projectModal').style.display='none';
 // URL preset auto-selection
+// THEME TOGGLE
+function toggleTheme(){
+var html=document.documentElement;
+var isLight=html.classList.toggle('light');
+var icon=document.getElementById('themeIcon');
+if(isLight){
+icon.className='fa-solid fa-sun';
+localStorage.setItem('gb_theme','light');
+}else{
+icon.className='fa-solid fa-moon';
+localStorage.setItem('gb_theme','dark');
+}
+// Update 3D scene colors if active
+if(scene){
+var bg=getComputedStyle(document.documentElement).getPropertyValue('--canvas-bg').trim();
+scene.background=new THREE.Color(bg);
+var gridColor=getComputedStyle(document.documentElement).getPropertyValue('--3d-grid').trim();
+if(scene.children){
+scene.children.forEach(function(ch){
+if(ch.isGridHelper){ch.material.color=new THREE.Color(gridColor);ch.material.opacity=0.4}
+});
+}
+renderer.render(scene,camera);
+if(labelRenderer)labelRenderer.render(scene,camera);
+}
+}
+// Apply saved theme on load
+(function(){
+var saved=localStorage.getItem('gb_theme');
+if(saved==='light'){
+document.documentElement.classList.add('light');
+var icon=document.getElementById('themeIcon');
+if(icon)icon.className='fa-solid fa-sun';
+}
+})();
+
 (function(){const params=new URLSearchParams(window.location.search);const preset=params.get('preset');if(preset&&['18x30','24x66','32x48','18x24'].includes(preset)){const sel=document.getElementById('bldg_preset');if(sel){sel.value=preset;loadPreset();}}const model=params.get('model');if(model&&['portal','cremona','warren'].includes(model)){const sel=document.getElementById('model_type');if(sel){sel.value=model;}}})();
 
 runAnalysis();
