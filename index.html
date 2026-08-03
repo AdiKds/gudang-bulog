@@ -98,6 +98,8 @@ table.dcr-table td.safe{color:var(--safe);font-weight:600}
 .voice-modal-content{background:var(--card);border:2px solid var(--accent);border-radius:24px;max-width:420px;width:100%;padding:32px;position:relative;box-shadow:0 0 40px rgba(6,182,212,.5)}
 
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
 <div id="loader" class="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-slate-950">
@@ -209,6 +211,7 @@ table.dcr-table td.safe{color:var(--safe);font-weight:600}
 <button onclick="runAnalysis()" class="btn-primary glow-anim"><i class="fa-solid fa-microchip mr-1"></i>JALANKAN ANALISIS FEM</button>
 <button onclick="toggleEarthquake()" id="btn-quake" class="btn-secondary" style="background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.4);color:var(--danger)"><i class="fa-solid fa-house-crack mr-1"></i>SIMULASI GEMPA</button>
 <button onclick="exportReport()" class="btn-secondary"><i class="fa-solid fa-file-word mr-1"></i>EXPORT WORD</button>
+<button onclick="exportPDF()" class="btn-secondary"><i class="fa-solid fa-file-pdf mr-1"></i>EXPORT PDF</button>
 <button onclick="exportJSON()" class="btn-secondary"><i class="fa-solid fa-download mr-1"></i>BACKUP JSON</button>
 <button onclick="openConnectionModal()" class="btn-secondary" style="background:rgba(168,85,247,.15);border-color:rgba(168,85,247,.4);color:#c084fc"><i class="fa-solid fa-bolt mr-1"></i>SAMBUNGAN</button>
 </div>
@@ -258,9 +261,9 @@ table.dcr-table td.safe{color:var(--safe);font-weight:600}
 <div><label class="form-label">Gording (Purlin/CNP)</label><select id="prof_gording" class="form-input" onchange="runAnalysis()"><option value="CNP150x65x20x2.3">CNP 150x65x20x2.3</option><option value="CNP125x50x20x2.3">CNP 125x50x20x2.3</option><option value="CNP200x75x20x3.2">CNP 200x75x20x3.2</option></select></div>
 <div><label class="form-label">Jarak Gording (m)</label><input id="gording_spacing" type="number" class="form-input" value="1.5" step="0.1" onchange="runAnalysis()"></div>
 <div id="truss_profiles" style="display:none">
-<div><label class="form-label">Top Chord (Kompresi)</label><select id="prof_topchord" class="form-input" onchange="runAnalysis()"><option value="H300x150x6.5x9">H 300x150x6.5x9</option><option value="H250x125x6x9">H 250x125x6x9</option><option value="H200x100x5.5x8">H 200x100x5.5x8</option><option value="H400x200x8x13">H 400x200x8x13</option><option value="H350x175x7x11">H 350x175x7x11</option><option value="H500x200x10x16">H 500x200x10x16</option></select></div>
-<div><label class="form-label">Bottom Chord (Tarik)</label><select id="prof_botchord" class="form-input" onchange="runAnalysis()"><option value="H250x125x6x9">H 250x125x6x9</option><option value="H200x100x5.5x8">H 200x100x5.5x8</option><option value="H300x150x6.5x9">H 300x150x6.5x9</option><option value="H400x200x8x13">H 400x200x8x13</option><option value="H350x175x7x11">H 350x175x7x11</option><option value="H500x200x10x16">H 500x200x10x16</option></select></div>
-<div><label class="form-label">Diagonal / Vertikal (Web)</label><select id="prof_web" class="form-input" onchange="runAnalysis()"><option value="H200x100x5.5x8">H 200x100x5.5x8</option><option value="H250x125x6x9">H 250x125x6x9</option><option value="H150x75x5x7">H 150x75x5x7</option><option value="H300x150x6.5x9">H 300x150x6.5x9</option><option value="H350x175x7x11">H 350x175x7x11</option><option value="H400x200x8x13">H 400x200x8x13</option><option value="H500x200x10x16">H 500x200x10x16</option></select></div>
+<div><label class="form-label">Top Chord (Kompresi)</label><select id="prof_topchord" class="form-input" onchange="runAnalysis()"><option value="H300x150x6.5x9">H 300x150x6.5x9</option><option value="H250x125x6x9">H 250x125x6x9</option><option value="H200x100x5.5x8">H 200x100x5.5x8</option><option value="H400x200x8x13">H 400x200x8x13</option><option value="H350x175x7x11">H 350x175x7x11</option><option value="H450x200x9x14">H 450x200x9x14</option><option value="H500x200x10x16">H 500x200x10x16</option><option value="H600x200x11x17">H 600x200x11x17</option><option value="H700x300x13x24">H 700x300x13x24</option></select></div>
+<div><label class="form-label">Bottom Chord (Tarik)</label><select id="prof_botchord" class="form-input" onchange="runAnalysis()"><option value="H250x125x6x9">H 250x125x6x9</option><option value="H200x100x5.5x8">H 200x100x5.5x8</option><option value="H300x150x6.5x9">H 300x150x6.5x9</option><option value="H400x200x8x13">H 400x200x8x13</option><option value="H350x175x7x11">H 350x175x7x11</option><option value="H450x200x9x14">H 450x200x9x14</option><option value="H500x200x10x16">H 500x200x10x16</option><option value="H600x200x11x17">H 600x200x11x17</option><option value="H700x300x13x24">H 700x300x13x24</option></select></div>
+<div><label class="form-label">Diagonal / Vertikal (Web)</label><select id="prof_web" class="form-input" onchange="runAnalysis()"><option value="H200x100x5.5x8">H 200x100x5.5x8</option><option value="H250x125x6x9">H 250x125x6x9</option><option value="H150x75x5x7">H 150x75x5x7</option><option value="H300x150x6.5x9">H 300x150x6.5x9</option><option value="H350x175x7x11">H 350x175x7x11</option><option value="H400x200x8x13">H 400x200x8x13</option><option value="H500x200x10x16">H 500x200x10x16</option><option value="H600x200x11x17">H 600x200x11x17</option><option value="H700x300x13x24">H 700x300x13x24</option></select></div>
 </div>
 <div><label class="form-label">Pedestal (Beton)</label><select id="prof_pedestal" class="form-input" onchange="runAnalysis()"><option value="600x600">Beton 600x600 mm</option><option value="500x500">Beton 500x500 mm</option><option value="700x700">Beton 700x700 mm</option></select></div>
 </div>
@@ -326,6 +329,9 @@ const sectionDB={
 "H400x400x13x21":{d:400,b:400,tf:21,tw:13,A:218.7,Ix:66600,Iy:22400,Sx:3330,Zx:3780,ry:10.1,rx:17.4,h:358},
 "H500x300x11x18":{d:500,b:300,tf:18,tw:11,A:174.4,Ix:74800,Iy:13500,Sx:2992,Zx:3370,ry:8.79,rx:20.7,h:464},
 "H600x300x12x20":{d:600,b:300,tf:20,tw:12,A:224.2,Ix:110000,Iy:18000,Sx:3667,Zx:4190,ry:8.96,rx:22.1,h:560},
+"H600x200x11x17":{d:600,b:200,tf:17,tw:11,A:134.4,Ix:66600,Iy:2270,Sx:2220,Zx:2540,ry:4.11,rx:22.2,h:566},
+"H700x300x13x24":{d:700,b:300,tf:24,tw:13,A:231.5,Ix:197000,Iy:10800,Sx:5630,Zx:6410,ry:6.83,rx:29.2,h:652},
+"H800x300x14x26":{d:800,b:300,tf:26,tw:14,A:263.5,Ix:286000,Iy:11700,Sx:7150,Zx:8240,ry:6.67,rx:33.0,h:748},
 "H250x250x9x14":{d:250,b:250,tf:14,tw:9,A:91.4,Ix:10700,Iy:3650,Sx:858,Zx:960,ry:6.27,rx:10.8,h:222},
 "H400x200x8x13":{d:400,b:200,tf:13,tw:8,A:83.37,Ix:23500,Iy:1740,Sx:1175,Zx:1325,ry:4.56,rx:16.8,h:374},
 "H500x200x10x16":{d:500,b:200,tf:16,tw:10,A:110.7,Ix:41900,Iy:2140,Sx:1676,Zx:1910,ry:4.39,rx:19.5,h:468},
@@ -379,7 +385,7 @@ function showProf(id){const el=document.getElementById(id);if(el&&el.parentEleme
 if(m==='cremona'||m==='warren'){tp.style.display='block';pl.style.display='block';hideProf('prof_rafter');hideProf('prof_girder');hideProf('prof_kanopi');showProf('prof_kolom')}
 else{tp.style.display='none';pl.style.display='none';showProf('prof_rafter');showProf('prof_girder');showProf('prof_kanopi');showProf('prof_kolom')}
 // Warren truss has no verticals → diagonals carry ~2x shear → auto-upgrade web
-if(m==='warren'){const webEl=document.getElementById('prof_web');const upgrades={'H150x75x5x7':'H250x125x6x9','H200x100x5.5x8':'H300x150x6.5x9','H250x125x6x9':'H350x175x7x11','H300x150x6.5x9':'H350x175x7x11','H350x175x7x11':'H400x200x8x13'};if(upgrades[webEl.value]){webEl.value=upgrades[webEl.value]}}
+if(m==='warren'){const webEl=document.getElementById('prof_web');const upgrades={'H150x75x5x7':'H250x125x6x9','H200x100x5.5x8':'H300x150x6.5x9','H250x125x6x9':'H350x175x7x11','H300x150x6.5x9':'H350x175x7x11','H350x175x7x11':'H400x200x8x13','H400x200x8x13':'H500x200x10x16','H500x200x10x16':'H600x200x11x17'};if(upgrades[webEl.value]){webEl.value=upgrades[webEl.value]}}
 runAnalysis()}
 
 function loadPreset(){
@@ -400,7 +406,7 @@ setDropdown('prof_topchord',pr.topChord);
 setDropdown('prof_botchord',pr.botChord);
 setDropdown('prof_web',pr.web);
 // Warren auto-upgrade: if Warren is currently selected, bump web after preset load
-if(document.getElementById('model_type').value==='warren'){const webEl=document.getElementById('prof_web');const upgrades={'H150x75x5x7':'H250x125x6x9','H200x100x5.5x8':'H300x150x6.5x9','H250x125x6x9':'H350x175x7x11','H300x150x6.5x9':'H350x175x7x11','H350x175x7x11':'H400x200x8x13'};if(upgrades[webEl.value]){webEl.value=upgrades[webEl.value]}}
+if(document.getElementById('model_type').value==='warren'){const webEl=document.getElementById('prof_web');const upgrades={'H150x75x5x7':'H250x125x6x9','H200x100x5.5x8':'H300x150x6.5x9','H250x125x6x9':'H350x175x7x11','H300x150x6.5x9':'H350x175x7x11','H350x175x7x11':'H400x200x8x13','H400x200x8x13':'H500x200x10x16','H500x200x10x16':'H600x200x11x17'};if(upgrades[webEl.value]){webEl.value=upgrades[webEl.value]}}
 runAnalysis();
 }
 function setDropdown(id,val){const el=document.getElementById(id);if(el){for(let i=0;i<el.options.length;i++){if(el.options[i].value===val){el.selectedIndex=i;return}}}if(el&&el.options.length>0)el.selectedIndex=0;}
@@ -776,9 +782,9 @@ if(chk.dc>worstDC[key]){worstDC[key]=chk.dc;worstCombo[key]='1.2D+1.6Lr';memberR
 });
 // Auto-upgrade truss members if overstressed (multi-pass)
 const trussUpgradeMap={
-'topChord':{'H200x100x5.5x8':'H250x125x6x9','H250x125x6x9':'H300x150x6.5x9','H300x150x6.5x9':'H350x175x7x11','H350x175x7x11':'H400x200x8x13','H400x200x8x13':'H500x200x10x16'},
-'bottomChord':{'H200x100x5.5x8':'H250x125x6x9','H250x125x6x9':'H300x150x6.5x9','H300x150x6.5x9':'H350x175x7x11','H350x175x7x11':'H400x200x8x13','H400x200x8x13':'H500x200x10x16'},
-'diagonal':{'H150x75x5x7':'H200x100x5.5x8','H200x100x5.5x8':'H250x125x6x9','H250x125x6x9':'H300x150x6.5x9','H300x150x6.5x9':'H350x175x7x11','H350x175x7x11':'H400x200x8x13','H400x200x8x13':'H500x200x10x16'}
+'topChord':{'H200x100x5.5x8':'H250x125x6x9','H250x125x6x9':'H300x150x6.5x9','H300x150x6.5x9':'H350x175x7x11','H350x175x7x11':'H400x200x8x13','H400x200x8x13':'H450x200x9x14','H450x200x9x14':'H500x200x10x16','H500x200x10x16':'H600x200x11x17','H600x200x11x17':'H700x300x13x24'},
+'bottomChord':{'H200x100x5.5x8':'H250x125x6x9','H250x125x6x9':'H300x150x6.5x9','H300x150x6.5x9':'H350x175x7x11','H350x175x7x11':'H400x200x8x13','H400x200x8x13':'H450x200x9x14','H450x200x9x14':'H500x200x10x16','H500x200x10x16':'H600x200x11x17','H600x200x11x17':'H700x300x13x24'},
+'diagonal':{'H150x75x5x7':'H200x100x5.5x8','H200x100x5.5x8':'H250x125x6x9','H250x125x6x9':'H300x150x6.5x9','H300x150x6.5x9':'H350x175x7x11','H350x175x7x11':'H400x200x8x13','H400x200x8x13':'H500x200x10x16','H500x200x10x16':'H600x200x11x17','H600x200x11x17':'H700x300x13x24'}
 };
 // Multi-pass upgrade: keep upgrading until D/C < 0.8 or no more upgrades
 for(let pass=0;pass<4;pass++){
@@ -1467,6 +1473,87 @@ h+='<h2>8. Kesimpulan</h2><p>Max D/C='+t('out-dc')+', Status='+t('out-status')+'
 h+='<p style="text-align:center"><b>FEM Engine v1.0 | Mohamad Hartadi - Geotechnical & Civil Engineer</b></p>';
 h+='</body></html>';
 const blob=new Blob([h],{type:'application/vnd.ms-word'});const link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download='Laporan_Struktur_'+pn.replace(/\s+/g,'_')+'.doc';link.click();
+}
+
+function exportPDF(){
+if(!currentResults){alert('Jalankan analisis terlebih dahulu!');return}
+if(typeof window.jspdf==='undefined'){alert('Library PDF belum dimuat. Coba lagi.');return}
+const{jsPDF}=window.jspdf;
+const v=id=>document.getElementById(id)?document.getElementById(id).value:'';
+const t=id=>document.getElementById(id)?document.getElementById(id).innerText:'';
+const L=v('dim_x'),B=v('dim_y'),H=v('dim_h'),pn=v('proj_name'),pl=v('proj_loc');
+const doc=new jsPDF({unit:'mm',format:'a4'});
+const pw=210,mh=20,mw=170;
+// Header
+doc.setFillColor(15,23,42);doc.rect(0,0,pw,30,'F');
+doc.setTextColor(6,182,212);doc.setFontSize(16);doc.setFont('helvetica','bold');
+doc.text('LAPORAN ANALISIS STRUKTUR',pw/2,13,{align:'center'});
+doc.setFontSize(10);doc.setTextColor(255,255,255);
+doc.text('Gudang Bulog FEM Engine v1.0',pw/2,20,{align:'center'});
+doc.setFontSize(8);doc.setTextColor(150,150,150);
+doc.text(new Date().toLocaleDateString('id-ID',{weekday:'long',year:'numeric',month:'long',day:'numeric'}),pw/2,25,{align:'center'});
+// Project info
+let y=38;
+doc.setTextColor(15,23,42);doc.setFontSize(10);doc.setFont('helvetica','bold');
+doc.text('1. DATA PROYEK',mh,y);y+=5;
+doc.setFont('helvetica','normal');doc.setFontSize(9);
+const projData=[['Nama Proyek',pn],['Lokasi',pl],['Engineer',v('proj_eng')],['Tipe Bangunan',v('bldg_preset')],['Model Struktur',v('model_type')],['Dimensi',L+' x '+B+' m'],['Tinggi',H+' m'],['Bay Spacing',v('bay_spacing')+' m'],['Slope Atap',v('roof_slope')+'%']];
+doc.autoTable({startY:y,head:[['Parameter','Nilai']],body:projData,theme:'grid',headStyles:{fillColor:[15,23,42],textColor:[6,182,212],fontSize:8},bodyStyles:{fontSize:8},columnStyles:{0:{cellWidth:60}}});
+y=doc.lastAutoTable.finalY+6;
+// Material & Loading
+doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text('2. MATERIAL & PEMBEBANAN',mh,y);y+=5;
+const matData=[['fy',v('mat_fy')+' MPa'],['fu',v('mat_fu')+' MPa'],['E',v('mat_e')+' MPa'],['fc',v('mat_fc')+' MPa'],['SIDL',v('load_sidl')+' kN/m2'],['Live Roof',v('load_lr')+' kN/m2'],['SDS/SD1',v('load_sds')+'/'+v('load_sd1')+' g'],['V Angin',v('load_v')+' m/s']];
+doc.autoTable({startY:y,head:[['Parameter','Nilai']],body:matData,theme:'grid',headStyles:{fillColor:[15,23,42],textColor:[6,182,212],fontSize:8},bodyStyles:{fontSize:8},columnStyles:{0:{cellWidth:60}}});
+y=doc.lastAutoTable.finalY+6;
+// Profiles
+doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text('3. PROFIL ELEMEN',mh,y);y+=5;
+const modelType=v('model_type');
+let profData;
+if(modelType==='portal'){profData=[['Kolom',currentProfiles.kolom],['Rafter',currentProfiles.rafter],['Girder',currentProfiles.girder],['Kanopi',currentProfiles.kanopi],['Gording',currentProfiles.gording],['Pedestal',currentProfiles.pedestal]]}
+else{profData=[['Kolom',currentProfiles.kolom||v('prof_kolom')],['Top Chord',v('prof_topchord')],['Bottom Chord',v('prof_botchord')],['Web/Diagonal',v('prof_web')],['Gording',v('prof_gording')],['Pedestal',v('prof_pedestal')]]}
+doc.autoTable({startY:y,head:[['Elemen','Profil']],body:profData,theme:'grid',headStyles:{fillColor:[15,23,42],textColor:[6,182,212],fontSize:8},bodyStyles:{fontSize:8},columnStyles:{0:{cellWidth:60}}});
+y=doc.lastAutoTable.finalY+6;
+// D/C Ratio Table
+if(y>240){doc.addPage();y=20}
+doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text('4. D/C RATIO (LRFD)',mh,y);y+=3;
+const dcrRows=[];
+document.querySelectorAll('#dcr-body tr').forEach(tr=>{const tds=tr.querySelectorAll('td');if(tds.length>=6)dcrRows.push([tds[0].innerText,tds[1].innerText,tds[2].innerText,tds[3].innerText,tds[4].innerText,tds[5].innerText])});
+doc.autoTable({startY:y,head:[['Elemen','Profil','D/C Axial','D/C Moment','D/C Max','Status']],body:dcrRows,theme:'grid',headStyles:{fillColor:[15,23,42],textColor:[6,182,212],fontSize:7},bodyStyles:{fontSize:7},columnStyles:{0:{cellWidth:30},1:{cellWidth:35}}});
+y=doc.lastAutoTable.finalY+6;
+// Results summary
+if(y>250){doc.addPage();y=20}
+doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text('5. RINGKASAN HASIL',mh,y);y+=5;
+const dcVal=t('out-dc'),statusVal=t('out-status');
+const summaryData=[['Max D/C Ratio',dcVal],['Status Global',statusVal],['Defleksi Vertikal',t('out-def-y')],['Limit Defleksi',t('out-def-y-stat')],['Simpangan Gempa',t('out-def-eq')]];
+doc.autoTable({startY:y,head:[['Parameter','Nilai']],body:summaryData,theme:'grid',headStyles:{fillColor:[15,23,42],textColor:[6,182,212],fontSize:8},bodyStyles:{fontSize:8},columnStyles:{0:{cellWidth:60}}});
+y=doc.lastAutoTable.finalY+6;
+// Seismic calc
+doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text('6. ANALISIS GEMPA',mh,y);y+=5;
+doc.setFont('helvetica','normal');doc.setFontSize(8);
+const seismicText=document.getElementById('seismic-calc').innerText;
+doc.text(seismicText,mh,y,{maxWidth:mw});y+=doc.splitTextToSize(seismicText,mw).length*4+4;
+// Wind
+if(y>240){doc.addPage();y=20}
+doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text('7. ANALISIS ANGIN',mh,y);y+=5;
+doc.setFont('helvetica','normal');doc.setFontSize(8);
+const windText=document.getElementById('wind-calc').innerText;
+doc.text(windText,mh,y,{maxWidth:mw});y+=doc.splitTextToSize(windText,mw).length*4+4;
+// Calc log
+if(y>200){doc.addPage();y=20}
+doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text('8. LOG PERHITUNGAN',mh,y);y+=5;
+doc.setFont('helvetica','normal');doc.setFontSize(7);
+const logLines=doc.splitTextToSize(rawCalcLog||'N/A',mw);
+doc.text(logLines.slice(0,40),mh,y);y+=logLines.slice(0,40).length*3.5+4;
+// Conclusion
+if(y>250){doc.addPage();y=20}
+doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text('9. KESIMPULAN',mh,y);y+=6;
+doc.setFont('helvetica','normal');doc.setFontSize(9);
+const conclusion='Max D/C Ratio = '+dcVal+'. Status: '+statusVal+'.\nMaterial: Baja fy='+v('mat_fy')+' MPa, fu='+v('mat_fu')+' MPa.\nStandar: AISC 360-22, SNI 1729:2020, SNI 1726:2019.';
+doc.text(doc.splitTextToSize(conclusion,mw),mh,y);
+// Footer on every page
+const pages=doc.internal.getNumberOfPages();
+for(let i=1;i<=pages;i++){doc.setPage(i);doc.setDrawColor(6,182,212);doc.setLineWidth(0.3);doc.line(mh,285,mw+mh,285);doc.setFontSize(7);doc.setTextColor(100,100,100);doc.text('Mohamad Hartadi | Geotechnical & Civil Engineer',mh,290);doc.text('FB: m.hartadi | Blog: newbieonline7.blogspot.com | WA: 082231036047',pw/2,290,{align:'center'});doc.text('Hal. '+i+'/'+pages,pw-mh,290,{align:'right'})}
+doc.save('Laporan_PDF_'+pn.replace(/\s+/g,'_')+'.pdf');
 }
 </script>
 
