@@ -457,6 +457,23 @@ currentProfiles=profiles;
 const modelType=document.getElementById('model_type')?document.getElementById('model_type').value:'portal';
 const numBays=Math.ceil(B/bay),bayA=B/numBays,numFrames=numBays+1;
 const ridgeH=H+(L/2)*slope;
+// SEISMIC + WIND (computed before model path for both paths)
+const Cs=SDS/(R/Ie),CsMax=SD1/(R/Ie)/Math.max(Ta_func(H),0.2),CsMin=0.044*SDS*Ie;
+function Ta_func(h){return 0.035*Math.pow(h,0.8)}
+const Ta=Ta_func(H);
+const CsUsed=Math.max(Math.min(Cs,CsMax),CsMin);
+// Self weight estimate (simplified for truss, exact for portal computed later)
+var selfW_est=0;
+const _secK=sectionDB[document.getElementById('prof_kolom').value];
+if(_secK){selfW_est=_secK.A*H*2*numFrames*gamma/1000+L*B*0.3} // rough estimate
+var Wtotal=wTotal*B+selfW_est;
+const Vbase=CsUsed*Wtotal;
+const F_seismic=Vbase/numFrames,M_seismic=F_seismic*H;
+// WIND
+const Kd=0.85,Kzt=1.0;
+const Kz=expo==='C'?0.98*Math.pow(H/10,2/9.5):(expo==='B'?0.7*Math.pow(H/10,2/7):1.03*Math.pow(H/10,2/8.5));
+const qz=0.5*1.225*(Vw**2)*Kz*Kzt*Kd/1000;
+const Cp=1.3,P_wind=qz*Cp,F_wind=P_wind*H*bayA,M_wind=F_wind*H;
 const wDL=SIDL*bayA,wLR=Lr*bayA,wTotal=wDL+wLR;
 if(modelType==='cremona'||modelType==='warren'){
 // CREMONA TRUSS PATH
@@ -497,19 +514,8 @@ return;
 }
 const secK=sectionDB[profiles.kolom],secR=sectionDB[profiles.rafter],secG=sectionDB[profiles.girder],secKa=sectionDB[profiles.kanopi];let secGo=sectionDB[profiles.gording];
 const selfW=(secK.A*H*2*numFrames+secR.A*Math.sqrt((L/2)**2+(ridgeH-H)**2)*2*numFrames+secG.A*bayA*numBays*3+secKa.A*2*2*numFrames)*gamma/1000;
-// SEISMIC
-const Cs=SDS/(R/Ie),CsMax=SD1/(R/Ie)/Math.max(Ta_func(H),0.2),CsMin=0.044*SDS*Ie;
-function Ta_func(h){return 0.035*Math.pow(h,0.8)}
-const Ta=Ta_func(H);
-const CsUsed=Math.max(Math.min(Cs,CsMax),CsMin);
-const Wtotal=wTotal*B+selfW;
-const Vbase=CsUsed*Wtotal;
-const F_seismic=Vbase/numFrames,M_seismic=F_seismic*H;
-// WIND
-const Kd=0.85,Kzt=1.0;
-const Kz=expo==='C'?0.98*Math.pow(H/10,2/9.5):(expo==='B'?0.7*Math.pow(H/10,2/7):1.03*Math.pow(H/10,2/8.5));
-const qz=0.5*1.225*(Vw**2)*Kz*Kzt*Kd/1000;
-const Cp=1.3,P_wind=qz*Cp,F_wind=P_wind*H*bayA,M_wind=F_wind*H;
+// Recompute Wtotal with exact selfW for portal frame
+Wtotal=wTotal*B+selfW;
 // LRFD COMBINATIONS
 const wFact=1.2*wDL+1.6*wLR;
 const M_grav=wFact*(L**2)/12,P_grav=wFact*L/2;
