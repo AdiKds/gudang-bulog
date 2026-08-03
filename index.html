@@ -901,6 +901,7 @@ function update3DTruss(trussData,dc,bay,numBays){
 if(!scene||!structGroup||!renderer){console.warn('3D not ready, skip update3DTruss');return}
 while(structGroup.children.length>0){const ch=structGroup.children[0];if(ch.element)ch.element.remove();structGroup.remove(ch)}
 memberMeshes=[];
+const B=parseFloat(document.getElementById('dim_y').value);
 const{nodes,topNodes,members,L,H,bay:tbay,rise,ridgeH,nPanels,p}=trussData;
 const profTop=document.getElementById('prof_topchord').value;
 const profBot=document.getElementById('prof_botchord').value;
@@ -975,13 +976,29 @@ createDimLabel(new THREE.Vector3(L/4,ridgeH+1,0),'\u2335 '+slopeDeg.toFixed(1)+'
 createDimLine(new THREE.Vector3(L/2,H,0),new THREE.Vector3(L/2,ridgeH,0),0xfbbf24);
 createDimLabel(new THREE.Vector3(L/2+0.5,(H+ridgeH)/2,0),'h_r = '+ridgeH.toFixed(2)+' m','#fbbf24');
 createDimLine(new THREE.Vector3(-1.5,H,0),new THREE.Vector3(-1.5,ridgeH,0),0xfbbf24);
+// Total height from ground
+createDimLine(new THREE.Vector3(-2.5,-1.2,0),new THREE.Vector3(-2.5,ridgeH,0),0x10b981);
+createDimLabel(new THREE.Vector3(-3,ridgeH/2,0),'H_tot = '+((ridgeH+1.2).toFixed(2))+' m','#10b981');
+// Eaves height
+createDimLabel(new THREE.Vector3(L+0.5,H+0.3,0),'eaves: '+H.toFixed(1)+'m','#94a3b8');
 }
 // Panel length
 createDimLabel(new THREE.Vector3(p/2,H-0.5,0),'p = '+p.toFixed(1)+' m','#94a3b8');
+// Panel count
+createDimLabel(new THREE.Vector3(L/2,H-1.5,0),'n = '+nPanels+' panel (# p='+p.toFixed(1)+'m)','#94a3b8');
+// Show first 2 panel tick marks
+if(nPanels>1){
+createDimLine(new THREE.Vector3(0,-1.3,0),new THREE.Vector3(p,-1.3,0),0x64748b);
+createDimLabel(new THREE.Vector3(p/2,-1.5,0),p.toFixed(1)+'','#64748b');
+createDimLine(new THREE.Vector3(p,-1.3,0),new THREE.Vector3(2*p,-1.3,0),0x64748b);
+}
 // Bay spacing
 createDimLabel(new THREE.Vector3(L+1.5,0,bay/2),'bay = '+bay.toFixed(1)+' m');
 createDimLine(new THREE.Vector3(L+1.2,0,0),new THREE.Vector3(L+1.2,0,bay),dimC);
-// Total width
+// Width B (right side)
+createDimLine(new THREE.Vector3(L+1.5,-1.2,0),new THREE.Vector3(L+1.5,-1.2,B),dimC);
+createDimLabel(new THREE.Vector3(L+1.8,-1.5,B/2),'B = '+B.toFixed(1)+' m');
+// Total width (back)
 createDimLine(new THREE.Vector3(0,-1.3,B),new THREE.Vector3(L,-1.3,B),dimC);
 createDimLabel(new THREE.Vector3(L/2,-1.6,B),'B = '+B.toFixed(1)+'m \u00d7 '+numBays+' ('+(numBays+1)+' frame)');
 // Total area
@@ -1321,15 +1338,23 @@ createDimLabel(new THREE.Vector3(L+1.8,-1.5,B/2),'B = '+B.toFixed(1)+' m');
 // Height (H) - left side
 createDimLine(new THREE.Vector3(-1.5,0,0),new THREE.Vector3(-1.5,H,0),dimC);
 createDimLabel(new THREE.Vector3(-1.8,H/2,0),'H = '+H.toFixed(1)+' m');
+// Eaves height label
+createDimLabel(new THREE.Vector3(L+0.5,H+0.3,0),'eaves: '+H.toFixed(1)+'m','#94a3b8');
 // Ridge height
 if(ridgeH>H+0.1){
 createDimLine(new THREE.Vector3(-1.5,H,0),new THREE.Vector3(-1.5,ridgeH,0),0xfbbf24);
 createDimLabel(new THREE.Vector3(-1.8,(H+ridgeH)/2,0),'h_r = '+ridgeH.toFixed(2)+' m','#fbbf24');
+// Total height from ground
+createDimLine(new THREE.Vector3(-1.5,-1.2,0),new THREE.Vector3(-1.5,ridgeH,0),0x10b981);
+createDimLabel(new THREE.Vector3(-2.2,ridgeH/2,0),'H_tot = '+((ridgeH+1.2).toFixed(2))+' m','#10b981');
 }
 // Roof slope
 if(slope>0){
 var slopeDeg=Math.atan(slope)*180/Math.PI;
 createDimLabel(new THREE.Vector3(L/4,ridgeH+1,0),'\u2335 '+slopeDeg.toFixed(1)+'\u00b0','#fbbf24');
+// Rafter span (half span)
+var rafterLen=Math.sqrt((L/2)**2+(ridgeH-H)**2);
+createDimLabel(new THREE.Vector3(L*0.25,H+(ridgeH-H)*0.5+0.8,0),'L_r = '+rafterLen.toFixed(2)+' m','#a78bfa');
 }
 // Bay spacing
 if(numBays>1){
@@ -1338,6 +1363,10 @@ createDimLabel(new THREE.Vector3(L+1.5,H+0.5,bay/2),'bay='+bay.toFixed(1)+'m');
 }
 // Total frames
 createDimLabel(new THREE.Vector3(L/2,-1.8,B),'B = '+B.toFixed(1)+'m \u00d7 '+numBays+' bay ('+(numBays+1)+' frame)');
+// Area
+createDimLabel(new THREE.Vector3(L/2,ridgeH+2,0),'Area = '+(L*B).toFixed(0)+' m\u00b2 | '+numFrames+' frame','#10b981');
+// Column height with pedestal
+createDimLabel(new THREE.Vector3(-1.8,-0.6,0),'Ped '+currentProfiles.pedestal,'#94a3b8');
 controls.target.set(L/2,H/2,B/2);controls.update();
 }
 
