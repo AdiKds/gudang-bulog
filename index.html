@@ -833,6 +833,33 @@ seismic:{Cs:0,V:0,Ta:0},wind:{qz:0,P:0,F:0},
 profilesUsed:profiles};
 }
 
+// DIMENSION ANNOTATION FUNCTIONS
+function createDimLine(p1,p2,color){
+var mat=new THREE.LineDashedMaterial({color:color||0x38bdf8,dashSize:0.4,gapSize:0.2,linewidth:2});
+var geo=new THREE.BufferGeometry().setFromPoints([p1,p2]);
+var line=new THREE.Line(geo,mat);line.computeLineDistances();
+structGroup.add(line);
+// Add end ticks
+var tickMat=new THREE.LineBasicMaterial({color:color||0x38bdf8});
+var dir=new THREE.Vector3().subVectors(p2,p1).normalize();
+var perp=new THREE.Vector3(-dir.z,0,dir.x).multiplyScalar(0.3);
+var tickGeo=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3().subVectors(p1,perp),new THREE.Vector3().addVectors(p1,perp)]);
+structGroup.add(new THREE.Line(tickGeo,tickMat));
+var tickGeo2=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3().subVectors(p2,perp),new THREE.Vector3().addVectors(p2,perp)]);
+structGroup.add(new THREE.Line(tickGeo2,tickMat));
+return line;
+}
+
+function createDimLabel(pos,text,txtColor){
+var div=document.createElement('div');
+div.style.cssText='font-size:10px;font-weight:bold;color:'+(txtColor||'#38bdf8')+';font-family:JetBrains Mono,monospace;padding:2px 6px;border-radius:4px;background:rgba(5,8,16,.85);border:1px solid '+(txtColor||'#38bdf8')+'55;white-space:nowrap;text-align:center;pointer-events:none';
+div.textContent=text;
+var label=new THREE.CSS2DObject(div);
+label.position.copy(pos);
+structGroup.add(label);
+return label;
+}
+
 // RENDER CREMONA TRUSS IN 3D
 function update3DTruss(trussData,dc,bay,numBays){
 if(!scene||!structGroup||!renderer){console.warn('3D not ready, skip update3DTruss');return}
@@ -898,20 +925,31 @@ structGroup.add(createArrow(new THREE.Vector3(0,-1,0),new THREE.Vector3(tn.x,tn.
 }
 }
 // Dimension annotations for truss
-const dimC=0x38bdf8;
+var dimC=0x38bdf8;
+// Span L
 createDimLine(new THREE.Vector3(0,-1.3,0),new THREE.Vector3(L,-1.3,0),dimC);
-createDimLabel(new THREE.Vector3(L/2,-1.5,0),'L = '+L.toFixed(1)+' m');
+createDimLabel(new THREE.Vector3(L/2,-1.6,0),'L = '+L.toFixed(1)+' m');
+// Height H
 createDimLine(new THREE.Vector3(-1.5,0,0),new THREE.Vector3(-1.5,H,0),dimC);
 createDimLabel(new THREE.Vector3(-1.8,H/2,0),'H = '+H.toFixed(1)+' m');
+// Ridge / rise
 if(rise>0){
-const slopeDeg=Math.atan(rise/(L/2))*180/Math.PI;
+var slopeDeg=Math.atan(rise/(L/2))*180/Math.PI;
 createDimLabel(new THREE.Vector3(L/4,ridgeH+1,0),'\u2335 '+slopeDeg.toFixed(1)+'\u00b0','#fbbf24');
-createDimLine(new THREE.Vector3(L/2,H,0),new THREE.Vector3(L/2,ridgeH,0),0xfacc15);
-createDimLabel(new THREE.Vector3(L/2+0.5,(H+ridgeH)/2,0),'h_ride = '+ridgeH.toFixed(2)+' m','#facc15');
+createDimLine(new THREE.Vector3(L/2,H,0),new THREE.Vector3(L/2,ridgeH,0),0xfbbf24);
+createDimLabel(new THREE.Vector3(L/2+0.5,(H+ridgeH)/2,0),'h_r = '+ridgeH.toFixed(2)+' m','#fbbf24');
+createDimLine(new THREE.Vector3(-1.5,H,0),new THREE.Vector3(-1.5,ridgeH,0),0xfbbf24);
 }
+// Panel length
+createDimLabel(new THREE.Vector3(p/2,H-0.5,0),'p = '+p.toFixed(1)+' m','#94a3b8');
+// Bay spacing
 createDimLabel(new THREE.Vector3(L+1.5,0,bay/2),'bay = '+bay.toFixed(1)+' m');
 createDimLine(new THREE.Vector3(L+1.2,0,0),new THREE.Vector3(L+1.2,0,bay),dimC);
-createDimLabel(new THREE.Vector3(L/2,-1.5,bay),'B = '+bay.toFixed(1)+' m x '+numBays);
+// Total width
+createDimLine(new THREE.Vector3(0,-1.3,B),new THREE.Vector3(L,-1.3,B),dimC);
+createDimLabel(new THREE.Vector3(L/2,-1.6,B),'B = '+B.toFixed(1)+'m \u00d7 '+numBays+' ('+(numBays+1)+' frame)');
+// Total area
+createDimLabel(new THREE.Vector3(L/2,ridgeH+2,0),'Area = '+(L*B).toFixed(0)+' m\u00b2','#10b981');
 controls.target.set(L/2,H/2,B/2);controls.update();
 }
 
@@ -1236,6 +1274,34 @@ if(numFrames>1)createProfileLabel(new THREE.Vector3(0,H+0.5,bay/2),'girder','Gir
 createProfileLabel(new THREE.Vector3(-1,H-0.3,0),'kanopi','Kanopi',currentProfiles.kanopi);
 if(numFrames>1)createProfileLabel(new THREE.Vector3(L/4,H+(ridgeH-H)*0.5+0.3,bay/2),'gording','Gording',currentProfiles.gording);
 createProfileLabel(new THREE.Vector3(0,-0.5,0),'pedestal','Pedestal',currentProfiles.pedestal);
+// DIMENSION ANNOTATIONS
+var dimC=0x38bdf8;
+// Length (X) - bottom front
+createDimLine(new THREE.Vector3(0,-1.5,0),new THREE.Vector3(L,-1.5,0),dimC);
+createDimLabel(new THREE.Vector3(L/2,-1.8,0),'L = '+L.toFixed(1)+' m');
+// Width (Y) - bottom right side
+createDimLine(new THREE.Vector3(L+1.5,-1.2,0),new THREE.Vector3(L+1.5,-1.2,B),dimC);
+createDimLabel(new THREE.Vector3(L+1.8,-1.5,B/2),'B = '+B.toFixed(1)+' m');
+// Height (H) - left side
+createDimLine(new THREE.Vector3(-1.5,0,0),new THREE.Vector3(-1.5,H,0),dimC);
+createDimLabel(new THREE.Vector3(-1.8,H/2,0),'H = '+H.toFixed(1)+' m');
+// Ridge height
+if(ridgeH>H+0.1){
+createDimLine(new THREE.Vector3(-1.5,H,0),new THREE.Vector3(-1.5,ridgeH,0),0xfbbf24);
+createDimLabel(new THREE.Vector3(-1.8,(H+ridgeH)/2,0),'h_r = '+ridgeH.toFixed(2)+' m','#fbbf24');
+}
+// Roof slope
+if(slope>0){
+var slopeDeg=Math.atan(slope)*180/Math.PI;
+createDimLabel(new THREE.Vector3(L/4,ridgeH+1,0),'\u2335 '+slopeDeg.toFixed(1)+'\u00b0','#fbbf24');
+}
+// Bay spacing
+if(numBays>1){
+createDimLine(new THREE.Vector3(L+1.2,0,0),new THREE.Vector3(L+1.2,0,bay),dimC);
+createDimLabel(new THREE.Vector3(L+1.5,H+0.5,bay/2),'bay='+bay.toFixed(1)+'m');
+}
+// Total frames
+createDimLabel(new THREE.Vector3(L/2,-1.8,B),'B = '+B.toFixed(1)+'m \u00d7 '+numBays+' bay ('+(numBays+1)+' frame)');
 controls.target.set(L/2,H/2,B/2);controls.update();
 }
 
@@ -1303,6 +1369,8 @@ let h=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Laporan</title><s
 .voice-modal-content{background:var(--card);border:2px solid var(--accent);border-radius:24px;max-width:420px;width:100%;padding:32px;position:relative;box-shadow:0 0 40px rgba(6,182,212,.5)}
 
 
+#canvas-container .lbl-tooltip{transition:all .2s}
+#canvas-container .lbl-tooltip:hover{transform:scale(1.15);box-shadow:0 0 12px rgba(168,85,247,.4)}
 #canvas-container canvas{display:block!important;width:100%!important;height:100%!important}
 @media(max-width:768px){#canvas-container{height:300px!important;min-height:250px!important}}
 </style></head><body>`;
