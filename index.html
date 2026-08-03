@@ -227,6 +227,7 @@ table.dcr-table td.safe{color:var(--safe);font-weight:600}
 <button onclick="setView('top')" class="btn-secondary text-[10px]">TOP</button>
 <button onclick="setView('side')" class="btn-secondary text-[10px]">SIDE</button>
 <button onclick="try{if(!scene)init3D();runAnalysis()}catch(e){}" class="btn-secondary text-[10px]" title="Refresh 3D">R</button>
+<button onclick="toggleDimLabels()" id="btn-dims" class="btn-secondary text-[10px]" title="Show/Hide Dimensions" style="background:rgba(6,182,212,.2);border-color:rgba(6,182,212,.5);color:#38bdf8"><i class="fa-solid fa-ruler-combined"></i> DIM</button>
 <span class="text-[9px] mono" style="color:var(--dim)">Drag:rotate|Scroll:zoom</span>
 </div>
 </div>
@@ -871,6 +872,7 @@ profilesUsed:profiles};
 
 // DIMENSION ANNOTATION FUNCTIONS
 function createDimLine(p1,p2,color){
+if(!showDimLabels)return null;
 var mat=new THREE.LineDashedMaterial({color:color||0x38bdf8,dashSize:0.4,gapSize:0.2,linewidth:2});
 var geo=new THREE.BufferGeometry().setFromPoints([p1,p2]);
 var line=new THREE.Line(geo,mat);line.computeLineDistances();
@@ -887,6 +889,7 @@ return line;
 }
 
 function createDimLabel(pos,text,txtColor){
+if(!showDimLabels)return null;
 var div=document.createElement('div');
 div.style.cssText='font-size:10px;font-weight:bold;color:'+(txtColor||'#38bdf8')+';font-family:JetBrains Mono,monospace;padding:2px 6px;border-radius:4px;background:rgba(5,8,16,.85);border:1px solid '+(txtColor||'#38bdf8')+'55;white-space:nowrap;text-align:center;pointer-events:none';
 div.textContent=text;
@@ -986,11 +989,14 @@ createDimLabel(new THREE.Vector3(L+0.5,H+0.3,0),'eaves: '+H.toFixed(1)+'m','#94a
 createDimLabel(new THREE.Vector3(p/2,H-0.5,0),'p = '+p.toFixed(1)+' m','#94a3b8');
 // Panel count
 createDimLabel(new THREE.Vector3(L/2,H-1.5,0),'n = '+nPanels+' panel (# p='+p.toFixed(1)+'m)','#94a3b8');
-// Show first 2 panel tick marks
+// Show panel tick marks (up to 6, then skip)
 if(nPanels>1){
-createDimLine(new THREE.Vector3(0,-1.3,0),new THREE.Vector3(p,-1.3,0),0x64748b);
-createDimLabel(new THREE.Vector3(p/2,-1.5,0),p.toFixed(1)+'','#64748b');
-createDimLine(new THREE.Vector3(p,-1.3,0),new THREE.Vector3(2*p,-1.3,0),0x64748b);
+var maxTicks=Math.min(nPanels,6);
+for(var pi=0;pi<maxTicks;pi++){
+createDimLine(new THREE.Vector3(pi*p,-1.3,0),new THREE.Vector3((pi+1)*p,-1.3,0),0x64748b);
+if(pi<maxTicks-1||nPanels<=6)createDimLabel(new THREE.Vector3(pi*p+p/2,-1.5,0),p.toFixed(1)+'','#64748b');
+}
+if(nPanels>6)createDimLabel(new THREE.Vector3((nPanels-1)*p+p/2,-1.5,0),'... '+nPanels+'x'+p.toFixed(1)+'m','#64748b');
 }
 // Bay spacing
 createDimLabel(new THREE.Vector3(L+1.5,0,bay/2),'bay = '+bay.toFixed(1)+' m');
@@ -1002,7 +1008,11 @@ createDimLabel(new THREE.Vector3(L+1.8,-1.5,B/2),'B = '+B.toFixed(1)+' m');
 createDimLine(new THREE.Vector3(0,-1.3,B),new THREE.Vector3(L,-1.3,B),dimC);
 createDimLabel(new THREE.Vector3(L/2,-1.6,B),'B = '+B.toFixed(1)+'m \u00d7 '+numBays+' ('+(numBays+1)+' frame)');
 // Total area
-createDimLabel(new THREE.Vector3(L/2,ridgeH+2,0),'Area = '+(L*B).toFixed(0)+' m\u00b2','#10b981');
+createDimLabel(new THREE.Vector3(L/2,ridgeH+2,0),'Area = '+(L*B).toFixed(0)+' m\u00b2 | '+(numBays+1)+' frame','#10b981');
+// Load info
+var wDLT=parseFloat(document.getElementById('load_sidl').value)*bay;
+var wLRT=parseFloat(document.getElementById('load_lr').value)*bay;
+createDimLabel(new THREE.Vector3(L/2,-2.2,0),'w='+wDLT.toFixed(1)+'+'+wLRT.toFixed(1)+' kN/m','#fbbf24');
 controls.target.set(L/2,H/2,B/2);controls.update();
 }
 
@@ -1265,6 +1275,8 @@ animate();
 setTimeout(function(){if(renderer&&container){var w=container.clientWidth||400;var h=container.clientHeight||300;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h);labelRenderer.setSize(w,h);renderer.render(scene,camera);labelRenderer.render(scene,camera)}},500);
 }
 
+var showDimLabels=true;
+function toggleDimLabels(){showDimLabels=!showDimLabels;const btn=document.getElementById('btn-dims');if(showDimLabels){btn.style.background='rgba(6,182,212,.2)';btn.style.borderColor='rgba(6,182,212,.5)';btn.style.color='#38bdf8'}else{btn.style.background='rgba(100,116,139,.15)';btn.style.borderColor='rgba(100,116,139,.3)';btn.style.color='#64748b'}try{if(!scene)init3D();runAnalysis()}catch(e){}}
 function getColorForDC(dc){return dc>1.0?0xef4444:(dc>0.8?0xfacc15:0x10b981)}
 
 function createMember(p1,p2,profile,color,type){
@@ -1365,6 +1377,10 @@ createDimLabel(new THREE.Vector3(L+1.5,H+0.5,bay/2),'bay='+bay.toFixed(1)+'m');
 createDimLabel(new THREE.Vector3(L/2,-1.8,B),'B = '+B.toFixed(1)+'m \u00d7 '+numBays+' bay ('+(numBays+1)+' frame)');
 // Area
 createDimLabel(new THREE.Vector3(L/2,ridgeH+2,0),'Area = '+(L*B).toFixed(0)+' m\u00b2 | '+numFrames+' frame','#10b981');
+// Load info
+var wDLDisp=parseFloat(document.getElementById('load_sidl').value)*bay;
+var wLRDisp=parseFloat(document.getElementById('load_lr').value)*bay;
+createDimLabel(new THREE.Vector3(L/2,-2.2,0),'w='+wDLDisp.toFixed(1)+'+'+wLRDisp.toFixed(1)+' kN/m','#fbbf24');
 // Column height with pedestal
 createDimLabel(new THREE.Vector3(-1.8,-0.6,0),'Ped '+currentProfiles.pedestal,'#94a3b8');
 controls.target.set(L/2,H/2,B/2);controls.update();
