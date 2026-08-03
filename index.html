@@ -129,7 +129,7 @@ table.dcr-table td.safe{color:var(--safe);font-weight:600}
 </div>
 </div>
 </header>
-<div class="max-w-[1600px] mx-auto p-3 grid grid-cols-12 gap-3">
+<div class="max-w-[1600px] mx-auto p-3 grid grid-cols-12 gap-3 main-grid" style="padding-bottom:50px">
 <!-- LEFT PANEL -->
 <div class="col-span-12 lg:col-span-3 space-y-2">
 <div class="section-section">
@@ -224,7 +224,7 @@ table.dcr-table td.safe{color:var(--safe);font-weight:600}
 <div class="section-section p-0 overflow-hidden">
 <div class="flex items-center justify-between px-3 py-2 border-b" style="border-color:var(--border)">
 <span class="text-xs font-bold" style="color:var(--accent)"><i class="fa-solid fa-cube mr-1"></i>MODEL STRUKTUR 3D</span>
-<div class="flex gap-1.5 items-center">
+<div class="flex gap-1.5 items-center flex-wrap">
 <button onclick="setView('iso')" class="btn-secondary text-[10px]">ISO</button>
 <button onclick="setView('front')" class="btn-secondary text-[10px]">FRONT</button>
 <button onclick="setView('top')" class="btn-secondary text-[10px]">TOP</button>
@@ -282,7 +282,7 @@ table.dcr-table td.safe{color:var(--safe);font-weight:600}
 </div>
 <div class="section-section">
 <h3 class="text-xs font-bold mb-2" style="color:var(--danger)"><i class="fa-solid fa-chart-line mr-1"></i>SPEKTRUM RESPONS</h3>
-<div style="height:200px"><canvas id="rs-chart"></canvas></div>
+<div style="height:180px" class="rs-chart-wrap"><canvas id="rs-chart"></canvas></div>
 </div>
 <div class="section-section">
 <h3 class="text-xs font-bold mb-2" style="color:var(--accent)"><i class="fa-solid fa-square-root-variable mr-1"></i>LOG PERHITUNGAN</h3>
@@ -1478,71 +1478,135 @@ let h=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Laporan</title><s
 #canvas-container .lbl-tooltip{transition:all .2s}
 #canvas-container .lbl-tooltip:hover{transform:scale(1.15);box-shadow:0 0 12px rgba(168,85,247,.4)}
 #canvas-container canvas{display:block!important;width:100%!important;height:100%!important}
-@media(max-width:768px){#canvas-container{height:300px!important;min-height:250px!important}
-.toolbar{flex-wrap:wrap;gap:4px!important;padding:4px!important;justify-content:flex-start!important}
-.toolbar .btn-secondary,.toolbar button{font-size:9px!important;padding:4px 8px!important;margin:1px!important;white-space:nowrap;flex:0 0 auto!important}
+
+/* === MOBILE LAYOUT ORDERING === */
+@media(max-width:1023px){
+.main-grid{display:flex;flex-direction:column}
+.main-grid > div:nth-child(1){order:2} /* Left panel - inputs */
+.main-grid > div:nth-child(2){order:1} /* Center - 3D + results first */
+.main-grid > div:nth-child(3){order:3} /* Right panel - profiles */
+}
+
+/* === MOBILE/TABLET RESPONSIVE FIX v2 === */
+@media(max-width:768px){
+#canvas-container{height:320px!important;min-height:260px!important}
+/* Toolbar: scrollable horizontal strip */
+.toolbar{flex-wrap:nowrap!important;overflow-x:auto!important;gap:4px!important;padding:6px 4px!important;justify-content:flex-start!important;-webkit-overflow-scrolling:touch}
+.toolbar::-webkit-scrollbar{height:3px}
+.toolbar::-webkit-scrollbar-thumb{background:var(--accent);border-radius:2px}
+.toolbar .btn-secondary,.toolbar button{font-size:9px!important;padding:5px 8px!important;margin:0!important;white-space:nowrap!important;flex:0 0 auto!important;border-radius:6px}
 .toolbar button i{margin-right:2px!important}
-.metric-row{gap:4px!important}
-.metric-card{padding:6px 8px!important;min-width:0!important}
-.metric-card .metric-label{font-size:8px!important}
-.metric-card .metric-value{font-size:14px!important;font-weight:700}
-.metric-card .metric-sub{font-size:7px!important}
-.input-panel{padding:8px!important;max-height:40vh!important;overflow-y:auto!important;font-size:11px!important}
-.input-panel .form-label{font-size:9px!important;margin-bottom:2px!important}
-.input-panel .form-input,.input-panel select{font-size:10px!important;padding:3px 6px!important}
-.input-panel select{font-size:9px!important}
-.panel-title{font-size:11px!important;padding:4px 8px!important}
-.profile-section{padding:6px!important}
-.profile-section select{font-size:9px!important;padding:2px 4px!important}
-.profile-section .form-label{font-size:8px!important}
-.calc-panel{padding:6px!important;font-size:9px!important;max-height:35vh!important;overflow-y:auto}
-.main-content{padding:4px!important}
-.result-badge{font-size:7px!important;padding:1px 4px!important}
-.float-btn-group{bottom:40px!important;right:4px!important}
+/* Primary button in toolbar - not full width */
+.toolbar .btn-primary{width:auto!important;margin-bottom:0!important;font-size:10px!important;padding:6px 10px!important}
+/* Metric cards: 2x2 grid */
+.grid.grid-cols-2.sm\:grid-cols-4{grid-template-columns:repeat(2,1fr)!important;gap:6px!important}
+.metric-card{padding:8px 10px!important;min-width:0!important;border-radius:8px}
+.metric-card .text-2xl{font-size:18px!important}
+.metric-card .text-lg{font-size:14px!important}
+.metric-card .text-xl{font-size:16px!important}
+.metric-card .text-\[9px\]{font-size:8px!important}
+.result-badge{font-size:8px!important;padding:2px 6px!important}
+/* Section sections */
+.section-section{padding:8px!important;margin-bottom:6px!important}
+.section-section h3{font-size:11px!important}
+/* Form inputs */
+.form-label{font-size:9px!important;margin-bottom:2px!important}
+.form-input{font-size:11px!important;padding:5px 8px!important}
+/* Grid layouts inside sections */
+.grid.grid-cols-2{gap:6px!important}
+.grid.grid-cols-3{gap:4px!important;grid-template-columns:repeat(2,1fr)!important}
+/* Main content padding */
+.max-w-\[1600px\]{padding:6px!important}
+/* Floating buttons */
+.float-btn-group{bottom:44px!important;right:4px!important}
 .float-btns{gap:4px!important;padding-right:2.5rem!important}
 .fbtn{width:32px!important;height:32px!important;font-size:11px!important}
 .fbtn-chatbot{width:38px!important;height:38px!important}
 .fbtn-toggle{width:26px!important;height:26px!important;font-size:10px!important}
-.dcr-table{font-size:8px!important}
-.dcr-table th,.dcr-table td{padding:2px 4px!important;font-size:8px!important}
-#floatingChatPanel{width:calc(100vw - 16px)!important;height:70vh!important;bottom:50px!important;right:8px!important}
-.chat-body{font-size:11px!important}
-.modal-content{width:95%!important;padding:12px!important;font-size:11px!important}
-.modal-content select,.modal-content input{font-size:10px!important;padding:3px 6px!important}
+/* DCR table */
+.dcr-table{font-size:9px!important}
+.dcr-table th,.dcr-table td{padding:3px 5px!important;font-size:9px!important}
+/* Chat panel */
+#floatingChatPanel{width:calc(100vw - 12px)!important;height:72vh!important;bottom:52px!important;right:6px!important;border-radius:12px!important}
+.chat-body{font-size:11px!important;padding:10px!important}
+.chat-msg-user{font-size:12px!important;padding:8px 12px!important}
+.chat-msg-bot .bot-bubble{font-size:12px!important;padding:10px 12px!important}
+.chat-input-bar{padding:8px!important}
+.chat-shortcuts{padding:6px 8px!important}
+/* Modal */
+.modal-content{width:94%!important;padding:12px!important;font-size:11px!important;max-height:80vh}
+.modal-content select,.modal-content input{font-size:10px!important;padding:4px 8px!important}
+/* Calc box */
+.calc-box{font-size:9px!important;padding:6px!important}
+/* Credit bar */
+.credit-bar{padding:4px 8px!important}
+.credit-bar .text-xs{font-size:10px!important}
+.credit-bar .text-\[10px\]{font-size:9px!important}
+.credit-bar .text-\[9px\]{font-size:8px!important}
+/* Header */
+header .flex.items-center.gap-1\.5{gap:4px!important}
+header .text-\[8px\]{font-size:7px!important}
+/* Canvas controls */
+#canvas-container .btn-secondary{font-size:8px!important;padding:3px 6px!important}
 }
+
 @media(max-width:480px){
-.toolbar{flex-direction:row;flex-wrap:wrap;justify-content:flex-start;overflow-x:auto}
-.toolbar button{font-size:8px!important;padding:3px 5px!important}
-.metric-row{flex-wrap:wrap}
-.metric-card{flex:1 1 45%!important;min-width:45%!important}
-.input-panel{font-size:10px!important}
-.float-btns{gap:3px!important}
+/* Toolbar: compact scroll */
+.toolbar{padding:4px 2px!important}
+.toolbar .btn-secondary,.toolbar button{font-size:8px!important;padding:4px 6px!important}
+.toolbar .btn-primary{font-size:9px!important;padding:5px 8px!important}
+/* Metric cards: 2 columns */
+.grid.grid-cols-2.sm\:grid-cols-4{grid-template-columns:repeat(2,1fr)!important;gap:5px!important}
+.metric-card{padding:6px 8px!important}
+.metric-card .text-2xl{font-size:15px!important}
+.metric-card .text-lg{font-size:12px!important}
+.metric-card .text-xl{font-size:14px!important}
+/* Canvas smaller */
+#canvas-container{height:240px!important;min-height:200px!important}
+/* Floating buttons smaller */
+.float-btns{gap:3px!important;padding-right:2rem!important}
 .fbtn{width:28px!important;height:28px!important;font-size:10px!important}
 .fbtn-chatbot{width:34px!important;height:34px!important}
+.fbtn-toggle{width:24px!important;height:24px!important;font-size:9px!important}
+/* Header compact */
+header{padding:4px 6px!important}
+.cyber-font{font-size:11px!important}
+header .max-w-\[1600px\]{padding:4px 6px!important}
+/* Sections */
+.section-section{padding:6px!important}
+.form-input{font-size:10px!important;padding:4px 6px!important}
+.form-label{font-size:8px!important}
+/* Credit bar ultra-compact */
+.credit-bar{padding:3px 6px!important;flex-wrap:wrap;justify-content:center}
+.credit-bar .text-xs{font-size:9px!important}
+.credit-bar .text-\[10px\]{font-size:8px!important}
+/* DCR table even smaller */
+.dcr-table{font-size:8px!important}
+.dcr-table th,.dcr-table td{padding:2px 3px!important;font-size:8px!important}
+/* Canvas controls hidden on very small */
+#canvas-container .btn-secondary{font-size:7px!important;padding:2px 4px!important}
+/* Chat panel full width */
+#floatingChatPanel{width:calc(100vw - 8px)!important;height:75vh!important;right:4px!important}
 }
+
+
+@media(max-width:480px){
+.rs-chart-wrap{height:140px!important}
+}
+
+/* Tablet specific (768-1024) */
 @media(min-width:769px) and (max-width:1024px){
 .toolbar{flex-wrap:wrap;gap:6px}
 .toolbar button{font-size:10px!important;padding:5px 10px!important}
-.input-panel{font-size:12px!important}
-.input-panel .form-input{font-size:11px!important}
-.profile-section select{font-size:10px!important}
-.metric-card .metric-value{font-size:16px!important}
-#canvas-container{height:350px!important;min-height:300px!important}
-.float-btn-group{bottom:45px!important}
+.toolbar .btn-primary{font-size:11px!important;padding:6px 12px!important}
+.form-input{font-size:11px!important}
+.metric-card .text-2xl{font-size:18px!important}
+.metric-card .text-lg{font-size:15px!important}
+#canvas-container{height:380px!important;min-height:320px!important}
+.float-btn-group{bottom:48px!important}
 .fbtn{width:38px!important;height:38px!important}
-}
-
-@media(max-width:768px){
-.btn-primary{font-size:10px!important;padding:6px 10px!important;width:100%!important;margin-bottom:4px!important}
-.btn-primary i{font-size:10px!important}
-#btn-quake{font-size:9px!important}
-}
-@media(max-width:480px){
-.btn-primary{font-size:9px!important;padding:5px 8px!important}
-.metric-card{min-width:calc(50% - 4px)!important}
-#canvas-container{height:220px!important;min-height:200px!important}
-header .max-w-\[1600px\]{padding:4px 6px!important}
-.cyber-font{font-size:11px!important}
+.fbtn-chatbot{width:44px!important;height:44px!important}
+.section-section{padding:10px!important}
 }
 </style></head><body>`;
 h+='<h1>LAPORAN ANALISIS STRUKTUR BAJA GUDANG BULOG</h1><p style="text-align:center"><b>Proyek:</b> '+pn+'<br><b>Lokasi:</b> '+pl+'<br><b>Engineer:</b> '+v('proj_eng')+'<br><b>Tanggal:</b> '+new Date().toLocaleDateString('id-ID')+'</p>';
