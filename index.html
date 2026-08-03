@@ -27,6 +27,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);margi
 input,select{outline:none}
 input:focus,select:focus{border-color:var(--accent)!important;box-shadow:0 0 0 2px rgba(6,182,212,.2)}
 .form-input{background:var(--card);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:12px;width:100%}
+
+.model-select{border:1px solid var(--accent2)!important;background:rgba(168,85,247,.08)!important;font-weight:700!important}
+.model-select:focus{border-color:var(--accent2)!important;box-shadow:0 0 0 2px rgba(168,85,247,.2)!important}
+
 .form-label{font-size:10px;color:var(--dim);margin-bottom:3px;display:block;font-weight:600;text-transform:uppercase;letter-spacing:.03em}
 .btn-primary{background:var(--accent);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;transition:all .2s;font-family:'Orbitron'}
 .btn-primary:hover{filter:brightness(1.1);transform:translateY(-1px)}
@@ -52,7 +56,7 @@ table.dcr-table td.safe{color:var(--safe);font-weight:600}
 .badge-safe{background:rgba(16,185,129,.15);color:var(--safe);border:1px solid rgba(16,185,129,.3)}
 .badge-warn{background:rgba(250,204,21,.15);color:var(--warn);border:1px solid rgba(250,204,21,.3)}
 .badge-danger{background:rgba(239,68,68,.15);color:var(--danger);border:1px solid rgba(239,68,68,.3)}
-.lbl-tooltip{cursor:pointer;transition:all .2s}
+.lbl-tooltip{cursor:pointer;transition:all .2s;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lbl-tooltip:hover{transform:scale(1.1)}
 .toggle-chk{appearance:none;width:32px;height:18px;background:var(--border);border-radius:9px;position:relative;cursor:pointer;transition:all .2s}
 .toggle-chk:checked{background:var(--accent)}
@@ -138,7 +142,7 @@ table.dcr-table td.safe{color:var(--safe);font-weight:600}
 <div><label class="form-label">Nama Proyek</label><input id="proj_name" class="form-input" value="Gudang Bulog 3500 Ton"></div>
 <div><label class="form-label">Lokasi</label><input id="proj_loc" class="form-input" value="Lombok Tengah, NTB"></div>
 <div><label class="form-label">Tipe Bangunan</label><select id="bldg_preset" class="form-input" onchange="loadPreset()"><option value="24x66">24 x 66m (3500 Ton)</option><option value="18x30">18 x 30m (1000 Ton)</option><option value="32x48">32 x 48m (3500 Ton)</option><option value="18x24">18 x 24m (Unit Kecil)</option></select></div>
-<div><label class="form-label">Model Struktur</label><select id="model_type" class="form-input" onchange="toggleModel()"><option value="portal">Portal Frame (Baja)</option><option value="cremona">Rangka Cremona (Truss)</option><option value="warren">Rangka Warren (Truss)</option></select></div>
+<div><label class="form-label">Model Struktur</label><select id="model_type" class="form-input model-select" onchange="toggleModel()"><option value="portal">Portal Frame (Baja)</option><option value="cremona">Rangka Cremona (Truss)</option><option value="warren">Rangka Warren (Truss)</option></select></div>
 <div id="truss_panel_length_div" style="display:none"><label class="form-label">Panjang Panel Truss (m)</label><input type="number" id="truss_panel" class="form-input" value="4" onchange="runAnalysis()"></div>
 <div><label class="form-label">Engineer</label><input id="proj_eng" class="form-input" value="Mohamad Hartadi"></div>
 </div>
@@ -1592,6 +1596,44 @@ header .max-w-\[1600px\]{padding:4px 6px!important}
 
 @media(max-width:480px){
 .rs-chart-wrap{height:140px!important}
+}
+
+
+
+
+/* === STICKY TOOLBAR ON MOBILE === */
+@media(max-width:768px){
+.toolbar{position:sticky;top:0;z-index:30;background:var(--bg);border-radius:8px;padding:6px 4px!important}
+}
+
+/* === TOUCH-FRIENDLY TARGETS === */
+@media(max-width:768px){
+.toggle-chk{width:36px;height:20px}
+.toggle-chk::after{width:16px;height:16px}
+.toggle-chk:checked::after{transform:translateX(16px)}
+.btn-secondary{min-height:32px}
+.form-input{min-height:32px}
+}
+
+/* === ULTRA SMALL SCREENS (max-width:360px) === */
+@media(max-width:360px){
+.toolbar .btn-secondary,.toolbar button{font-size:7px!important;padding:3px 5px!important}
+.metric-card{padding:5px 6px!important;border-radius:6px}
+.metric-card .text-2xl{font-size:13px!important}
+.metric-card .text-lg{font-size:11px!important}
+.metric-card .text-xl{font-size:12px!important}
+.metric-card .text-\[9px\]{font-size:7px!important}
+.result-badge{font-size:7px!important;padding:1px 4px!important}
+#canvas-container{height:200px!important;min-height:180px!important}
+.credit-bar .text-xs{font-size:8px!important}
+.credit-bar .text-\[10px\]{font-size:7px!important}
+.clink{padding:2px 5px!important;font-size:8px!important}
+.cyber-font{font-size:10px!important}
+header .text-\[8px\]{font-size:6px!important}
+.form-input{font-size:9px!important;padding:3px 4px!important}
+.form-label{font-size:7px!important}
+.section-section{padding:5px!important}
+.section-section h3{font-size:10px!important}
 }
 
 /* Tablet specific (768-1024) */
