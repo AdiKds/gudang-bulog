@@ -466,7 +466,6 @@ const CsUsed=Math.max(Math.min(Cs,CsMax),CsMin);
 var selfW_est=0;
 const _secK=sectionDB[document.getElementById('prof_kolom').value];
 if(_secK){selfW_est=_secK.A*H*2*numFrames*gamma/1000+L*B*0.3} // rough estimate
-var Wtotal=wTotal*B+selfW_est;
 const Vbase=CsUsed*Wtotal;
 const F_seismic=Vbase/numFrames,M_seismic=F_seismic*H;
 // WIND
@@ -475,6 +474,7 @@ const Kz=expo==='C'?0.98*Math.pow(H/10,2/9.5):(expo==='B'?0.7*Math.pow(H/10,2/7)
 const qz=0.5*1.225*(Vw**2)*Kz*Kzt*Kd/1000;
 const Cp=1.3,P_wind=qz*Cp,F_wind=P_wind*H*bayA,M_wind=F_wind*H;
 const wDL=SIDL*bayA,wLR=Lr*bayA,wTotal=wDL+wLR;
+var Wtotal=wTotal*B+selfW_est;
 if(modelType==='cremona'||modelType==='warren'){
 // CREMONA TRUSS PATH
 const trussProfiles={topChord:document.getElementById('prof_topchord').value,bottomChord:document.getElementById('prof_botchord').value,web:document.getElementById('prof_web').value,gording:document.getElementById('prof_gording').value};
@@ -1465,7 +1465,59 @@ let h=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Laporan</title><s
 #canvas-container .lbl-tooltip{transition:all .2s}
 #canvas-container .lbl-tooltip:hover{transform:scale(1.15);box-shadow:0 0 12px rgba(168,85,247,.4)}
 #canvas-container canvas{display:block!important;width:100%!important;height:100%!important}
-@media(max-width:768px){#canvas-container{height:300px!important;min-height:250px!important}}
+@media(max-width:768px){#canvas-container{height:300px!important;min-height:250px!important}
+.toolbar{flex-wrap:wrap;gap:4px!important;padding:4px!important}
+.toolbar .btn-secondary,.toolbar button{font-size:9px!important;padding:4px 8px!important;margin:1px!important;white-space:nowrap}
+.toolbar button i{margin-right:2px!important}
+.metric-row{gap:4px!important}
+.metric-card{padding:6px 8px!important;min-width:0!important}
+.metric-card .metric-label{font-size:8px!important}
+.metric-card .metric-value{font-size:14px!important;font-weight:700}
+.metric-card .metric-sub{font-size:7px!important}
+.input-panel{padding:8px!important;max-height:40vh!important;overflow-y:auto!important;font-size:11px!important}
+.input-panel .form-label{font-size:9px!important;margin-bottom:2px!important}
+.input-panel .form-input,.input-panel select{font-size:10px!important;padding:3px 6px!important}
+.input-panel select{font-size:9px!important}
+.panel-title{font-size:11px!important;padding:4px 8px!important}
+.profile-section{padding:6px!important}
+.profile-section select{font-size:9px!important;padding:2px 4px!important}
+.profile-section .form-label{font-size:8px!important}
+.calc-panel{padding:6px!important;font-size:9px!important;max-height:35vh!important;overflow-y:auto}
+.main-content{padding:4px!important}
+.result-badge{font-size:7px!important;padding:1px 4px!important}
+.float-btn-group{bottom:40px!important;right:4px!important}
+.float-btns{gap:4px!important;padding-right:2.5rem!important}
+.fbtn{width:32px!important;height:32px!important;font-size:11px!important}
+.fbtn-chatbot{width:38px!important;height:38px!important}
+.fbtn-toggle{width:26px!important;height:26px!important;font-size:10px!important}
+.dcr-table{font-size:8px!important}
+.dcr-table th,.dcr-table td{padding:2px 4px!important;font-size:8px!important}
+#floatingChatPanel{width:calc(100vw - 16px)!important;height:70vh!important;bottom:50px!important;right:8px!important}
+.chat-body{font-size:11px!important}
+.modal-content{width:95%!important;padding:12px!important;font-size:11px!important}
+.modal-content select,.modal-content input{font-size:10px!important;padding:3px 6px!important}
+}
+@media(max-width:480px){
+.toolbar{flex-direction:row;flex-wrap:wrap;justify-content:flex-start;overflow-x:auto}
+.toolbar button{font-size:8px!important;padding:3px 5px!important}
+.metric-row{flex-wrap:wrap}
+.metric-card{flex:1 1 45%!important;min-width:45%!important}
+.input-panel{font-size:10px!important}
+.float-btns{gap:3px!important}
+.fbtn{width:28px!important;height:28px!important;font-size:10px!important}
+.fbtn-chatbot{width:34px!important;height:34px!important}
+}
+@media(min-width:769px) and (max-width:1024px){
+.toolbar{flex-wrap:wrap;gap:6px}
+.toolbar button{font-size:10px!important;padding:5px 10px!important}
+.input-panel{font-size:12px!important}
+.input-panel .form-input{font-size:11px!important}
+.profile-section select{font-size:10px!important}
+.metric-card .metric-value{font-size:16px!important}
+#canvas-container{height:350px!important;min-height:300px!important}
+.float-btn-group{bottom:45px!important}
+.fbtn{width:38px!important;height:38px!important}
+}
 </style></head><body>`;
 h+='<h1>LAPORAN ANALISIS STRUKTUR BAJA GUDANG BULOG</h1><p style="text-align:center"><b>Proyek:</b> '+pn+'<br><b>Lokasi:</b> '+pl+'<br><b>Engineer:</b> '+v('proj_eng')+'<br><b>Tanggal:</b> '+new Date().toLocaleDateString('id-ID')+'</p>';
 h+='<h2>1. Data Input</h2><table><tr><th>Parameter</th><th>Nilai</th></tr><tr><td>Dimensi</td><td>'+L+' x '+B+' m</td></tr><tr><td>Tinggi</td><td>'+H+' m</td></tr><tr><td>Baja fy/fu</td><td>'+v('mat_fy')+'/'+v('mat_fu')+' MPa</td></tr><tr><td>Kolom</td><td>'+currentProfiles.kolom+'</td></tr><tr><td>Rafter</td><td>'+currentProfiles.rafter+'</td></tr><tr><td>Girder</td><td>'+currentProfiles.girder+'</td></tr><tr><td>Kanopi</td><td>'+currentProfiles.kanopi+'</td></tr><tr><td>Pedestal</td><td>'+currentProfiles.pedestal+'</td></tr></table>';
@@ -2004,7 +2056,7 @@ runAnalysis();
 reader.readAsText(file);
 }
 
-(function(){const params=new URLSearchParams(window.location.search);const preset=params.get('preset');if(preset&&['18x30','24x66','32x48','18x24'].includes(preset)){const sel=document.getElementById('bldg_preset');if(sel){sel.value=preset;loadPreset();}}const model=params.get('model');if(model&&['portal','cremona','warren'].includes(model)){const sel=document.getElementById('model_type');if(sel){sel.value=model;}}})()
+(function(){const params=new URLSearchParams(window.location.search);const preset=params.get('preset');if(preset&&['18x30','24x66','32x48','18x24'].includes(preset)){const sel=document.getElementById('bldg_preset');if(sel){sel.value=preset;loadPreset();}}const model=params.get('model');if(model&&['portal','cremona','warren'].includes(model)){const sel=document.getElementById('model_type');if(sel){sel.value=model;toggleModel();}}})()
 
 function loadWorksheets(){const s=localStorage.getItem('bulog_worksheets');if(s){savedWorksheets=JSON.parse(s);const list=document.getElementById('worksheet-list');if(list)list.innerHTML=savedWorksheets.map((w,i)=>'<div style="display:flex;align-items:center;justify-content:space-between;padding:8px;border-radius:6px;background:var(--card);border:1px solid var(--border)"><span style="font-size:10px;font-weight:bold">'+w.projName+'</span><div style="display:flex;gap:4px"><button onclick="loadWorksheet('+i+')" class="btn-secondary" style="font-size:10px;padding:4px 8px"><i class="fa-solid fa-upload"></i></button><button onclick="deleteWorksheet('+i+')" class="btn-secondary" style="font-size:10px;padding:4px 8px;color:#ef4444"><i class="fa-solid fa-trash"></i></button></div></div>').join('')}}
 
